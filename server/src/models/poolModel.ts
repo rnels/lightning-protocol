@@ -1,5 +1,14 @@
 import db from '../db/db';
 import { Pool } from '../types';
+import { withdrawAccountTokenBalance, depositAccountTokenBalance } from './accountTokenModel';
+
+function getTokenIdFromPoolId(id: string | number) {
+  return db.query(`
+    SELECT token_id
+      FROM pools
+      WHERE pool_id=$1
+  `, [id]);
+};
 
 export function getAllPools(sort='pool_id ASC', count=10) {
   return db.query(`
@@ -35,6 +44,7 @@ export function getPoolsByAccountId(accountId: string | number) {
 };
 
 // TODO: Validate that user has enough tokens for pool
+// TODO: Only allow users to create a pool for a given token_id if it doesn't yet exist
 export function createPool(pool: Pool) {
   return db.query(`
     INSERT INTO pools (
@@ -59,6 +69,8 @@ export function createPool(pool: Pool) {
 };
 
 // TODO(?): Create additional update(s)
+
+// TODO: Have this called when a contract sources from a pool to lock the pool, then call it when the contract is expired to unlock it
 export function updateLocked(poolId: string | number, locked: boolean, accountId: string | number) {
   return db.query(`
     UPDATE pools
@@ -72,11 +84,42 @@ export function updateLocked(poolId: string | number, locked: boolean, accountId
     accountId
   ]);
 };
-// TODO: Validate that user owns enough tokens to make this change, can add or subtract(?) May have to do this in routes instead
-export function updateTokenAmount(poolId: string | number, tokenAmount: number, accountId: string | number) {
+
+export async function withdrawPoolTokens(poolId: string | number, tokenAmount: number, accountId: string | number) {
+  let tokenId = (
+    await db.query(`
+      UPDATE pools
+      SET token_amount=token_amount-$2
+        WHERE pool_id=$1
+          AND account_id=$3
+          AND locked=false
+      RETURNING token_id
+    `,
+    [
+      poolId,
+      tokenAmount,
+      accountId
+    ])
+  ).rows[0].token_id;
+  return depositAccountTokenBalance({
+    accountId: accountId as number,
+    tokenId,
+    tokenAmount
+  });
+};
+
+// TODO: Create more protections around possibly encountering an error
+// with depositing to the pool after having the account withdrawal successfully happen
+export async function depositPoolTokens(poolId: string | number, tokenAmount: number, accountId: string | number) {
+  let tokenId = (await getTokenIdFromPoolId(poolId)).rows[0].token_id;
+  await withdrawAccountTokenBalance({
+    accountId: accountId as number,
+    tokenId,
+    tokenAmount
+  });
   return db.query(`
     UPDATE pools
-    SET token_amount=$2
+    SET token_amount=token_amount+$2
       WHERE pool_id=$1
         AND account_id=$3
   `,
@@ -88,3 +131,4 @@ export function updateTokenAmount(poolId: string | number, tokenAmount: number, 
 };
 
 // TODO: Create delete
+// Pool delete should happen on assigned contract exercise or on user withdrawal

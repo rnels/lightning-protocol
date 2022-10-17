@@ -119,19 +119,28 @@ import { QueryResult } from 'pg';
   let pool: Pool = {
     accountId: 1,
     tokenId: 1,
-    tokenAmount: 100,
+    tokenAmount: 0,
     locked: false
   };
   let result = await pools.createPool(pool);
   console.log(result);
 });
 
-// UPDATE POOL TOKEN AMOUNT
+// DEPOSIT POOL TOKENS
 (async () => {
-  let poolId = 1;
-  let tokenAmount = 200.0;
+  let poolId = 4;
+  let tokenAmount = 20.1;
   let ownerId = 1;
-  let result = await pools.updateTokenAmount(poolId, tokenAmount, ownerId);
+  let result = await pools.depositPoolTokens(poolId, tokenAmount, ownerId);
+  console.log(result);
+});
+
+// WITHDRAW POOL TOKENS
+(async () => {
+  let poolId = 4;
+  let tokenAmount = 10.2;
+  let ownerId = 1;
+  let result = await pools.withdrawPoolTokens(poolId, tokenAmount, ownerId);
   console.log(result);
 });
 

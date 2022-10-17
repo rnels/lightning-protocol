@@ -32,9 +32,21 @@ INSERT INTO listings (
 	'https://coinmarketcap.com/api/' -- Placeholder, need to do something else once I figure out the implementation
 );
 
+INSERT INTO listings (
+	asset_type,
+	name,
+	symbol,
+	price_feed_url
+) VALUES (
+	'crypto',
+	'Ethereum',
+	'ETH',
+	'https://coinmarketcap.com/api/' -- Placeholder, need to do something else once I figure out the implementation
+);
+
 INSERT INTO tokens (token_id) VALUES (1);
 
-INSERT INTO pools (
+INSERT INTO account_tokens (
 	account_id,
 	token_id,
 	token_amount
@@ -44,16 +56,34 @@ INSERT INTO pools (
 	100
 );
 
-INSERT INTO contract_types (
-	listing_id,
-	direction,
-	strike_price,
-	expires_at
+INSERT INTO account_tokens (
+	account_id,
+	token_id,
+	token_amount
+) VALUES (
+	2,
+	1,
+	200
+);
+
+INSERT INTO pools (
+	account_id,
+	token_id,
+	token_amount
 ) VALUES (
 	1,
-	true,
-	20000,
-	CURRENT_TIMESTAMP
+	1,
+	50.1
+);
+
+INSERT INTO pools (
+	account_id,
+	token_id,
+	token_amount
+) VALUES (
+	2,
+	1,
+	100.2
 );
 
 INSERT INTO contract_types (
@@ -64,17 +94,43 @@ INSERT INTO contract_types (
 ) VALUES (
 	1,
 	false,
-	18000,
+	20000.19,
+	CURRENT_TIMESTAMP
+);
+
+INSERT INTO contract_types (
+	listing_id,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	2,
+	true,
+	1500,
 	CURRENT_TIMESTAMP
 );
 
 INSERT INTO contracts (
 	type_id,
+	owner_id,
 	pool_id,
 	ask_price
 ) VALUES (
 	1,
 	1,
+	1,
+	2.5
+);
+
+INSERT INTO contracts (
+	type_id,
+	owner_id,
+	pool_id,
+	ask_price
+) VALUES (
+	2,
+	2,
+	2,
 	2.5
 );
 
@@ -83,7 +139,20 @@ INSERT INTO bids (
 	account_id,
 	bid_price
 ) VALUES (
-	1,
+	2,
 	2,
 	2.4
 );
+
+INSERT INTO trades (
+	contract_id,
+	buyer_id,
+	seller_id,
+	sale_price
+) VALUES (
+	1,
+	1,
+	2,
+	1.5
+);
+

@@ -4,7 +4,7 @@ export type Account = {
   passwordHash: string,
   firstName: string,
   lastName: string
-}
+};
 
 export type Listing = {
   listingId?: number,
@@ -13,11 +13,18 @@ export type Listing = {
 	symbol: string,
 	priceFeedUrl?: string,
 	iconUrl?: string
-}
+};
 
 export type Token = {
   tokenId: number
-}
+};
+
+export type AccountToken = {
+  accountTokensId?: number,
+  accountId: number,
+  tokenId: number,
+  tokenAmount: number
+};
 
 export type Pool = {
   poolId?: number,
@@ -25,7 +32,7 @@ export type Pool = {
 	tokenId: number,
 	tokenAmount: number,
 	locked: boolean
-}
+};
 
 export type ContractType = {
 	contractTypeId?: number,
@@ -33,7 +40,7 @@ export type ContractType = {
 	direction: boolean,
 	strikePrice: number,
 	expiresAt: number
-}
+};
 
 export type Contract = {
 	contractId?: number,
@@ -42,14 +49,14 @@ export type Contract = {
 	poolId: number,
 	askPrice?: number,
 	createdAt?: number
-}
+};
 
 export type Bid = {
 	bidId?: number,
 	typeId: number,
 	accountId: number,
 	bidPrice: number
-}
+};
 
 export type Trade = {
 	tradeId?: number,
@@ -58,8 +65,8 @@ export type Trade = {
   sellerId: number,
 	salePrice: number,
   createdAt?: number
-}
+};
 
 export type User = {
   id: number
-}
+};

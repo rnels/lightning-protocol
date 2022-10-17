@@ -21,30 +21,45 @@ CREATE TABLE listings (
 	asset_type asset_type_enum,
 	name VARCHAR(60) NOT NULL,
 	symbol VARCHAR(24) NOT NULL,
-	price_feed_url TEXT, -- TODO: Figure out how we can get price info for the listings, will need to connect with a service
+	price_feed_url TEXT, -- TODO: Figure out how we can get price info for the listings, will need to connect with a service for realtime price updates
 	icon_url TEXT
 	--CONSTRAINT symbol_unique UNIQUE (listings) -- TODO: Make a constraint where symbol + type combo must be unique
 );
 
-CREATE INDEX listings_symbol_idx ON listings(symbol);
-
 -- Will currently only be one type of token, but will expand later
+-- NOTE: Remember, 'tokens' and listings are totally seperate, tokens is intended as the paper currency and is irrelevant to the financial asset underlying a contract
 CREATE TABLE tokens (
 	token_id SERIAL NOT NULL PRIMARY KEY
 );
 
+CREATE TABLE account_tokens (
+	account_tokens_id SERIAL NOT NULL PRIMARY KEY,
+	account_id INTEGER NOT NULL,
+	token_id INTEGER NOT NULL,
+	token_amount DECIMAL NOT NULL DEFAULT 0 CHECK (token_amount>=0),
+	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
+	CONSTRAINT fk_token_id FOREIGN KEY(token_id) REFERENCES tokens(token_id)
+);
+
+CREATE INDEX account_tokens_account_id_idx ON account_tokens(account_id);
+CREATE INDEX account_tokens_token_id_idx ON account_tokens(token_id);
+
+CREATE INDEX listings_symbol_idx ON listings(symbol);
+
 -- Represents the pools which exist for a token
+-- TODO: Create check that token_amount >= 0
 CREATE TABLE pools (
 	pool_id SERIAL NOT NULL PRIMARY KEY,
 	account_id INTEGER NOT NULL,
 	token_id INTEGER NOT NULL,
-	token_amount INTEGER NOT NULL,
+	token_amount DECIMAL NOT NULL DEFAULT 0 CHECK (token_amount>=0),
 	locked BOOLEAN DEFAULT FALSE, -- When assigning a pool to a contract, set this to true, release when contract is exercised or expired
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_token_id FOREIGN KEY(token_id) REFERENCES tokens(token_id)
 );
 
 CREATE INDEX pools_account_id_idx ON pools(account_id);
+CREATE INDEX pools_token_id_idx ON pools(token_id);
 
 -- Represents all possible types of contracts that can be created
 CREATE TABLE contract_types (
