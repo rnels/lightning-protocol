@@ -1,4 +1,4 @@
-import * as model from '../models/exampleModel';
+import * as examples from '../models/exampleModel';
 import { Router } from 'express';
 const router = Router();
 

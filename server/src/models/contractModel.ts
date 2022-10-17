@@ -10,7 +10,7 @@ export function getAllContracts(sort='contract_id ASC', count=10) {
   `, [sort, count]);
 };
 
-export function getContractById(id: number) {
+export function getContractById(id: string | number) {
   return db.query(`
     SELECT *
       FROM contracts
@@ -18,7 +18,7 @@ export function getContractById(id: number) {
   `, [id]);
 };
 
-export function getContractsByTypeId(typeId: number) {
+export function getContractsByTypeId(typeId: string | number) {
   return db.query(`
     SELECT *
       FROM contracts
@@ -26,19 +26,19 @@ export function getContractsByTypeId(typeId: number) {
   `, [typeId]);
 };
 
-export function getContractsByBuyerId(buyerId: number) {
+export function getContractsByOwnerId(ownerId: string | number) {
   return db.query(`
     SELECT *
       FROM contracts
-      WHERE buyer_id=$1
-  `, [buyerId]);
+      WHERE owner_id=$1
+  `, [ownerId]);
 };
 
 export function createContract(contract: Contract) {
   return db.query(`
     INSERT INTO contracts (
       type_id,
-      buyer_id,
+      owner_id,
       pool_id,
       ask_price
     ) VALUES (
@@ -51,7 +51,7 @@ export function createContract(contract: Contract) {
   `,
   [
     contract.typeId,
-    contract.buyerId,
+    contract.ownerId,
     contract.poolId,
     contract.askPrice
   ]);

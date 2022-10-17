@@ -192,7 +192,7 @@ import { QueryResult } from 'pg';
 (async () => {
   let contract: Contract = {
     typeId: 1,
-    buyerId: 1,
+    ownerId: 1,
     poolId: 1,
     askPrice: 20.5,
     createdAt: Date.now()
@@ -226,8 +226,8 @@ import { QueryResult } from 'pg';
 
 // GET ALL CONTRACTS BY BUYER ID
 (async () => {
-  let buyerId = 1;
-  let result = await contracts.getContractsByBuyerId(buyerId);
+  let ownerId = 1;
+  let result = await contracts.getContractsByOwnerId(ownerId);
   console.log(result);
   console.log(result.rows);
 });

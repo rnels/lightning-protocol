@@ -10,7 +10,7 @@ export function getAllBids(sort='bid_id ASC', count=10) {
   `, [sort, count]);
 };
 
-export function getBidById(id: number) {
+export function getBidById(id: string | number) {
   return db.query(`
     SELECT *
       FROM bids
@@ -18,7 +18,7 @@ export function getBidById(id: number) {
   `, [id]);
 };
 
-export function getBidsByTypeId(typeId: number) {
+export function getBidsByTypeId(typeId: string | number) {
   return db.query(`
     SELECT *
       FROM bids
@@ -26,7 +26,7 @@ export function getBidsByTypeId(typeId: number) {
   `, [typeId]);
 };
 
-export function getBidsByAccountId(accountId: number) {
+export function getBidsByAccountId(accountId: string | number) {
   return db.query(`
     SELECT *
       FROM bids

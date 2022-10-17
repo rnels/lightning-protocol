@@ -10,7 +10,7 @@ export function getAllTokens(sort='token_id ASC', count=10) {
   `, [sort, count]);
 };
 
-export function getTokenById(id: number) {
+export function getTokenById(id: string | number) {
   return db.query(`
     SELECT *
       FROM tokens

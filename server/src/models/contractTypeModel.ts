@@ -10,7 +10,7 @@ export function getAllContractTypes(sort='contract_type_id ASC', count=10) {
   `, [sort, count]);
 };
 
-export function getContractTypeById(id: number) {
+export function getContractTypeById(id: string | number) {
   return db.query(`
     SELECT *
       FROM contract_types
@@ -18,7 +18,7 @@ export function getContractTypeById(id: number) {
   `, [id]);
 };
 
-export function getContractTypesByListingId(listingId: number) {
+export function getContractTypesByListingId(listingId: string | number) {
   return db.query(`
     SELECT *
       FROM contract_types

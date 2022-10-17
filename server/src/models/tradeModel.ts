@@ -10,7 +10,7 @@ export function getAllTrades(sort='trade_id ASC', count=10) {
   `, [sort, count]);
 };
 
-export function getTradeById(id: number) {
+export function getTradeById(id: string | number) {
   return db.query(`
     SELECT *
       FROM trades
@@ -18,7 +18,7 @@ export function getTradeById(id: number) {
   `, [id]);
 };
 
-export function getTradesByContractId(contractId: number) {
+export function getTradesByContractId(contractId: string | number) {
   return db.query(`
     SELECT *
       FROM trades
@@ -27,7 +27,7 @@ export function getTradesByContractId(contractId: number) {
 };
 
 // Returns both trades for an account as a buyer and a seller
-export function getAllTradesByAccountId(accountId: number) {
+export function getAllTradesByAccountId(accountId: string | number) {
   return db.query(`
     SELECT *
       FROM trades

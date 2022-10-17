@@ -25,7 +25,7 @@ export function insertExample(data: {firstValue: any, secondValue: any}) {
   `, [data.firstValue, data.secondValue]);
 };
 
-export function updateExample(id: number, newData: any) {
+export function updateExample(id: string | number, newData: any) {
   return db.query(`
     UPDATE ${'table'}
       SET ${'field'} = $2

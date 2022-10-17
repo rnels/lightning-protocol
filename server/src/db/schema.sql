@@ -62,17 +62,17 @@ CREATE INDEX contract_types_listing_id_idx ON contract_types(listing_id);
 CREATE TABLE contracts (
 	contract_id SERIAL NOT NULL PRIMARY KEY,
 	type_id INTEGER NOT NULL,
-	buyer_id INTEGER, -- Can be NULL if an initial buyer hasn't been set
+	owner_id INTEGER NOT NULL,
 	pool_id INTEGER NOT NULL, -- TODO: This means pool-contract is 1:1 which may not be ideal, revisit this later
 	ask_price DECIMAL, -- Can be NULL if not being actively offered
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
-	CONSTRAINT fk_buyer_id FOREIGN KEY(buyer_id) REFERENCES accounts(account_id),
+	CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id)
 );
 
 CREATE INDEX contracts_type_id_idx ON contracts(type_id);
-CREATE INDEX contracts_buyer_id_idx ON contracts(buyer_id);
+CREATE INDEX contracts_owner_id_idx ON contracts(owner_id);
 
 -- We are referencing contract types in order to keep bidding organized to specific configurations of contracts
 CREATE TABLE bids (

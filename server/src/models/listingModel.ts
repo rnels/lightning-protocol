@@ -10,7 +10,7 @@ export function getAllListings(sort='listing_id ASC', count=10) {
   `, [sort, count]);
 };
 
-export function getListingById(id: number) {
+export function getListingById(id: string | number) {
   return db.query(`
     SELECT *
       FROM listings

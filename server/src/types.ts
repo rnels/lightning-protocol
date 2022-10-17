@@ -38,7 +38,7 @@ export type ContractType = {
 export type Contract = {
 	contractId?: number,
 	typeId: number,
-	buyerId?: number,
+	ownerId: number,
 	poolId: number,
 	askPrice?: number,
 	createdAt?: number

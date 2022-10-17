@@ -10,7 +10,7 @@ export function getAllPools(sort='pool_id ASC', count=10) {
   `, [sort, count]);
 };
 
-export function getPoolById(id: number) {
+export function getPoolById(id: string | number) {
   return db.query(`
     SELECT *
       FROM pools
@@ -18,7 +18,7 @@ export function getPoolById(id: number) {
   `, [id]);
 };
 
-export function getPoolsByAccountId(accountId: number) {
+export function getPoolsByAccountId(accountId: string | number) {
   return db.query(`
     SELECT *
       FROM pools

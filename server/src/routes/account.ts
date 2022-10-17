@@ -1,12 +1,19 @@
-import * as model from '../models/accountModel';
+import * as accounts from '../models/accountModel';
 import { Router } from 'express';
 const router = Router();
 
 // GET REQUESTS //
 
-// Get public info for a user
+// Get public info for an authenticated user account
+// Successful response data:
+// account: {
+//   account_id
+//   email
+//   first_name
+//   last_name
+// }
 router.get('/account', (req, res) => {
-  model.getAccountInfoById(req.user!.id)
+  accounts.getAccountInfoById(req.user!.id)
     .then((result) => {
       let account = result.rows[0];
       res.status(200).send({account});

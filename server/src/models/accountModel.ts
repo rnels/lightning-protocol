@@ -1,7 +1,7 @@
 import db from '../db/db';
 import { Account } from '../types';
 
-export function getAccountInfoById(id: number) {
+export function getAccountInfoById(id: string | number) {
   return db.query(`
     SELECT
       account_id,

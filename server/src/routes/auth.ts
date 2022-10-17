@@ -1,4 +1,4 @@
-import * as model from '../models/accountModel';
+import * as accounts from '../models/accountModel';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Router } from 'express';
@@ -35,7 +35,7 @@ router.post('/register', (req, res, next) => {
   ) {
     res.status(400).send({ message: 'Please fill in all required fields' });
   } else {
-    model
+    accounts
       .getAccountAuthByEmail(email)
       .then((accountInfo: any) => {
         if (accountInfo.rows[0]) {
@@ -45,7 +45,7 @@ router.post('/register', (req, res, next) => {
             if (err) {
               console.log(err);
             }
-            model
+            accounts
               .createAccount({
                 email,
                 passwordHash: hash,
