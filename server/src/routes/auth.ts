@@ -24,22 +24,22 @@ const authHelper = (req: Request, res: Response, next=()=>{}) => {
 router.post('/register', (req, res, next) => {
   const { email, password, firstName, lastName } = req.body;
   if (!email && password) {
-    res.status(400).send('Please fill in email field');
+    res.status(400).send({ message: 'Please fill in email field' });
   } else if (!password && email) {
-    res.status(400).send('Please fill in password field');
+    res.status(400).send({ message: 'Please fill in password field' });
   } else if (
     !email ||
     !password ||
     !firstName ||
     !lastName
   ) {
-    res.status(400).send('Please fill in all required fields');
+    res.status(400).send({ message: 'Please fill in all required fields' });
   } else {
     model
       .getAccountAuthByEmail(email)
       .then((accountInfo: any) => {
         if (accountInfo.rows[0]) {
-          res.status(400).send('Email already in use');
+          res.status(400).send({ message: 'Email already in use' });
         } else {
           bcrypt.hash(password, 12, function (err, hash) {
             if (err) {
@@ -54,26 +54,26 @@ router.post('/register', (req, res, next) => {
               })
               .then((user) => authHelper(req, res, next))
               .catch((err) => {
-                console.log('Login error:', err);
-                res.sendStatus(500);
+                console.log('Login / registration error:', err);
+                res.status(500).send({ message: 'Internal login / registration error' });
               });
           });
         }
       })
       .catch((err) => {
         console.log('Registration error:', err);
-        res.sendStatus(500);
+        res.status(500).send({ message: 'Internal registration error' });
       });
   }
 });
 
 // LOGIN
-// session is established after authentication
+// Session is established after authentication
 router.post('/login', (req, res, next) => {
   authHelper(req, res, next);
 });
 
-//LOGOUT
+// LOGOUT
 router.post('/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) {
@@ -81,7 +81,7 @@ router.post('/logout', (req, res, next) => {
     }
     req.session.destroy((err) => {
       res.clearCookie('lightning-app-cookie');
-      res.send('You are logged out!');
+      res.status(201).send({ message: 'You are logged out!' });
     });
   });
 });

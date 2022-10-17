@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "db-dev": "nodemon db/db.ts",
-    "db-test-queries": "nodemon db/__tests__/testQueries.ts",
+    "db-dev": "nodemon src/db/db.ts",
+    "db-test-queries": "nodemon src/db/__tests__/testQueries.ts",
     "ts-build": "npx tsc",
     "test": "jest"
   },

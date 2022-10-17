@@ -11,7 +11,7 @@ router.get('/account', (req, res) => {
       let account = result.rows[0];
       res.status(200).send({account});
     })
-    .catch((error: any) => res.sendStatus(404));
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving account info' }));
 });
 
 export default router;

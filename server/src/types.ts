@@ -11,8 +11,8 @@ export type Listing = {
 	assetType: string,
 	name: string,
 	symbol: string,
-	price_feed_url?: string,
-	icon_url?: string
+	priceFeedUrl?: string,
+	iconUrl?: string
 }
 
 export type Token = {
@@ -32,7 +32,7 @@ export type ContractType = {
 	listingId: number,
 	direction: boolean,
 	strikePrice: number,
-	expiresAt: Date
+	expiresAt: number
 }
 
 export type Contract = {
@@ -41,7 +41,7 @@ export type Contract = {
 	buyerId?: number,
 	poolId: number,
 	askPrice?: number,
-	createdAt: Date
+	createdAt?: number
 }
 
 export type Bid = {
@@ -57,7 +57,7 @@ export type Trade = {
 	buyerId: number,
   sellerId: number,
 	salePrice: number,
-  createdAt: Date
+  createdAt?: number
 }
 
 export type User = {

@@ -3,6 +3,8 @@ CREATE DATABASE lightning;
 
 \c lightning;
 
+-- TODO: Ensure that datetime / timestamp format usage is consistent throughout the app, given that some are being converted
+
 CREATE TABLE accounts (
 	account_id SERIAL NOT NULL PRIMARY KEY,
 	email VARCHAR(64) UNIQUE,
@@ -49,7 +51,7 @@ CREATE TABLE contract_types (
 	contract_type_id SERIAL NOT NULL PRIMARY KEY,
 	listing_id INTEGER NOT NULL,
 	direction BOOLEAN NOT NULL, -- true for 'up / call', false for 'down / put'
-	strike_price INTEGER NOT NULL,
+	strike_price DECIMAL NOT NULL,
 	expires_at TIMESTAMP NOT NULL, -- TODO: Create constraint, max 2 weeks out from creation
 	CONSTRAINT fk_listing_id FOREIGN KEY(listing_id) REFERENCES listings(listing_id)
 );
@@ -62,7 +64,7 @@ CREATE TABLE contracts (
 	type_id INTEGER NOT NULL,
 	buyer_id INTEGER, -- Can be NULL if an initial buyer hasn't been set
 	pool_id INTEGER NOT NULL, -- TODO: This means pool-contract is 1:1 which may not be ideal, revisit this later
-	ask_price INTEGER, -- Can be NULL if not being actively offered
+	ask_price DECIMAL, -- Can be NULL if not being actively offered
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
 	CONSTRAINT fk_buyer_id FOREIGN KEY(buyer_id) REFERENCES accounts(account_id),
@@ -77,7 +79,7 @@ CREATE TABLE bids (
 	bid_id SERIAL NOT NULL PRIMARY KEY,
 	type_id INTEGER NOT NULL,
 	account_id INTEGER NOT NULL,
-	bid_price INTEGER NOT NULL,
+	bid_price DECIMAL NOT NULL,
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id)
 );
@@ -90,12 +92,13 @@ CREATE TABLE trades (
 	contract_id INTEGER NOT NULL,
 	buyer_id INTEGER NOT NULL,
 	seller_id INTEGER NOT NULL,
-	sale_price INTEGER NOT NULL,
+	sale_price DECIMAL NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id),
 	CONSTRAINT fk_buyer_id FOREIGN KEY(buyer_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_seller_id FOREIGN KEY(seller_id) REFERENCES accounts(account_id)
 );
 
+CREATE INDEX trades_contract_id_idx ON trades(contract_id);
 CREATE INDEX trades_buyer_id_idx ON trades(buyer_id);
 CREATE INDEX trades_seller_id_idx ON trades(seller_id);

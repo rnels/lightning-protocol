@@ -1,7 +1,7 @@
 import db from '../db/db';
 import { Account } from '../types';
 
-export function getAccountInfoById(accountId: number) {
+export function getAccountInfoById(id: number) {
   return db.query(`
     SELECT
       account_id,
@@ -10,7 +10,7 @@ export function getAccountInfoById(accountId: number) {
       last_name
     FROM accounts
       WHERE account_id=$1
-  `, [accountId]);
+  `, [id]);
 };
 
 export function getAccountAuthByEmail(email: string){

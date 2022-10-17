@@ -1,7 +1,5 @@
 import db from '../db/db';
 
-// TODO: Refactor input from using template strings to using parameterized values (i.e. $1, $2), requires change to be made to the query helper
-
 export function getExample(sort: string, count=10) {
   return db.query(`
     SELECT ${'field'}
