@@ -3,6 +3,9 @@ import './App.css';
 import axios from 'axios';
 import { serverURL } from './config';
 
+import LoginForm from './components/LoginForm';
+import RegisterForm from './components/RegisterForm';
+
 axios.defaults.withCredentials = true;
 
 type Props = {}
@@ -62,8 +65,9 @@ export default class App extends React.Component<Props, State> {
             {`Logged in as ${this.state.email}`}
           </>
           }
-
         </div>
+        <LoginForm/>
+        <RegisterForm/>
       </div>
     );
   }

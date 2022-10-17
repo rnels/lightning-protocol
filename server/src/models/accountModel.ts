@@ -38,10 +38,5 @@ export function createAccount(account: Account) {
     ) VALUES ($1, $2, $3, $4)
     RETURNING account_id
   `, [account.email, account.passwordHash, account.firstName, account.lastName])
-    .then((createRes: any) => {
-      if (createRes.name === "error") {
-        throw new Error(createRes.message);
-      }
-      return createRes.rows[0];
-    });
+    .then((createRes: any) => createRes.rows[0]);
 };

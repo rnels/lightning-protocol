@@ -11,8 +11,6 @@ const authHelper = (req: Request, res: Response, next=()=>{}) => {
     if (!user) return res.status(400).send(errorInfo.message);
     req.logIn(user, function (err) {
       if (err) return res.status(400).send({message: 'Login failed'});
-      // console.log(req.session);
-      // console.log(user);
       return res.status(200).send({
         message: 'Login successful',
         user

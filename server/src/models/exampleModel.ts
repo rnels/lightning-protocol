@@ -2,13 +2,13 @@ import db from '../db/db';
 
 // TODO: Refactor input from using template strings to using parameterized values (i.e. $1, $2), requires change to be made to the query helper
 
-export function getExample(sort: string, count: number) {
+export function getExample(sort: string, count=10) {
   return db.query(`
     SELECT ${'field'}
       FROM ${'table'}
     ORDER BY $1
     LIMIT $2
-  `, [sort, count || 10]);
+  `, [sort, count]);
 };
 
 export function getByIdExample(id: number) {
@@ -19,7 +19,7 @@ export function getByIdExample(id: number) {
   `, [id]);
 };
 
-export function insertExample(data: any) {
+export function insertExample(data: {firstValue: any, secondValue: any}) {
   return db.query(`
     INSERT INTO ${'table'} (${'firstField'}, ${'secondField'})
       VALUES ($1, $2)
