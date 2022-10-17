@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import axios from 'axios';
+import axios from '../lib/axios';
 import { serverURL } from '../config';
 
 axios.defaults.withCredentials = true;

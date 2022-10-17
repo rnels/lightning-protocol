@@ -1,12 +1,10 @@
 import React from 'react';
 import './App.css';
-import axios from 'axios';
+import axios from './lib/axios';
 import { serverURL } from './config';
 
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
-
-axios.defaults.withCredentials = true;
 
 type Props = {}
 
