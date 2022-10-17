@@ -56,3 +56,17 @@ export function createContract(contract: Contract) {
     contract.askPrice
   ]);
 };
+
+export function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
+  return db.query(`
+    UPDATE contracts
+    SET ask_price=$2
+      WHERE contract_id=$1
+        AND owner_id=$3
+  `,
+  [
+    contractId,
+    askPrice,
+    ownerId
+  ]);
+};

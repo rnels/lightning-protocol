@@ -12,7 +12,9 @@ const router = Router();
 //   token_id
 // }
 router.get('/token', (req, res, next) => {
-  if (!req.query.id) return res.status(400).send({message: 'Missing query parameter: id'});
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
   tokens.getTokenById(req.query.id as string)
     .then((result) => {
       let token = result.rows[0];

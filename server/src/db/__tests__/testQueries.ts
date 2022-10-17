@@ -126,6 +126,24 @@ import { QueryResult } from 'pg';
   console.log(result);
 });
 
+// UPDATE POOL TOKEN AMOUNT
+(async () => {
+  let poolId = 1;
+  let tokenAmount = 200.0;
+  let ownerId = 1;
+  let result = await pools.updateTokenAmount(poolId, tokenAmount, ownerId);
+  console.log(result);
+});
+
+// UPDATE POOL LOCKED STATUS
+(async () => {
+  let poolId = 1;
+  let locked = true;
+  let ownerId = 1;
+  let result = await pools.updateLocked(poolId, locked, ownerId);
+  console.log(result);
+});
+
 // GET ALL POOLS
 (async () => {
   let result = await pools.getAllPools();
@@ -139,6 +157,14 @@ import { QueryResult } from 'pg';
   let result = await pools.getPoolById(poolId);
   console.log(result);
   console.log(result.rows[0]);
+});
+
+// GET ALL POOLS BY TOKEN ID
+(async () => {
+  let tokenId = 1;
+  let result = await pools.getPoolsByTokenId(tokenId);
+  console.log(result);
+  console.log(result.rows);
 });
 
 // GET ALL POOLS BY ACCOUNT ID
@@ -198,6 +224,15 @@ import { QueryResult } from 'pg';
     createdAt: Date.now()
   };
   let result = await contracts.createContract(contract);
+  console.log(result);
+});
+
+// UPDATE CONTRACT ASK PRICE
+(async () => {
+  let contractId = 1;
+  let askPrice = 2.5;
+  let ownerId = 1;
+  let result = await contracts.updateAskPrice(contractId, askPrice, ownerId);
   console.log(result);
 });
 

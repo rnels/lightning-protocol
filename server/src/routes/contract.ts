@@ -19,7 +19,9 @@ const router = Router();
 //   created_at
 // }
 router.get('/contract', (req, res, next) => {
-  if (!req.query.id) return res.status(400).send({message: 'Missing query parameter: id'});
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
   contracts.getContractById(req.query.id as string)
     .then((result) => {
       let contract = result.rows[0];
@@ -40,7 +42,9 @@ router.get('/contract', (req, res, next) => {
 //   expires_at
 // }
 router.get('/contract/type', (req, res, next) => {
-  if (!req.query.id) return res.status(400).send({message: 'Missing query parameter: id'});
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
   contractTypes.getContractTypeById(req.query.id as string)
     .then((result) => {
       let contractType = result.rows[0];
@@ -55,7 +59,9 @@ router.get('/contract/type', (req, res, next) => {
 // Successful response data:
 // contracts: [contract]
 router.get('/contract/list', (req, res, next) => {
-  if (!req.query.id) return res.status(400).send({message: 'Missing query parameter: id'});
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
   contracts.getContractsByTypeId(req.query.id as string)
     .then((result) => {
       let contracts = result.rows;
@@ -82,7 +88,9 @@ router.get('/contract/owned', (req, res, next) => {
 // Successful response data:
 // contractTypes: [contractType]
 router.get('/contract/type/list', (req, res, next) => {
-  if (!req.query.id) return res.status(400).send({ message: 'Missing query parameter: id' });
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
   contractTypes.getContractTypesByListingId(req.query.id as string)
     .then((result) => {
       let contractTypes = result.rows;
@@ -95,11 +103,13 @@ router.get('/contract/type/list', (req, res, next) => {
 
 // Create a contract
 // Expects in req.body:
-// typeId - Integer
-// poolId - Integer
+//  typeId - Integer
+//  poolId - Integer
 // TODO: Validate correct types in body
 router.post('/contract', (req, res, next) => {
-  if (!req.body.typeId || !req.body.poolId || !req.body.askPrice) return res.status(400).send({message: 'Missing body parameters'});
+  if (!req.body.typeId || !req.body.poolId) {
+    return res.status(400).send({ message: 'Missing body parameters' });
+  }
   let contract: Contract = {
     typeId: req.body.typeId,
     ownerId: req.user!.id,
@@ -107,9 +117,27 @@ router.post('/contract', (req, res, next) => {
   };
   contracts.createContract(contract)
     .then((result) => {
-      res.status(201).send({message: 'Contract created'});
+      res.status(201).send({ message: 'Contract created' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error creating contract' }));
+});
+
+// PUT/PATCH REQUESTS //
+
+// Update a contract ask price
+// Expects in req.body:
+//  contractId - Integer
+//  askPrice - Decimal
+// TODO: Validate correct types in body
+router.put('/contract', (req, res, next) => {
+  if (!req.body.contractId || !req.body.askPrice) {
+    return res.status(400).send({ message: 'Missing body parameters' });
+  }
+  contracts.updateAskPrice(req.body.contractId, req.body.askPrice, req.user!.id)
+    .then((result) => {
+      res.status(204).send({ message: 'Ask price updated' });
+    })
+    .catch((error: any) => res.status(400).send({ message: 'Error updating contract ask price' }));
 });
 
 export default router;

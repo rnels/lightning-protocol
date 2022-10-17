@@ -18,6 +18,14 @@ export function getPoolById(id: string | number) {
   `, [id]);
 };
 
+export function getPoolsByTokenId(tokenId: string | number) {
+  return db.query(`
+    SELECT *
+      FROM pools
+      WHERE token_id=$1
+  `, [tokenId]);
+};
+
 export function getPoolsByAccountId(accountId: string | number) {
   return db.query(`
     SELECT *
@@ -26,6 +34,7 @@ export function getPoolsByAccountId(accountId: string | number) {
   `, [accountId]);
 };
 
+// TODO: Validate that user has enough tokens for pool
 export function createPool(pool: Pool) {
   return db.query(`
     INSERT INTO pools (
@@ -48,3 +57,34 @@ export function createPool(pool: Pool) {
     pool.locked
   ]);
 };
+
+// TODO(?): Create additional update(s)
+export function updateLocked(poolId: string | number, locked: boolean, accountId: string | number) {
+  return db.query(`
+    UPDATE pools
+    SET locked=$2
+      WHERE pool_id=$1
+        AND account_id=$3
+  `,
+  [
+    poolId,
+    locked,
+    accountId
+  ]);
+};
+// TODO: Validate that user owns enough tokens to make this change, can add or subtract(?) May have to do this in routes instead
+export function updateTokenAmount(poolId: string | number, tokenAmount: number, accountId: string | number) {
+  return db.query(`
+    UPDATE pools
+    SET token_amount=$2
+      WHERE pool_id=$1
+        AND account_id=$3
+  `,
+  [
+    poolId,
+    tokenAmount,
+    accountId
+  ]);
+};
+
+// TODO: Create delete
