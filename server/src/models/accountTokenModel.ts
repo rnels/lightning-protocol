@@ -3,6 +3,12 @@ import { AccountToken } from '../types';
 
 // TODO: Write tests for this model
 
+async function checkAccountTokenPairExists(accountId: string | number, tokenId: string | number): Promise<boolean> {
+  return (
+    await getAccountTokensByTokenId(accountId, tokenId)
+  ).rows.length > 0;
+};
+
 // Can be used to get all token balances for an account
 export function getAccountTokensByAccountId(accountId: string | number) {
   return db.query(`
@@ -24,8 +30,9 @@ export function getAccountTokensByTokenId(accountId: string | number, tokenId: s
   `, [accountId, tokenId]);
 };
 
-// TODO: Need to be sure that there is only one record for the balances of each account_id - token_id pair
-export function createAccountTokensForTokenId(accountToken: AccountToken) {
+export async function createAccountTokensForTokenId(accountToken: AccountToken) {
+  let exists = await checkAccountTokenPairExists(accountToken.accountId, accountToken.tokenId);
+  if (exists) return depositAccountTokenBalance(accountToken);
   return db.query(`
     INSERT INTO account_tokens (
       account_id,

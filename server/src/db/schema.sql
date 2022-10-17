@@ -33,7 +33,7 @@ CREATE TABLE tokens (
 );
 
 CREATE TABLE account_tokens (
-	account_tokens_id SERIAL NOT NULL PRIMARY KEY,
+	account_token_id SERIAL NOT NULL PRIMARY KEY,
 	account_id INTEGER NOT NULL,
 	token_id INTEGER NOT NULL,
 	token_amount DECIMAL NOT NULL DEFAULT 0 CHECK (token_amount>=0),

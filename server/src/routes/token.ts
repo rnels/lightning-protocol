@@ -6,7 +6,7 @@ const router = Router();
 
 // Get token info by token ID
 // Expects in req.query:
-//  id - Token ID to retrieve details of
+//  id - token_id to retrieve details of
 // Successful response data:
 // token: {
 //   token_id

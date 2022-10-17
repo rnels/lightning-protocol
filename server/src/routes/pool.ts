@@ -1,8 +1,6 @@
 import * as pools from '../models/poolModel';
-import * as accountTokens from '../models/accountTokenModel';
+import { Pool } from '../types';
 import { Router } from 'express';
-import { Pool, AccountToken } from '../types';
-import pool from '../db/db';
 const router = Router();
 
 // GET REQUESTS //
