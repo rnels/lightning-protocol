@@ -58,7 +58,6 @@ CREATE TABLE contract_types (
 CREATE INDEX contract_types_asset_id_idx ON contract_types(asset_id);
 
 -- Represents the instances of outstanding contracts
--- TODO: Recall that there will need to be a fee difference between bid and ask for a trade to complete, and the ask + fee price will be the resulting ask
 -- TODO: There was a reason you seperated contracts and contract_types, but do some research if it's really the right way. Would save on a lot of join lookups if the contract_types properties were consolidated into contracts
 -- The main holdup right now is how the bids table considers contract_types
 CREATE TABLE contracts (
@@ -102,6 +101,7 @@ CREATE TABLE bids (
 	type_id INTEGER NOT NULL,
 	account_id INTEGER NOT NULL,
 	bid_price DECIMAL NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- TODO: Have a last_updated field(?)
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id)
 );

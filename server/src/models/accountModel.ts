@@ -44,10 +44,22 @@ export function createAccount(account: Account) {
     .then((createRes: any) => createRes.rows[0]);
 };
 
-export function addPaper(accountId: string | number, amount: number) {
+export function depositPaper(accountId: string | number, amount: number) {
   return db.query(`
     UPDATE accounts
     SET paper=paper+$2
+      WHERE account_id=$1
+  `,
+  [
+    accountId,
+    amount
+  ]);
+};
+
+export function withdrawPaper(accountId: string | number, amount: number) {
+  return db.query(`
+    UPDATE accounts
+    SET paper=paper-$2
       WHERE account_id=$1
   `,
   [

@@ -8,13 +8,10 @@ const router = Router();
 const authHelper = (req: Request, res: Response, next=()=>{}) => {
   passport.authenticate('local', (err, user, errorInfo) => {
     if (err) return res.sendStatus(500);
-    if (!user) return res.status(400).send(errorInfo.message);
+    if (!user) return res.status(400).send({ message: errorInfo.message });
     req.logIn(user, function (err) {
-      if (err) return res.status(400).send({message: 'Login failed'});
-      return res.status(200).send({
-        message: 'Login successful',
-        user
-      });
+      if (err) return res.status(400).send({ message: 'Login failed' });
+      return res.status(200).send({ message: 'Login successful' });
     });
   })(req, res, next);
 };
@@ -23,17 +20,12 @@ const authHelper = (req: Request, res: Response, next=()=>{}) => {
 
 router.post('/register', (req, res, next) => {
   const { email, password, firstName, lastName } = req.body;
-  if (!email && password) {
-    res.status(400).send({ message: 'Please fill in email field' });
-  } else if (!password && email) {
-    res.status(400).send({ message: 'Please fill in password field' });
-  } else if (
-    !email ||
-    !password ||
-    !firstName ||
-    !lastName
-  ) {
-    res.status(400).send({ message: 'Please fill in all required fields' });
+  if (!email) {
+    res.status(400).send({ message: 'Please provide an email address' });
+  } else if (!password) {
+    res.status(400).send({ message: 'Please provide a password' });
+  } else if (!firstName ||!lastName) {
+    res.status(400).send({ message: 'Please provide all required fields' });
   } else {
     accounts
       .getAccountAuthByEmail(email)
@@ -53,7 +45,7 @@ router.post('/register', (req, res, next) => {
                 lastName,
                 paper: 0
               })
-              .then((user) => authHelper(req, res, next))
+              .then(() => authHelper(req, res, next))
               .catch((err) => {
                 console.log('Login / registration error:', err);
                 res.status(500).send({ message: 'Internal login / registration error' });

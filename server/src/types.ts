@@ -54,7 +54,8 @@ export type Bid = {
 	bidId?: number,
 	typeId: number,
 	accountId: number,
-	bidPrice: number
+	bidPrice: number,
+	createdAt?: number
 };
 
 export type Trade = {

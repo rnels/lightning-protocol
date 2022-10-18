@@ -104,7 +104,7 @@ router.get('/contract/type/list', (req, res, next) => {
 
 // Create a contract
 // Expects in req.body:
-//  typeId - Integer
+//  typeId (Integer) - Contract type to instantiate for contract
 // TODO: Restrict this, only should be called by app not by users
 router.post('/contract', (req, res, next) => {
   if (!req.body.typeId) {
@@ -129,7 +129,7 @@ router.post('/contract', (req, res, next) => {
 // Expects in req.body:
 //   assetId (Integer)
 //   assetAmount (Decimal)
-//   direction (boolean)
+//   direction (Boolean)
 //   strikePrice (Decimal)
 //   expiresAt (Integer) // TODO: Still need to revisit using date / time types
 // TODO: Restrict this, only should be called by app not by users

@@ -1,8 +1,6 @@
 import db from '../db/db';
 import { Trade } from '../types';
 
-function executeTrade() {}
-
 export function getAllTrades(sort='trade_id ASC', count=100) {
   return db.query(`
     SELECT *

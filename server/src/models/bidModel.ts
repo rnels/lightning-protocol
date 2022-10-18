@@ -1,5 +1,6 @@
 import db from '../db/db';
 import { Bid } from '../types';
+import { getMatchingAsksByBid } from './contractModel';
 
 export function getAllBids(sort='bid_id ASC', count=10) {
   return db.query(`
@@ -34,7 +35,8 @@ export function getBidsByAccountId(accountId: string | number) {
   `, [accountId]);
 };
 
-export function createBid(bid: Bid) {
+export async function createBid(bid: Bid) {
+  try { await getMatchingAsksByBid(bid); } catch { }
   return db.query(`
     INSERT INTO bids (
       type_id,
@@ -54,15 +56,38 @@ export function createBid(bid: Bid) {
   ]);
 };
 
-export function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string) {
+export async function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string) {
+  let typeId = (await
+    db.query(`
+      UPDATE bids SET bid_price=$2
+      WHERE bid_id=$1
+        AND account_id=$3
+      RETURNING type_id
+    `,
+    [
+      bidId,
+      bidPrice,
+      accountId
+    ])
+  ).rows[0].type_id;
+  try {
+    let bid: Bid = {
+      typeId,
+      accountId: accountId as number,
+      bidPrice
+    }
+    await getMatchingAsksByBid(bid);
+  } catch { }
+}
+
+export function removeBid(bidId: number | string, accountId: number | string) {
   return db.query(`
-    UPDATE bids SET bid_price=$2
+    DELETE FROM bids
     WHERE bid_id=$1
-      AND account_id=$3
+      AND account_id=$2
   `,
   [
     bidId,
-    bidPrice,
     accountId
   ]);
 }

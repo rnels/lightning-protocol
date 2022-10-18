@@ -32,7 +32,7 @@ router.post('/account/paper', (req, res) => {
   if (!req.body.amount) {
     return res.status(400).send({ message: 'Missing body parameter: amount' });
   }
-  accounts.addPaper(req.user!.id, req.body.amount)
+  accounts.depositPaper(req.user!.id, req.body.amount)
     .then(() => res.status(201).send({ message: 'Paper deposited to account' }))
     .catch((error: any) => res.status(400).send({ message: 'Error depositing paper to account' }));
 });
