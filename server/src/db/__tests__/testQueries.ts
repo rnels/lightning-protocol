@@ -1,14 +1,13 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import * as accounts from '../../models/accountModel';
-import * as listings from '../../models/listingModel';
-import * as tokens from '../../models/tokenModel';
+import * as assets from '../../models/assetModel';
 import * as pools from '../../models/poolModel';
 import * as contractTypes from '../../models/contractTypeModel';
 import * as contracts from '../../models/contractModel';
 import * as bids from '../../models/bidModel';
 import * as trades from '../../models/tradeModel';
-import { Account, Listing, Token, Pool, Contract, ContractType, Bid, Trade } from '../../types';
+import { Account, Asset, Pool, Contract, ContractType, Bid, Trade } from '../../types';
 import { QueryResult } from 'pg';
 
 // Will eventually replace this with jest testing in queries.test.js, but for now...
@@ -23,7 +22,8 @@ import { QueryResult } from 'pg';
     email: 'guy@test.com',
     passwordHash: '3oi2jrfldsk290u',
     firstName: 'Guy',
-    lastName: 'Person'
+    lastName: 'Person',
+    paper: 100
   };
   let result = await accounts.createAccount(account);
   console.log(result);
@@ -49,26 +49,26 @@ import { QueryResult } from 'pg';
 
 // CREATE LISTING
 (async () => {
-  let listing: Listing = {
+  let asset: Asset = {
     assetType: 'crypto',
     name: 'Ethereum',
     symbol: 'ETH'
   };
-  let result = await listings.createListing(listing);
+  let result = await assets.createAsset(asset);
   console.log(result);
 });
 
 // GET ALL LISTINGS
 (async () => {
-  let result = await listings.getAllListings();
+  let result = await assets.getAllAssets();
   console.log(result);
   console.log(result.rows);
 });
 
 // GET LISTING BY ID
 (async () => {
-  let listingId = 1;
-  let result = await listings.getListingById(listingId);
+  let assetId = 1;
+  let result = await assets.getAssetById(assetId);
   console.log(result);
   console.log(result.rows[0]);
 });
@@ -78,38 +78,12 @@ import { QueryResult } from 'pg';
   let assetType = 'crypto';
   let result: QueryResult;
   try {
-    result = await listings.getListingsByAssetType(assetType);
+    result = await assets.getAssetsByAssetType(assetType);
     console.log(result);
     console.log(result.rows);
   } catch (error) {
     console.log('There was an error', error);
   }
-});
-
-// TOKENS //
-
-// CREATE TOKEN
-(async () => {
-  let token: Token = {
-    tokenId: 1
-  };
-  let result = await tokens.createToken(token);
-  console.log(result);
-});
-
-// GET ALL TOKENS
-(async () => {
-  let result = await tokens.getAllTokens();
-  console.log(result);
-  console.log(result.rows);
-});
-
-// GET TOKEN BY ID
-(async () => {
-  let tokenId = 1;
-  let result = await tokens.getTokenById(tokenId);
-  console.log(result);
-  console.log(result.rows[0]);
 });
 
 // POOLS //
@@ -118,8 +92,8 @@ import { QueryResult } from 'pg';
 (async () => {
   let pool: Pool = {
     accountId: 1,
-    tokenId: 1,
-    tokenAmount: 0,
+    assetId: 1,
+    assetAmount: 0,
     locked: false
   };
   let result = await pools.createPool(pool);
@@ -129,18 +103,18 @@ import { QueryResult } from 'pg';
 // DEPOSIT POOL TOKENS
 (async () => {
   let poolId = 4;
-  let tokenAmount = 20.1;
+  let assetAmount = 20.1;
   let ownerId = 1;
-  let result = await pools.depositPoolTokens(poolId, tokenAmount, ownerId);
+  let result = await pools.depositPoolAssets(poolId, assetAmount, ownerId);
   console.log(result);
 });
 
 // WITHDRAW POOL TOKENS
 (async () => {
   let poolId = 4;
-  let tokenAmount = 10.2;
+  let assetAmount = 10.2;
   let ownerId = 1;
-  let result = await pools.withdrawPoolTokens(poolId, tokenAmount, ownerId);
+  let result = await pools.withdrawPoolAssets(poolId, assetAmount, ownerId);
   console.log(result);
 });
 
@@ -170,8 +144,8 @@ import { QueryResult } from 'pg';
 
 // GET ALL POOLS BY TOKEN ID
 (async () => {
-  let tokenId = 1;
-  let result = await pools.getPoolsByTokenId(tokenId);
+  let assetId = 1;
+  let result = await pools.getPoolsByAssetId(assetId);
   console.log(result);
   console.log(result.rows);
 });
@@ -189,7 +163,7 @@ import { QueryResult } from 'pg';
 // CREATE CONTRACT TYPE
 (async () => {
   let contractType: ContractType = {
-    listingId: 1,
+    assetId: 1,
     direction: true,
     strikePrice: 50.54,
     expiresAt: Date.now()
@@ -215,8 +189,8 @@ import { QueryResult } from 'pg';
 
 // GET ALL CONTRACT TYPES BY LISTING ID
 (async () => {
-  let listingId = 1;
-  let result = await contractTypes.getContractTypesByListingId(listingId);
+  let assetId = 1;
+  let result = await contractTypes.getContractTypesByAssetId(assetId);
   console.log(result);
   console.log(result.rows);
 });

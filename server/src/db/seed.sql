@@ -2,25 +2,29 @@ INSERT INTO accounts (
 	email,
 	pw_hash,
 	first_name,
-	last_name
+	last_name,
+	paper
 ) VALUES (
 	'guy@test.com',
 	'3oi2jrfldsk290u',
-	'Guy', 'Person'
+	'Guy', 'Person',
+	100
 );
 
 INSERT INTO accounts (
 	email,
 	pw_hash,
 	first_name,
-	last_name
+	last_name,
+	paper
 ) VALUES (
 	'guyTwo@test.com',
 	'3oi2jrfldsk290u',
-	'Guy Two', 'Person Again'
+	'Guy Two', 'Person Again',
+	200
 );
 
-INSERT INTO listings (
+INSERT INTO assets (
 	asset_type,
 	name,
 	symbol,
@@ -32,7 +36,7 @@ INSERT INTO listings (
 	'https://coinmarketcap.com/api/' -- Placeholder, need to do something else once I figure out the implementation
 );
 
-INSERT INTO listings (
+INSERT INTO assets (
 	asset_type,
 	name,
 	symbol,
@@ -44,22 +48,22 @@ INSERT INTO listings (
 	'https://coinmarketcap.com/api/' -- Placeholder, need to do something else once I figure out the implementation
 );
 
-INSERT INTO tokens (token_id) VALUES (1);
+INSERT INTO assets (asset_id) VALUES (1);
 
-INSERT INTO account_tokens (
+INSERT INTO account_assets (
 	account_id,
-	token_id,
-	token_amount
+	asset_id,
+	asset_amount
 ) VALUES (
 	1,
 	1,
 	100
 );
 
-INSERT INTO account_tokens (
+INSERT INTO account_assets (
 	account_id,
-	token_id,
-	token_amount
+	asset_id,
+	asset_amount
 ) VALUES (
 	2,
 	1,
@@ -68,8 +72,8 @@ INSERT INTO account_tokens (
 
 INSERT INTO pools (
 	account_id,
-	token_id,
-	token_amount
+	asset_id,
+	asset_amount
 ) VALUES (
 	1,
 	1,
@@ -78,8 +82,8 @@ INSERT INTO pools (
 
 INSERT INTO pools (
 	account_id,
-	token_id,
-	token_amount
+	asset_id,
+	asset_amount
 ) VALUES (
 	2,
 	1,
@@ -87,7 +91,7 @@ INSERT INTO pools (
 );
 
 INSERT INTO contract_types (
-	listing_id,
+	asset_id,
 	direction,
 	strike_price,
 	expires_at
@@ -99,7 +103,7 @@ INSERT INTO contract_types (
 );
 
 INSERT INTO contract_types (
-	listing_id,
+	asset_id,
 	direction,
 	strike_price,
 	expires_at

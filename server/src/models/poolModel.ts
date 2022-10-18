@@ -1,10 +1,10 @@
 import db from '../db/db';
 import { Pool } from '../types';
-import { withdrawAccountTokenBalance, depositAccountTokenBalance } from './accountTokenModel';
+import { withdrawAccountAssetBalance, depositAccountAssetBalance } from './accountAssetModel';
 
-function getTokenIdFromPoolId(id: string | number) {
+function getAssetIdFromPoolId(id: string | number) {
   return db.query(`
-    SELECT token_id
+    SELECT asset_id
       FROM pools
       WHERE pool_id=$1
   `, [id]);
@@ -27,12 +27,12 @@ export function getPoolById(id: string | number) {
   `, [id]);
 };
 
-export function getPoolsByTokenId(tokenId: string | number) {
+export function getPoolsByAssetId(assetId: string | number) {
   return db.query(`
     SELECT *
       FROM pools
-      WHERE token_id=$1
-  `, [tokenId]);
+      WHERE asset_id=$1
+  `, [assetId]);
 };
 
 export function getPoolsByAccountId(accountId: string | number) {
@@ -43,14 +43,14 @@ export function getPoolsByAccountId(accountId: string | number) {
   `, [accountId]);
 };
 
-// TODO: Validate that user has enough tokens for pool
-// TODO: Only allow users to create a pool for a given token_id if it doesn't yet exist
+// TODO: Validate that user has enough assets for pool
+// TODO: Only allow users to create a pool for a given asset_id if it doesn't yet exist
 export function createPool(pool: Pool) {
   return db.query(`
     INSERT INTO pools (
       account_id,
-      token_id,
-      token_amount,
+      asset_id,
+      asset_amount,
       locked
     ) VALUES (
       $1,
@@ -62,8 +62,8 @@ export function createPool(pool: Pool) {
   `,
   [
     pool.accountId,
-    pool.tokenId,
-    pool.tokenAmount,
+    pool.assetId,
+    pool.assetAmount,
     pool.locked
   ]);
 };
@@ -85,47 +85,47 @@ export function updateLocked(poolId: string | number, locked: boolean, accountId
   ]);
 };
 
-export async function withdrawPoolTokens(poolId: string | number, tokenAmount: number, accountId: string | number) {
-  let tokenId = (
+export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
+  let assetId = (
     await db.query(`
       UPDATE pools
-      SET token_amount=token_amount-$2
+      SET asset_amount=asset_amount-$2
         WHERE pool_id=$1
           AND account_id=$3
           AND locked=false
-      RETURNING token_id
+      RETURNING asset_id
     `,
     [
       poolId,
-      tokenAmount,
+      assetAmount,
       accountId
     ])
-  ).rows[0].token_id;
-  return depositAccountTokenBalance({
+  ).rows[0].asset_id;
+  return depositAccountAssetBalance({
     accountId: accountId as number,
-    tokenId,
-    tokenAmount
+    assetId,
+    assetAmount
   });
 };
 
 // TODO: Create more protections around possibly encountering an error
 // with depositing to the pool after having the account withdrawal successfully happen
-export async function depositPoolTokens(poolId: string | number, tokenAmount: number, accountId: string | number) {
-  let tokenId = (await getTokenIdFromPoolId(poolId)).rows[0].token_id;
-  await withdrawAccountTokenBalance({
+export async function depositPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
+  let assetId = (await getAssetIdFromPoolId(poolId)).rows[0].asset_id;
+  await withdrawAccountAssetBalance({
     accountId: accountId as number,
-    tokenId,
-    tokenAmount
+    assetId,
+    assetAmount
   });
   return db.query(`
     UPDATE pools
-    SET token_amount=token_amount+$2
+    SET asset_amount=asset_amount+$2
       WHERE pool_id=$1
         AND account_id=$3
   `,
   [
     poolId,
-    tokenAmount,
+    assetAmount,
     accountId
   ]);
 };

@@ -18,18 +18,18 @@ export function getContractTypeById(id: string | number) {
   `, [id]);
 };
 
-export function getContractTypesByListingId(listingId: string | number) {
+export function getContractTypesByAssetId(assetId: string | number) {
   return db.query(`
     SELECT *
       FROM contract_types
-      WHERE listing_id=$1
-  `, [listingId]);
+      WHERE asset_id=$1
+  `, [assetId]);
 };
 
 export function createContractType(contractType: ContractType) {
   return db.query(`
     INSERT INTO contract_types (
-      listing_id,
+      asset_id,
       direction,
       strike_price,
       expires_at
@@ -42,7 +42,7 @@ export function createContractType(contractType: ContractType) {
     RETURNING contract_type_id
   `,
   [
-    contractType.listingId,
+    contractType.assetId,
     contractType.direction,
     contractType.strikePrice,
     contractType.expiresAt // TODO: Ensure that this is what we want to do going forward, converting epoch to TIMESTAMP with to_timestamp()

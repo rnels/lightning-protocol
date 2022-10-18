@@ -10,68 +10,63 @@ CREATE TABLE accounts (
 	email VARCHAR(64) UNIQUE,
 	pw_hash VARCHAR(60),
 	first_name VARCHAR(24),
-	last_name VARCHAR(24)
+	last_name VARCHAR(24),
+	paper DECIMAL -- Represents the paper USD being used for trades
 );
 
 CREATE INDEX accounts_email_idx ON accounts(email);
 
 CREATE TYPE asset_type_enum AS ENUM ('crypto', 'stock', 'currency');
-CREATE TABLE listings (
-	listing_id SERIAL NOT NULL PRIMARY KEY,
+CREATE TABLE assets (
+	asset_id SERIAL NOT NULL PRIMARY KEY,
 	asset_type asset_type_enum,
 	name VARCHAR(60) NOT NULL,
 	symbol VARCHAR(24) NOT NULL,
-	price_feed_url TEXT, -- TODO: Figure out how we can get price info for the listings, will need to connect with a service for realtime price updates
+	price_feed_url TEXT, -- TODO: Figure out how we can get price info for the assets, will need to connect with a service for realtime price updates
 	icon_url TEXT
-	--CONSTRAINT symbol_unique UNIQUE (listings) -- TODO: Make a constraint where symbol + type combo must be unique
+	--CONSTRAINT symbol_unique UNIQUE (assets) -- TODO: Make a constraint where symbol + type combo must be unique
 );
 
--- Will currently only be one type of token, but will expand later
--- NOTE: Remember, 'tokens' and listings are totally seperate, tokens is intended as the paper currency and is irrelevant to the financial asset underlying a contract
-CREATE TABLE tokens (
-	token_id SERIAL NOT NULL PRIMARY KEY
-);
-
-CREATE TABLE account_tokens (
-	account_token_id SERIAL NOT NULL PRIMARY KEY,
+-- TODO: Change everything to do with this
+CREATE TABLE account_assets (
+	account_asset_id SERIAL NOT NULL PRIMARY KEY,
 	account_id INTEGER NOT NULL,
-	token_id INTEGER NOT NULL,
-	token_amount DECIMAL NOT NULL DEFAULT 0 CHECK (token_amount>=0),
+	asset_id INTEGER NOT NULL,
+	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
-	CONSTRAINT fk_token_id FOREIGN KEY(token_id) REFERENCES tokens(token_id)
+	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
 
-CREATE INDEX account_tokens_account_id_idx ON account_tokens(account_id);
-CREATE INDEX account_tokens_token_id_idx ON account_tokens(token_id);
+CREATE INDEX account_assets_account_id_idx ON account_assets(account_id);
+CREATE INDEX account_assets_asset_id_idx ON account_assets(asset_id);
 
-CREATE INDEX listings_symbol_idx ON listings(symbol);
+CREATE INDEX assets_symbol_idx ON assets(symbol);
 
--- Represents the pools which exist for a token
--- TODO: Create check that token_amount >= 0
+-- Represents the pools which exist for an asset
 CREATE TABLE pools (
 	pool_id SERIAL NOT NULL PRIMARY KEY,
 	account_id INTEGER NOT NULL,
-	token_id INTEGER NOT NULL,
-	token_amount DECIMAL NOT NULL DEFAULT 0 CHECK (token_amount>=0),
+	asset_id INTEGER NOT NULL,
+	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
 	locked BOOLEAN DEFAULT FALSE, -- When assigning a pool to a contract, set this to true, release when contract is exercised or expired
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
-	CONSTRAINT fk_token_id FOREIGN KEY(token_id) REFERENCES tokens(token_id)
+	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
 
 CREATE INDEX pools_account_id_idx ON pools(account_id);
-CREATE INDEX pools_token_id_idx ON pools(token_id);
+CREATE INDEX pools_asset_id_idx ON pools(asset_id);
 
 -- Represents all possible types of contracts that can be created
 CREATE TABLE contract_types (
 	contract_type_id SERIAL NOT NULL PRIMARY KEY,
-	listing_id INTEGER NOT NULL,
+	asset_id INTEGER NOT NULL,
 	direction BOOLEAN NOT NULL, -- true for 'up / call', false for 'down / put'
 	strike_price DECIMAL NOT NULL,
 	expires_at TIMESTAMP NOT NULL, -- TODO: Create constraint, max 2 weeks out from creation
-	CONSTRAINT fk_listing_id FOREIGN KEY(listing_id) REFERENCES listings(listing_id)
+	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
 
-CREATE INDEX contract_types_listing_id_idx ON contract_types(listing_id);
+CREATE INDEX contract_types_asset_id_idx ON contract_types(asset_id);
 
 -- Represents the instances of outstanding contracts
 CREATE TABLE contracts (

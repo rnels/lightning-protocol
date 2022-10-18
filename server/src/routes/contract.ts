@@ -36,7 +36,7 @@ router.get('/contract', (req, res, next) => {
 // Successful response data:
 // contractType: {
 //   contract_type_id
-//   listing_id
+//   asset_id
 //   direction
 //   strike_price
 //   expires_at
@@ -55,7 +55,7 @@ router.get('/contract/type', (req, res, next) => {
 
 // Retrieve contracts for a given contract type ID
 // Expects in req.query:
-//  id - Listing ID to retrieve contract types of
+//  id - Asset ID to retrieve contract types of
 // Successful response data:
 // contracts: [contract]
 router.get('/contract/list', (req, res, next) => {
@@ -82,16 +82,16 @@ router.get('/contract/owned', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract list' }));
 });
 
-// Retrieve contract types for a given listing ID
+// Retrieve contract types for a given asset ID
 // Expects in req.query:
-//  id - Listing to retrieve contract types of
+//  id - Asset to retrieve contract types of
 // Successful response data:
 // contractTypes: [contractType]
 router.get('/contract/type/list', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
-  contractTypes.getContractTypesByListingId(req.query.id as string)
+  contractTypes.getContractTypesByAssetId(req.query.id as string)
     .then((result) => {
       let contractTypes = result.rows;
       res.status(200).send({contractTypes});

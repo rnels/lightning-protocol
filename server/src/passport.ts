@@ -19,7 +19,8 @@ export default function createPassport(passport: any) {
             email: accountRes.rows[0].email,
             passwordHash: accountRes.rows[0].pw_hash,
             firstName: accountRes.rows[0].first_name,
-            lastName: accountRes.rows[0].last_name
+            lastName: accountRes.rows[0].last_name,
+            paper: accountRes.rows[0].paper
           };
           bcrypt
             .compare(password, account.passwordHash)

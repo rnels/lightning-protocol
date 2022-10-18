@@ -3,11 +3,12 @@ export type Account = {
   email: string,
   passwordHash: string,
   firstName: string,
-  lastName: string
+  lastName: string,
+	paper: number
 };
 
-export type Listing = {
-  listingId?: number,
+export type Asset = {
+  assetId?: number,
 	assetType: string,
 	name: string,
 	symbol: string,
@@ -15,28 +16,24 @@ export type Listing = {
 	iconUrl?: string
 };
 
-export type Token = {
-  tokenId: number
-};
-
-export type AccountToken = {
-  accountTokensId?: number,
+export type AccountAsset = {
+  accountAssetsId?: number,
   accountId: number,
-  tokenId: number,
-  tokenAmount: number
+  assetId: number,
+  assetAmount: number
 };
 
 export type Pool = {
   poolId?: number,
 	accountId: number,
-	tokenId: number,
-	tokenAmount: number,
+	assetId: number,
+	assetAmount: number,
 	locked: boolean
 };
 
 export type ContractType = {
 	contractTypeId?: number,
-	listingId: number,
+	assetId: number,
 	direction: boolean,
 	strikePrice: number,
 	expiresAt: number

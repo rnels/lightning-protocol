@@ -1,34 +1,34 @@
 import db from '../db/db';
-import { Listing } from '../types';
+import { Asset } from '../types';
 
-export function getAllListings(sort='listing_id ASC', count=10) {
+export function getAllAssets(sort='asset_id ASC', count=10) {
   return db.query(`
     SELECT *
-      FROM listings
+      FROM assets
     ORDER BY $1
     LIMIT $2
   `, [sort, count]);
 };
 
-export function getListingById(id: string | number) {
+export function getAssetById(id: string | number) {
   return db.query(`
     SELECT *
-      FROM listings
-      WHERE listing_id=$1
+      FROM assets
+      WHERE asset_id=$1
   `, [id]);
 };
 
-export function getListingsByAssetType(assetType: string) {
+export function getAssetsByAssetType(assetType: string) {
   return db.query(`
     SELECT *
-      FROM listings
+      FROM assets
       WHERE asset_type=$1
   `, [assetType]);
 };
 
-export function createListing(listing: Listing) {
+export function createAsset(asset: Asset) {
   return db.query(`
-    INSERT INTO listings (
+    INSERT INTO assets (
       asset_type,
       name,
       symbol,
@@ -41,14 +41,14 @@ export function createListing(listing: Listing) {
       $4,
       $5
     )
-    RETURNING listing_id
+    RETURNING asset_id
   `,
   [
     // NOTE: This structure of inserting undefined on optional properties DOES work
-    listing.assetType,
-    listing.name,
-    listing.symbol,
-    listing.priceFeedUrl,
-    listing.iconUrl
+    asset.assetType,
+    asset.name,
+    asset.symbol,
+    asset.priceFeedUrl,
+    asset.iconUrl
   ]);
 };

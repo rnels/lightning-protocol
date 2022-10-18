@@ -51,6 +51,7 @@ router.post('/register', (req, res, next) => {
                 passwordHash: hash,
                 firstName,
                 lastName,
+                paper: 0
               })
               .then((user) => authHelper(req, res, next))
               .catch((err) => {

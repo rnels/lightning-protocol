@@ -12,8 +12,8 @@ const router = Router();
 // pool: {
 //   pool_id
 //   account_id
-//   token_id
-//   token_amount
+//   asset_id
+//   asset_amount
 //   locked
 // }
 router.get('/pool', (req, res, next) => {
@@ -28,21 +28,21 @@ router.get('/pool', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
 });
 
-// Retrieve pools for a given token ID
+// Retrieve pools for a given asset ID
 // Expects in req.query:
-//  id - token_id to retrieve pools for
+//  id - asset_id to retrieve pools for
 // Successful response data:
 // pools: [pool]
 router.get('/pool/list', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
-  pools.getPoolsByTokenId(req.query.id as string)
+  pools.getPoolsByAssetId(req.query.id as string)
     .then((result) => {
       let pools = result.rows;
       res.status(200).send({pools});
     })
-    .catch((error: any) => res.status(404).send({ message: `Error retrieving pool list for token ID ${req.query.id}` }));
+    .catch((error: any) => res.status(404).send({ message: `Error retrieving pool list for asset ID ${req.query.id}` }));
 });
 
 // Retrieve pools for the authenticated user account
@@ -59,17 +59,17 @@ router.get('/pool/owned', (req, res, next) => {
 
 // POST REQUESTS //
 
-// Create a new pool for a given tokenId
+// Create a new pool for a given assetId
 // Expects in req.body:
-//  tokenId (Integer) - token_id to create a pool for
+//  assetId (Integer) - asset_id to create a pool for
 router.post('/pool', (req, res, next) => {
-  if (!req.body.tokenId || typeof req.body.tokenId !== 'number') {
-    return res.status(400).send({ message: 'Invalid or missing body parameter: tokenId' });
+  if (!req.body.assetId || typeof req.body.assetId !== 'number') {
+    return res.status(400).send({ message: 'Invalid or missing body parameter: assetId' });
   }
   let pool: Pool = {
     accountId: req.user!.id,
-    tokenId: req.body.tokenId,
-    tokenAmount: 0,
+    assetId: req.body.assetId,
+    assetAmount: 0,
     locked: false
   };
   pools.createPool(pool)
@@ -78,19 +78,19 @@ router.post('/pool', (req, res, next) => {
       console.log('Error creating pool:', error);
       return res.status(400).send({ message: 'Error creating pool' });
     });
-  // accountTokens.getAccountTokensByTokenId(req.user!.id, req.body.tokenId)
+  // accountAssets.getAccountAssetsByAssetId(req.user!.id, req.body.assetId)
   //   .then((result) => {
-  //     // TODO: May not have to validate all this now that I have in schema check token_amount >= 0, but will keep for now
-  //     let tokenAmount = result.rows[0].token_amount || 0;
-  //     if (!tokenAmount || parseFloat(tokenAmount as string) < req.body.tokenAmount) {
-  //       return res.status(400).send({ message: 'Not enough tokens for pool' });
+  //     // TODO: May not have to validate all this now that I have in schema check asset_amount >= 0, but will keep for now
+  //     let assetAmount = result.rows[0].asset_amount || 0;
+  //     if (!assetAmount || parseFloat(assetAmount as string) < req.body.assetAmount) {
+  //       return res.status(400).send({ message: 'Not enough assets for pool' });
   //     }
   //     return Promise.all([
   //       pools.createPool(pool),
-  //       accountTokens.updateAccountTokenBalance({ // Subtract tokens from balance
+  //       accountAssets.updateAccountAssetBalance({ // Subtract assets from balance
   //         accountId: req.user!.id,
-  //         tokenId: req.body.tokenId,
-  //         tokenAmount: parseFloat(tokenAmount as string) - req.body.tokenAmount
+  //         assetId: req.body.assetId,
+  //         assetAmount: parseFloat(assetAmount as string) - req.body.assetAmount
   //       })
   //     ])
   //       .then((result) => res.status(201).send({ message: 'Pool created' }))
@@ -99,39 +99,39 @@ router.post('/pool', (req, res, next) => {
   //         return res.status(400).send({ message: 'Error creating pool' });
   //       });
   //   })
-  //   .catch((error: any) => res.status(400).send({ message: 'Error getting account tokens' }));
+  //   .catch((error: any) => res.status(400).send({ message: 'Error getting account assets' }));
 });
 
-// Despoit an amount of tokens to a pool
+// Despoit an amount of assets to a pool
 // Expects in req.body:
 //  poolId (Integer) - pool_id to deposit into
-//  tokenAmount (Decimal) - Amount to deposit to pool
+//  assetAmount (Decimal) - Amount to deposit to pool
 // TODO: Validate correct types in body
 router.post('/pool/deposit', (req, res, next) => {
-  if (!req.body.poolId || !req.body.tokenAmount) {
+  if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
-  pools.depositPoolTokens(req.body.poolId, req.body.tokenAmount, req.user!.id)
+  pools.depositPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then((result) => {
-      res.status(204).send({ message: 'Tokens successfully deposited to pool and withdrawn from balance' });
+      res.status(204).send({ message: 'Assets successfully deposited to pool and withdrawn from balance' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error depositing tokens to pool' }));
+    .catch((error: any) => res.status(400).send({ message: 'Error depositing assets to pool' }));
 });
 
-// Withdraw an amount of tokens from a pool
+// Withdraw an amount of assets from a pool
 // Expects in req.body:
 //  poolId (Integer) - pool_id to withdraw from
-//  tokenAmount (Decimal) - Amount to withdraw from pool
+//  assetAmount (Decimal) - Amount to withdraw from pool
 // TODO: Validate correct types in body
 router.post('/pool/withdraw', (req, res, next) => {
-  if (!req.body.poolId || !req.body.tokenAmount) {
+  if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
-  pools.withdrawPoolTokens(req.body.poolId, req.body.tokenAmount, req.user!.id)
+  pools.withdrawPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then((result) => {
-      res.status(204).send({ message: 'Tokens successfully withdrawn from pool and deposited to balance' });
+      res.status(204).send({ message: 'Assets successfully withdrawn from pool and deposited to balance' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error withdrawing tokens from pool' }));
+    .catch((error: any) => res.status(400).send({ message: 'Error withdrawing assets from pool' }));
 });
 
 export default router;
