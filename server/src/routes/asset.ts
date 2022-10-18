@@ -9,7 +9,12 @@ const router = Router();
 //  id - asset_id to retrieve details of
 // Successful response data:
 // asset: {
-//   asset_id
+//   asset_id,
+//   asset_type,
+//   name,
+//   symbol,
+//   price_feed_url,
+//   icon_url
 // }
 router.get('/asset', (req, res, next) => {
   if (!req.query.id) {

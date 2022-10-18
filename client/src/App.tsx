@@ -13,6 +13,7 @@ type State = {
   email: string,
   firstName: string,
   lastName: string,
+  paper: number,
   error: string
 }
 
@@ -25,6 +26,7 @@ export default class App extends React.Component<Props, State> {
       email: '',
       firstName: '',
       lastName: '',
+      paper: 0,
       error: ''
     };
     this.getAccountInfo = this.getAccountInfo.bind(this);
@@ -37,7 +39,8 @@ export default class App extends React.Component<Props, State> {
         this.setState({
         email: result.data.account.email,
         firstName: result.data.account.first_name,
-        lastName: result.data.account.last_name
+        lastName: result.data.account.last_name,
+        paper: result.data.account.paper
       })
     })
       .catch((errorRes) => this.setState({error: errorRes.response.data.message}));
@@ -61,6 +64,8 @@ export default class App extends React.Component<Props, State> {
             {`Hello ${this.state.firstName} ${this.state.lastName}`}
             <br/>
             {`Logged in as ${this.state.email}`}
+            <br/>
+            {`Paper balance ${this.state.paper}`}
           </>
           }
         </div>

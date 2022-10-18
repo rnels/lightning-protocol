@@ -7,7 +7,8 @@ INSERT INTO accounts (
 ) VALUES (
 	'guy@test.com',
 	'3oi2jrfldsk290u',
-	'Guy', 'Person',
+	'Guy',
+	'Person',
 	100
 );
 
@@ -20,7 +21,8 @@ INSERT INTO accounts (
 ) VALUES (
 	'guyTwo@test.com',
 	'3oi2jrfldsk290u',
-	'Guy Two', 'Person Again',
+	'Guy Two',
+	'Person Again',
 	200
 );
 

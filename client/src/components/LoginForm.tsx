@@ -2,8 +2,6 @@ import { FormEvent, useState } from 'react';
 import axios from '../lib/axios';
 import { serverURL } from '../config';
 
-axios.defaults.withCredentials = true;
-
 export default function LoginForm(props: any) {
 
   const [email, setEmail] = useState('');

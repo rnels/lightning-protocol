@@ -34,7 +34,7 @@ export function createAccount(account: Account) {
       first_name,
       last_name,
       paper
-    ) VALUES ($1, $2, $3, $4)
+    ) VALUES ($1, $2, $3, $4, $5)
     RETURNING account_id
   `, [account.email, account.passwordHash, account.firstName, account.lastName, account.paper])
     .then((createRes: any) => createRes.rows[0]);

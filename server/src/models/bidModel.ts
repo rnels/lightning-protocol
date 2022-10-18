@@ -53,3 +53,5 @@ export function createBid(bid: Bid) {
     bid.bidPrice
   ]);
 };
+
+// TODO: Create model for accepting a bid price against a contract ask price, which turns into a trade
