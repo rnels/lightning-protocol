@@ -4,7 +4,7 @@ CREATE DATABASE lightning;
 \c lightning;
 
 -- TODO: Ensure that datetime / timestamp format usage is consistent throughout the app, given that some are being converted
-
+-- TODO: Make sure nobody can trace back pools to account information, don't want people harassing others
 CREATE TABLE accounts (
 	account_id SERIAL NOT NULL PRIMARY KEY,
 	email VARCHAR(64) UNIQUE,
@@ -27,22 +27,11 @@ CREATE TABLE assets (
 	--CONSTRAINT symbol_unique UNIQUE (assets) -- TODO: Make a constraint where symbol + type combo must be unique
 );
 
--- TODO: Change everything to do with this
-CREATE TABLE account_assets (
-	account_asset_id SERIAL NOT NULL PRIMARY KEY,
-	account_id INTEGER NOT NULL,
-	asset_id INTEGER NOT NULL,
-	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
-	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
-	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
-);
-
-CREATE INDEX account_assets_account_id_idx ON account_assets(account_id);
-CREATE INDEX account_assets_asset_id_idx ON account_assets(asset_id);
-
 CREATE INDEX assets_symbol_idx ON assets(symbol);
 
 -- Represents the pools which exist for an asset
+-- NOTE: With the flat out deletion of account_assets there's now no balance for a user's
+-- assets outside of pools, but when this is translated to the bc/wallet model that should be alright
 CREATE TABLE pools (
 	pool_id SERIAL NOT NULL PRIMARY KEY,
 	account_id INTEGER NOT NULL,

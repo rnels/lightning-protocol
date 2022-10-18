@@ -16,13 +16,6 @@ export type Asset = {
 	iconUrl?: string
 };
 
-export type AccountAsset = {
-  accountAssetsId?: number,
-  accountId: number,
-  assetId: number,
-  assetAmount: number
-};
-
 export type Pool = {
   poolId?: number,
 	accountId: number,

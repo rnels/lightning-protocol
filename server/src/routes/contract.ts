@@ -131,7 +131,7 @@ router.post('/contract', (req, res, next) => {
 //  contractId - Integer
 //  askPrice - Decimal
 // TODO: Validate correct types in body
-router.put('/contract', (req, res, next) => {
+router.put('/contract/ask', (req, res, next) => {
   if (!req.body.contractId || !req.body.askPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }

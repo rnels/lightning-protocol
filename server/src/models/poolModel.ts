@@ -1,6 +1,5 @@
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
-import { withdrawAccountAssetBalance, depositAccountAssetBalance } from './accountAssetModel';
 
 function getAssetIdFromPoolId(id: string | number) {
   return db.query(`
@@ -9,6 +8,32 @@ function getAssetIdFromPoolId(id: string | number) {
       WHERE pool_id=$1
   `, [id]);
 };
+
+function getLockedAmountFromPoolId(id: string | number) {
+  return db.query(`
+    SELECT SUM(asset_amount)
+      FROM pool_locks
+      WHERE pool_id=$1
+  `, [id]);
+};
+
+// TODO: BIG TEST THIS ONE
+function getUnlockedAmountFromPoolId(id: string | number) {
+  return Promise.all([
+    getLockedAmountFromPoolId(id),
+    db.query(`
+      SELECT SUM(asset_amount)
+        FROM pools
+        WHERE pool_id=$1
+    `, [id])
+  ])
+    .then((results) => {
+      let lockedAmount = results[0].rows[0].sum; // TODO: Test this
+      let totalAmount = results[1].rows[0].sum; // TODO: Test this
+      return totalAmount - lockedAmount;
+    });
+};
+
 
 export function getAllPools(sort='pool_id ASC', count=10) {
   return db.query(`
@@ -43,6 +68,14 @@ export function getPoolsByAccountId(accountId: string | number) {
   `, [accountId]);
 };
 
+export function getPoolAssetAmountByAssetId(assetId: string | number) {
+  return db.query(`
+    SELECT asset_amount
+      FROM pools
+      WHERE asset_id=$1
+  `, [assetId]);
+};
+
 // TODO: Validate that user has enough assets for pool
 // TODO: Only allow users to create a pool for a given asset_id if it doesn't yet exist
 export function createPool(pool: Pool) {
@@ -66,7 +99,7 @@ export function createPool(pool: Pool) {
 };
 
 // TODO(?): Create additional update(s)
-
+// TODO: Create method to set poolLock to expired (upon expiry or exercise of the contract)
 export function createPoolLock(poolLock: PoolLock) {
   return db.query(`
     INSERT INTO pool_locks (
@@ -84,40 +117,28 @@ export function createPoolLock(poolLock: PoolLock) {
   ]);
 };
 
-// TODO: Create method to set poolLock to expired (upon expiry or exercise of the contract)
-
+// TODO: Add check for poolLocks, subtract locked amount for asset_amount to get max amount to withdraw
+// TODO: Create helper for getting locked amount
 export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
-  let assetId = (
-    await db.query(`
-      UPDATE pools
-      SET asset_amount=asset_amount-$2
-        WHERE pool_id=$1
-          AND account_id=$3
-          AND locked=false
-      RETURNING asset_id
-    `,
-    [
-      poolId,
-      assetAmount,
-      accountId
-    ])
-  ).rows[0].asset_id;
-  return depositAccountAssetBalance({
-    accountId: accountId as number,
-    assetId,
-    assetAmount
-  });
+  let unlockedAmount = await getUnlockedAmountFromPoolId(poolId);
+  if (unlockedAmount < assetAmount) throw new Error('Unlocked balance is not enough to withdraw this amount');
+  return db.query(`
+    UPDATE pools
+    SET asset_amount=asset_amount-$2
+      WHERE pool_id=$1
+        AND account_id=$3
+    RETURNING asset_id
+  `,
+  [
+    poolId,
+    assetAmount,
+    accountId
+  ]);
 };
 
-// TODO: Create more protections around possibly encountering an error
-// with depositing to the pool after having the account withdrawal successfully happen
-export async function depositPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
-  let assetId = (await getAssetIdFromPoolId(poolId)).rows[0].asset_id;
-  await withdrawAccountAssetBalance({
-    accountId: accountId as number,
-    assetId,
-    assetAmount
-  });
+// NOTE: As of now there's no limit on depositing assets, you can just define a number of assets to deposit
+// This is for the paper model, for the bc model it will be wallet based
+export function depositPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
   return db.query(`
     UPDATE pools
     SET asset_amount=asset_amount+$2
