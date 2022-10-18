@@ -18,7 +18,7 @@ export function getBidById(id: string | number) {
   `, [id]);
 };
 
-export function getBidsByTypeId(typeId: string | number) {
+export function getBidsByContractTypeId(typeId: string | number) {
   return db.query(`
     SELECT *
       FROM bids
@@ -54,4 +54,19 @@ export function createBid(bid: Bid) {
   ]);
 };
 
+export function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string) {
+  return db.query(`
+    UPDATE bids SET bid_price=$2
+    WHERE bid_id=$1
+      AND account_id=$3
+  `,
+  [
+    bidId,
+    bidPrice,
+    accountId
+  ]);
+}
+
 // TODO: Create model for accepting a bid price against a contract ask price, which turns into a trade
+
+// TODO: Create model function for cancelling a bid (either an update, would require status field, or a full delete)

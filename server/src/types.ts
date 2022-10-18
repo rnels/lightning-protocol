@@ -35,6 +35,7 @@ export type PoolLock = {
 export type ContractType = {
 	contractTypeId?: number,
 	assetId: number,
+	assetAmount: number,
 	direction: boolean,
 	strikePrice: number,
 	expiresAt: number
@@ -44,7 +45,6 @@ export type Contract = {
 	contractId?: number,
 	typeId: number,
 	ownerId: number,
-	assetAmount: number,
 	askPrice?: number,
 	createdAt?: number,
 	exercised: boolean

@@ -1,7 +1,9 @@
 import db from '../db/db';
 import { Trade } from '../types';
 
-export function getAllTrades(sort='trade_id ASC', count=10) {
+function executeTrade() {}
+
+export function getAllTrades(sort='trade_id ASC', count=100) {
   return db.query(`
     SELECT *
       FROM trades
@@ -27,7 +29,7 @@ export function getTradesByContractId(contractId: string | number) {
 };
 
 // Returns both trades for an account as a buyer and a seller
-export function getAllTradesByAccountId(accountId: string | number) {
+export function getTradesByAccountId(accountId: string | number) {
   return db.query(`
     SELECT *
       FROM trades

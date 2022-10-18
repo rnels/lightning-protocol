@@ -12,7 +12,7 @@ const app = express();
 app.use(compression());
 app.use(cors({ origin: [process.env.CL_ORIGIN1 as string, process.env.CL_ORIGIN2 as string], credentials: true }));
 app.use(cookieParser(process.env.SV_SECRET));
-app.use(express.json());
+app.use(express.json()); // TODO: Ensure that non-JSON types are not throwing errors, i.e. { "id": imnotinquotes }
 app.use(
   session({
     secret: process.env.SV_SECRET as string,

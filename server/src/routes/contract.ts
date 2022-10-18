@@ -1,7 +1,7 @@
 import * as contracts from '../models/contractModel';
 import * as contractTypes from '../models/contractTypeModel';
 import { Router } from 'express';
-import { Contract } from '../types';
+import { Contract, ContractType } from '../types';
 const router = Router();
 
 // GET REQUESTS //
@@ -15,7 +15,6 @@ const router = Router();
 //   type_id
 //   owner_id
 //   pool_id
-//   asset_amount
 //   created_at
 //   exercised
 // }
@@ -38,6 +37,7 @@ router.get('/contract', (req, res, next) => {
 // contractType: {
 //   contract_type_id
 //   asset_id
+//   asset_amount
 //   direction
 //   strike_price
 //   expires_at
@@ -105,25 +105,52 @@ router.get('/contract/type/list', (req, res, next) => {
 // Create a contract
 // Expects in req.body:
 //  typeId - Integer
-//  assetAmount - Decimal
 // TODO: Restrict this, only should be called by app not by users
 router.post('/contract', (req, res, next) => {
-  if (!req.body.typeId || !req.body.assetAmount) {
-    return res.status(400).send({ message: 'Missing body parameters' });
+  if (!req.body.typeId) {
+    return res.status(400).send({ message: 'Missing body parameter: typeId' });
   }
   let contract: Contract = {
     typeId: req.body.typeId,
     ownerId: req.user!.id,
-    assetAmount: req.body.assetAmount,
     exercised: false
   };
   contracts.createContract(contract)
-    .then((result) => {
+    .then(() => {
       res.status(201).send({ message: 'Contract created' });
     })
     .catch((error: any) => {
       console.log('There was an error creating the contract:', error);
       res.status(400).send({ message: 'Error creating contract' });
+    });
+});
+
+// Create a contract type
+// Expects in req.body:
+//   assetId (Integer)
+//   assetAmount (Decimal)
+//   direction (boolean)
+//   strikePrice (Decimal)
+//   expiresAt (Integer) // TODO: Still need to revisit using date / time types
+// TODO: Restrict this, only should be called by app not by users
+router.post('/contract/type', (req, res, next) => {
+  if (!req.body.assetId || !req.body.assetAmount || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
+    return res.status(400).send({ message: 'Missing body parameters' });
+  }
+  let contractType: ContractType = {
+    assetId: req.body.assetId,
+    assetAmount: req.body.assetAmount,
+    direction: req.body.direction,
+    strikePrice: req.body.strikePrice,
+    expiresAt: req.body.expiresAt
+  };
+  contractTypes.createContractType(contractType)
+    .then(() => {
+      res.status(201).send({ message: 'Contract type created' });
+    })
+    .catch((error: any) => {
+      console.log('There was an error creating the contract type:', error);
+      res.status(400).send({ message: 'Error creating contract type' });
     });
 });
 

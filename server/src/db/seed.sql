@@ -72,11 +72,13 @@ INSERT INTO pools (
 
 INSERT INTO contract_types (
 	asset_id,
+	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
+	10,
 	false,
 	20000.19,
 	CURRENT_TIMESTAMP
@@ -84,11 +86,13 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
+	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	2,
+	20,
 	true,
 	1500,
 	CURRENT_TIMESTAMP
@@ -97,24 +101,20 @@ INSERT INTO contract_types (
 INSERT INTO contracts (
 	type_id,
 	owner_id,
-	asset_amount,
 	ask_price
 ) VALUES (
 	1,
 	1,
-	5,
 	2.5
 );
 
 INSERT INTO contracts (
 	type_id,
 	owner_id,
-	asset_amount,
 	ask_price
 ) VALUES (
 	2,
 	2,
-	10,
 	2.5
 );
 

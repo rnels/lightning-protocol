@@ -48,6 +48,7 @@ CREATE INDEX pools_asset_id_idx ON pools(asset_id);
 CREATE TABLE contract_types (
 	contract_type_id SERIAL NOT NULL PRIMARY KEY,
 	asset_id INTEGER NOT NULL,
+	asset_amount DECIMAL NOT NULL,
 	direction BOOLEAN NOT NULL, -- true for 'up / call', false for 'down / put'
 	strike_price DECIMAL NOT NULL,
 	expires_at TIMESTAMP NOT NULL, -- TODO: Create constraint, max 2 weeks out from creation
@@ -58,12 +59,13 @@ CREATE INDEX contract_types_asset_id_idx ON contract_types(asset_id);
 
 -- Represents the instances of outstanding contracts
 -- TODO: Recall that there will need to be a fee difference between bid and ask for a trade to complete, and the ask + fee price will be the resulting ask
+-- TODO: There was a reason you seperated contracts and contract_types, but do some research if it's really the right way. Would save on a lot of join lookups if the contract_types properties were consolidated into contracts
+-- The main holdup right now is how the bids table considers contract_types
 CREATE TABLE contracts (
 	contract_id SERIAL NOT NULL PRIMARY KEY,
 	type_id INTEGER NOT NULL,
 	owner_id INTEGER NOT NULL,
 	ask_price DECIMAL, -- Can be NULL if not being actively offered
-	asset_amount DECIMAL NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	exercised BOOLEAN DEFAULT false,
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
@@ -73,14 +75,13 @@ CREATE TABLE contracts (
 CREATE INDEX contracts_type_id_idx ON contracts(type_id);
 CREATE INDEX contracts_owner_id_idx ON contracts(owner_id);
 
--- TODO: Flesh this out, but the way I'm thinking about it is this:
 -- When a contract draws an amount from a pool, it creates a pool lock for that amount
 -- To get how much can be put into locks from pools.asset_amount, you subtract the currently locked amount, summed from
 -- All lock_amount where pool_locks.pool_id = pools.pool_id
 -- When a contract is created for an asset, it goes through the list of pools and creates pool_lock records for pools which
 -- Have unlocked amounts. If it hits the max amount for a pool, it creates a lock and keeps moving until it's done creating them.
 -- When a contract is traded, an amount is distributed to each associated pool_lock, incrementing trade_fees by that amount
--- To know how much of the overall trade_fee should be provided to a pool_lock, compare pool_locks.asset_amount to contracts.asset_amount
+-- To know how much of the overall trade_fee should be provided to a pool_lock, compare pool_locks.asset_amount to contract_types.asset_amount
 CREATE TABLE pool_locks (
 	pool_lock_id SERIAL NOT NULL PRIMARY KEY,
 	pool_id INTEGER NOT NULL,
