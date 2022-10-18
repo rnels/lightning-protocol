@@ -1,15 +1,7 @@
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 
-function getAssetIdFromPoolId(id: string | number) {
-  return db.query(`
-    SELECT asset_id
-      FROM pools
-      WHERE pool_id=$1
-  `, [id]);
-};
-
-function getLockedAmountFromPoolId(id: string | number) {
+function getLockedAmountByPoolId(id: string | number) {
   return db.query(`
     SELECT SUM(asset_amount)
       FROM pool_locks
@@ -17,15 +9,40 @@ function getLockedAmountFromPoolId(id: string | number) {
   `, [id]);
 };
 
+function getLockedAmountSumByAssetId(assetId: string | number) {
+  return db.query(`
+    SELECT SUM(pool_locks.asset_amount)
+      FROM pools, pool_locks
+      WHERE pools.asset_id=$1
+        AND pool_locks.pool_id=pools.pool_id
+  `, [assetId]);
+};
+
+function getTotalAmountSumByAssetId(assetId: string | number) {
+  return db.query(`
+    SELECT SUM(asset_amount)
+      FROM pools
+      WHERE asset_id=$1
+  `, [assetId]);
+};
+
 // TODO: BIG TEST THIS ONE
-function getUnlockedAmountFromPoolId(id: string | number) {
+export function getUnlockedAmountByPoolId(id: string | number) {
   return Promise.all([
-    getLockedAmountFromPoolId(id),
-    db.query(`
-      SELECT SUM(asset_amount)
-        FROM pools
-        WHERE pool_id=$1
-    `, [id])
+    getLockedAmountByPoolId(id),
+    getPoolById(id)
+  ])
+    .then((results) => {
+      let lockedAmount = results[0].rows[0].sum; // TODO: Test this
+      let totalAmount = results[1].rows[0].asset_amount; // TODO: Test this
+      return totalAmount - lockedAmount;
+    });
+};
+
+export async function getUnlockedAmountByAssetId(assetId: string | number) {
+  return Promise.all([
+    getLockedAmountSumByAssetId(assetId),
+    getTotalAmountSumByAssetId(assetId)
   ])
     .then((results) => {
       let lockedAmount = results[0].rows[0].sum; // TODO: Test this
@@ -33,7 +50,6 @@ function getUnlockedAmountFromPoolId(id: string | number) {
       return totalAmount - lockedAmount;
     });
 };
-
 
 export function getAllPools(sort='pool_id ASC', count=10) {
   return db.query(`
@@ -48,6 +64,14 @@ export function getPoolById(id: string | number) {
   return db.query(`
     SELECT *
       FROM pools
+      WHERE pool_id=$1
+  `, [id]);
+};
+
+export function getLockedPoolsByPoolId(id: string | number) {
+  return db.query(`
+    SELECT *
+      FROM pool_locks
       WHERE pool_id=$1
   `, [id]);
 };
@@ -68,12 +92,13 @@ export function getPoolsByAccountId(accountId: string | number) {
   `, [accountId]);
 };
 
-export function getPoolAssetAmountByAssetId(assetId: string | number) {
+export function getPoolLocksByAccountId(accountId: string | number) {
   return db.query(`
-    SELECT asset_amount
-      FROM pools
-      WHERE asset_id=$1
-  `, [assetId]);
+    SELECT pool_locks.*
+      FROM pools, pool_locks
+      WHERE pools.account_id=$1
+        AND pool_locks.pool_id=pools.pool_id
+  `, [accountId]);
 };
 
 // TODO: Validate that user has enough assets for pool
@@ -120,7 +145,7 @@ export function createPoolLock(poolLock: PoolLock) {
 // TODO: Add check for poolLocks, subtract locked amount for asset_amount to get max amount to withdraw
 // TODO: Create helper for getting locked amount
 export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
-  let unlockedAmount = await getUnlockedAmountFromPoolId(poolId);
+  let unlockedAmount = await getUnlockedAmountByPoolId(poolId);
   if (unlockedAmount < assetAmount) throw new Error('Unlocked balance is not enough to withdraw this amount');
   return db.query(`
     UPDATE pools

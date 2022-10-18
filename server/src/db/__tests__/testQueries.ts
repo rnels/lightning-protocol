@@ -93,8 +93,7 @@ import { QueryResult } from 'pg';
   let pool: Pool = {
     accountId: 1,
     assetId: 1,
-    assetAmount: 0,
-    locked: false
+    assetAmount: 0
   };
   let result = await pools.createPool(pool);
   console.log(result);
@@ -115,15 +114,6 @@ import { QueryResult } from 'pg';
   let assetAmount = 10.2;
   let ownerId = 1;
   let result = await pools.withdrawPoolAssets(poolId, assetAmount, ownerId);
-  console.log(result);
-});
-
-// UPDATE POOL LOCKED STATUS
-(async () => {
-  let poolId = 1;
-  let locked = true;
-  let ownerId = 1;
-  let result = await pools.updateLocked(poolId, locked, ownerId);
   console.log(result);
 });
 
@@ -202,9 +192,10 @@ import { QueryResult } from 'pg';
   let contract: Contract = {
     typeId: 1,
     ownerId: 1,
-    poolId: 1,
+    assetAmount: 1,
     askPrice: 20.5,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    exercised: false
   };
   let result = await contracts.createContract(contract);
   console.log(result);
@@ -302,7 +293,8 @@ import { QueryResult } from 'pg';
     contractId: 1,
     buyerId: 1,
     sellerId: 2,
-    salePrice: 2.5
+    salePrice: 2.5,
+    tradeFee: 0
   };
   let result = await trades.createTrade(trade);
   console.log(result);

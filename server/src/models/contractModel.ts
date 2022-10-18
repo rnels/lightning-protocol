@@ -1,5 +1,7 @@
 import db from '../db/db';
-import { Contract } from '../types';
+import { Contract, PoolLock } from '../types';
+import { getContractTypeById } from './contractTypeModel';
+import { createPoolLock, getPoolsByAssetId, getUnlockedAmountByAssetId, getUnlockedAmountByPoolId } from './poolModel';
 
 export function getAllContracts(sort='contract_id ASC', count=10) {
   return db.query(`
@@ -34,11 +36,13 @@ export function getContractsByOwnerId(ownerId: string | number) {
   `, [ownerId]);
 };
 
-// TODO: Add process of creating locks here
-// TODO: Consider potential bug if I am procedurally creating locks where running out of locks to create during the process could result in an exception with the locks still created
-// I suppose it wouldn't be an issue if I summed up the total unlocked amounts for the pool before committing to creating locks
-export function createContract(contract: Contract) {
-  return db.query(`
+// Creates a contract, locks in amounts to pools
+// TODO: Create process of allocating fees, unlocking locked pools on expiry
+export async function createContract(contract: Contract) {
+  let assetId = (await getContractTypeById(contract.typeId)).rows[0].asset_id;
+  let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(assetId);
+  if (unlockedPoolAssetTotal < contract.assetAmount) throw new Error('Not enough unlocked assets to create contract')
+  let contractId = (await db.query(`
     INSERT INTO contracts (
       type_id,
       owner_id,
@@ -60,7 +64,30 @@ export function createContract(contract: Contract) {
     contract.askPrice,
     contract.assetAmount,
     contract.exercised
-  ]);
+  ])).rows[0].contract_id;
+  let pools = (await getPoolsByAssetId(assetId)).rows;
+  let unallocatedAmount = contract.assetAmount;
+  let poolLockPromises = [];
+  // Okay, so this should create a pool lock for all pools with
+  // Unlocked assets, cascading down until the contract is spent on locks
+  for (let pool of pools) {
+    let unlockedAmount = await getUnlockedAmountByPoolId(pool.pool_id); // TODO: Could technically get locked amounts and do the sum here
+    if (unlockedAmount > 0) {
+      let allocatedAmount = unallocatedAmount >= unlockedAmount ? unlockedAmount : unallocatedAmount;
+      let poolLock: PoolLock = {
+        poolId: pool.pool_id,
+        contractId,
+        assetAmount: allocatedAmount,
+        expired: false
+      }
+      poolLockPromises.push(
+        createPoolLock(poolLock)
+      );
+      unallocatedAmount -= allocatedAmount;
+      if (!unallocatedAmount) break; // TODO: This assumes unallocatedAmount will hit 0, but I am predicting number accuracy errors ha ha let's see
+    }
+  }
+  return Promise.all(poolLockPromises);
 };
 
 export function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {

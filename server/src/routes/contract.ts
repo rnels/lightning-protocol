@@ -15,8 +15,9 @@ const router = Router();
 //   type_id
 //   owner_id
 //   pool_id
-//   ask_price
+//   asset_amount
 //   created_at
+//   exercised
 // }
 router.get('/contract', (req, res, next) => {
   if (!req.query.id) {
@@ -105,7 +106,6 @@ router.get('/contract/type/list', (req, res, next) => {
 // Expects in req.body:
 //  typeId - Integer
 //  assetAmount - Decimal
-// TODO: Validate correct types in body
 // TODO: Restrict this, only should be called by app not by users
 router.post('/contract', (req, res, next) => {
   if (!req.body.typeId || !req.body.assetAmount) {
@@ -121,7 +121,10 @@ router.post('/contract', (req, res, next) => {
     .then((result) => {
       res.status(201).send({ message: 'Contract created' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error creating contract' }));
+    .catch((error: any) => {
+      console.log('There was an error creating the contract:', error);
+      res.status(400).send({ message: 'Error creating contract' });
+    });
 });
 
 // PUT/PATCH REQUESTS //
@@ -130,7 +133,6 @@ router.post('/contract', (req, res, next) => {
 // Expects in req.body:
 //  contractId - Integer
 //  askPrice - Decimal
-// TODO: Validate correct types in body
 router.put('/contract/ask', (req, res, next) => {
   if (!req.body.contractId || !req.body.askPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });

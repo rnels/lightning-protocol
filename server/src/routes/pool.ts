@@ -14,7 +14,6 @@ const router = Router();
 //   account_id
 //   asset_id
 //   asset_amount
-//   locked
 // }
 router.get('/pool', (req, res, next) => {
   if (!req.query.id) {
@@ -57,11 +56,24 @@ router.get('/pool/owned', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool list' }));
 });
 
+// Retrieve pools for the authenticated user account
+// Successful response data:
+// poolLocks: [poolLocks]
+router.get('/pool/owned/lock', (req, res, next) => {
+  pools.getPoolLocksByAccountId(req.user!.id)
+    .then((result) => {
+      let poolLocks = result.rows;
+      res.status(200).send({poolLocks});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool lock list' }));
+});
+
 // POST REQUESTS //
 
 // Create a new pool for a given assetId
 // Expects in req.body:
 //  assetId (Integer) - asset_id to create a pool for
+//  assetAmount (Decimal) [Optional - Defaults to 0] - Amount of asset to deposit
 router.post('/pool', (req, res, next) => {
   if (!req.body.assetId || typeof req.body.assetId !== 'number') {
     return res.status(400).send({ message: 'Invalid or missing body parameter: assetId' });
@@ -69,7 +81,7 @@ router.post('/pool', (req, res, next) => {
   let pool: Pool = {
     accountId: req.user!.id,
     assetId: req.body.assetId,
-    assetAmount: 0
+    assetAmount: req.body.assetAmount || 0
   };
   pools.createPool(pool)
     .then((result) => res.status(201).send({ message: 'Pool created' }))
@@ -77,60 +89,48 @@ router.post('/pool', (req, res, next) => {
       console.log('Error creating pool:', error);
       return res.status(400).send({ message: 'Error creating pool' });
     });
-  // accountAssets.getAccountAssetsByAssetId(req.user!.id, req.body.assetId)
-  //   .then((result) => {
-  //     // TODO: May not have to validate all this now that I have in schema check asset_amount >= 0, but will keep for now
-  //     let assetAmount = result.rows[0].asset_amount || 0;
-  //     if (!assetAmount || parseFloat(assetAmount as string) < req.body.assetAmount) {
-  //       return res.status(400).send({ message: 'Not enough assets for pool' });
-  //     }
-  //     return Promise.all([
-  //       pools.createPool(pool),
-  //       accountAssets.updateAccountAssetBalance({ // Subtract assets from balance
-  //         accountId: req.user!.id,
-  //         assetId: req.body.assetId,
-  //         assetAmount: parseFloat(assetAmount as string) - req.body.assetAmount
-  //       })
-  //     ])
-  //       .then((result) => res.status(201).send({ message: 'Pool created' }))
-  //       .catch((error: any) => {
-  //         console.log('Error creating pool:', error);
-  //         return res.status(400).send({ message: 'Error creating pool' });
-  //       });
-  //   })
-  //   .catch((error: any) => res.status(400).send({ message: 'Error getting account assets' }));
 });
 
 // Despoit an amount of assets to a pool
 // Expects in req.body:
 //  poolId (Integer) - pool_id to deposit into
-//  assetAmount (Decimal) - Amount to deposit to pool
-// TODO: Validate correct types in body
+//  assetAmount (Decimal) - Amount to deposit into pool
 router.post('/pool/deposit', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   pools.depositPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then((result) => {
-      res.status(201).send({ message: 'Assets successfully deposited to pool and withdrawn from balance' });
+      // TODO: Currently provides a success method even if nothing is updated,
+      // in the case of a poolId passed that doesn't belong to the user
+      // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool
+      res.status(201).send({ message: 'Assets successfully deposited to pool' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error depositing assets to pool' }));
+    .catch((error: any) => {
+      console.log('Error depositing pool assets:', error);
+      res.status(400).send({ message: 'Error depositing assets to pool' });
+    });
 });
 
 // Withdraw an amount of assets from a pool
 // Expects in req.body:
 //  poolId (Integer) - pool_id to withdraw from
 //  assetAmount (Decimal) - Amount to withdraw from pool
-// TODO: Validate correct types in body
 router.post('/pool/withdraw', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   pools.withdrawPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then((result) => {
-      res.status(201).send({ message: 'Assets successfully withdrawn from pool and deposited to balance' });
+      // TODO: Currently provides a success method even if nothing is updated,
+      // in the case of a poolId passed that doesn't belong to the user
+      // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool
+      res.status(201).send({ message: 'Assets successfully withdrawn from pool' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error withdrawing assets from pool' }));
+    .catch((error: any) => {
+      console.log('Error withdrawing pool assets:', error);
+      res.status(400).send({ message: 'Error withdrawing assets from pool' });
+    });
 });
 
 export default router;
