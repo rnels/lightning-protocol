@@ -4,7 +4,11 @@ import { Account } from '../types';
 export function getAccountInfoById(id: string | number) {
   return db.query(`
     SELECT
-      *
+      account_id,
+      email,
+      first_name,
+      last_name,
+      paper
     FROM accounts
       WHERE account_id=$1
   `, [id]);

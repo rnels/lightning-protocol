@@ -50,8 +50,6 @@ INSERT INTO assets (
 	'https://coinmarketcap.com/api/' -- Placeholder, need to do something else once I figure out the implementation
 );
 
-INSERT INTO assets (asset_id) VALUES (1);
-
 INSERT INTO account_assets (
 	account_id,
 	asset_id,
@@ -119,24 +117,24 @@ INSERT INTO contract_types (
 INSERT INTO contracts (
 	type_id,
 	owner_id,
-	pool_id,
+	asset_amount,
 	ask_price
 ) VALUES (
 	1,
 	1,
-	1,
+	5,
 	2.5
 );
 
 INSERT INTO contracts (
 	type_id,
 	owner_id,
-	pool_id,
+	asset_amount,
 	ask_price
 ) VALUES (
 	2,
 	2,
-	2,
+	10,
 	2.5
 );
 

@@ -39,4 +39,6 @@ router.get('/asset/list', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset list' }));
 });
 
+// TODO: Create routes to add assets
+
 export default router;

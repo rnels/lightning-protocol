@@ -1,7 +1,7 @@
 import db from '../db/db';
 import { Asset } from '../types';
 
-export function getAllAssets(sort='asset_id ASC', count=10) {
+export function getAllAssets(sort='asset_id ASC', count=100) {
   return db.query(`
     SELECT *
       FROM assets

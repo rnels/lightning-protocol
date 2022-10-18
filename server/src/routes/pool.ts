@@ -30,19 +30,19 @@ router.get('/pool', (req, res, next) => {
 
 // Retrieve pools for a given asset ID
 // Expects in req.query:
-//  id - asset_id to retrieve pools for
+//  assetId - asset_id to retrieve pools for
 // Successful response data:
 // pools: [pool]
 router.get('/pool/list', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
+  if (!req.query.assetId) {
+    return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
-  pools.getPoolsByAssetId(req.query.id as string)
+  pools.getPoolsByAssetId(req.query.assetId as string)
     .then((result) => {
       let pools = result.rows;
       res.status(200).send({pools});
     })
-    .catch((error: any) => res.status(404).send({ message: `Error retrieving pool list for asset ID ${req.query.id}` }));
+    .catch((error: any) => res.status(404).send({ message: `Error retrieving pool list for asset ID ${req.query.assetId}` }));
 });
 
 // Retrieve pools for the authenticated user account
@@ -69,8 +69,7 @@ router.post('/pool', (req, res, next) => {
   let pool: Pool = {
     accountId: req.user!.id,
     assetId: req.body.assetId,
-    assetAmount: 0,
-    locked: false
+    assetAmount: 0
   };
   pools.createPool(pool)
     .then((result) => res.status(201).send({ message: 'Pool created' }))
@@ -113,7 +112,7 @@ router.post('/pool/deposit', (req, res, next) => {
   }
   pools.depositPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then((result) => {
-      res.status(204).send({ message: 'Assets successfully deposited to pool and withdrawn from balance' });
+      res.status(201).send({ message: 'Assets successfully deposited to pool and withdrawn from balance' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error depositing assets to pool' }));
 });
@@ -129,7 +128,7 @@ router.post('/pool/withdraw', (req, res, next) => {
   }
   pools.withdrawPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then((result) => {
-      res.status(204).send({ message: 'Assets successfully withdrawn from pool and deposited to balance' });
+      res.status(201).send({ message: 'Assets successfully withdrawn from pool and deposited to balance' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error withdrawing assets from pool' }));
 });

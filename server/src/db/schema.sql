@@ -48,7 +48,6 @@ CREATE TABLE pools (
 	account_id INTEGER NOT NULL,
 	asset_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
-	locked BOOLEAN DEFAULT FALSE, -- When assigning a pool to a contract, set this to true, release when contract is exercised or expired
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
@@ -69,20 +68,43 @@ CREATE TABLE contract_types (
 CREATE INDEX contract_types_asset_id_idx ON contract_types(asset_id);
 
 -- Represents the instances of outstanding contracts
+-- TODO: Recall that there will need to be a fee difference between bid and ask for a trade to complete, and the ask + fee price will be the resulting ask
 CREATE TABLE contracts (
 	contract_id SERIAL NOT NULL PRIMARY KEY,
 	type_id INTEGER NOT NULL,
 	owner_id INTEGER NOT NULL,
-	pool_id INTEGER NOT NULL, -- TODO: This means pool-contract is 1:1 which may not be ideal, revisit this later
 	ask_price DECIMAL, -- Can be NULL if not being actively offered
+	asset_amount DECIMAL NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	exercised BOOLEAN DEFAULT false,
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
-	CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES accounts(account_id),
-	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id)
+	CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES accounts(account_id)
 );
 
 CREATE INDEX contracts_type_id_idx ON contracts(type_id);
 CREATE INDEX contracts_owner_id_idx ON contracts(owner_id);
+
+-- TODO: Flesh this out, but the way I'm thinking about it is this:
+-- When a contract draws an amount from a pool, it creates a pool lock for that amount
+-- To get how much can be put into locks from pools.asset_amount, you subtract the currently locked amount, summed from
+-- All lock_amount where pool_locks.pool_id = pools.pool_id
+-- When a contract is created for an asset, it goes through the list of pools and creates pool_lock records for pools which
+-- Have unlocked amounts. If it hits the max amount for a pool, it creates a lock and keeps moving until it's done creating them.
+-- When a contract is traded, an amount is distributed to each associated pool_lock, incrementing trade_fees by that amount
+-- To know how much of the overall trade_fee should be provided to a pool_lock, compare pool_locks.asset_amount to contracts.asset_amount
+CREATE TABLE pool_locks (
+	pool_lock_id SERIAL NOT NULL PRIMARY KEY,
+	pool_id INTEGER NOT NULL,
+	contract_id INTEGER NOT NULL,
+	asset_amount DECIMAL NOT NULL,
+	expired BOOLEAN DEFAULT false,
+	trade_fees DECIMAL NOT NULL DEFAULT 0, -- Amount provided by contract trading fees, forwarded to pool owner after lock is removed
+	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id),
+	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id)
+);
+
+CREATE INDEX pool_locks_pool_id_idx ON pool_locks(pool_id);
+CREATE INDEX pool_locks_contract_id_idx ON pool_locks(contract_id);
 
 -- We are referencing contract types in order to keep bidding organized to specific configurations of contracts
 CREATE TABLE bids (
@@ -103,6 +125,7 @@ CREATE TABLE trades (
 	buyer_id INTEGER NOT NULL,
 	seller_id INTEGER NOT NULL,
 	sale_price DECIMAL NOT NULL,
+	trade_fee DECIMAL NOT NULL DEFAULT 0,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id),
 	CONSTRAINT fk_buyer_id FOREIGN KEY(buyer_id) REFERENCES accounts(account_id),

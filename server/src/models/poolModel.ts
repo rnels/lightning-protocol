@@ -1,5 +1,5 @@
 import db from '../db/db';
-import { Pool } from '../types';
+import { Pool, PoolLock } from '../types';
 import { withdrawAccountAssetBalance, depositAccountAssetBalance } from './accountAssetModel';
 
 function getAssetIdFromPoolId(id: string | number) {
@@ -50,40 +50,41 @@ export function createPool(pool: Pool) {
     INSERT INTO pools (
       account_id,
       asset_id,
-      asset_amount,
-      locked
+      asset_amount
     ) VALUES (
       $1,
       $2,
-      $3,
-      $4
+      $3
     )
     RETURNING pool_id
   `,
   [
     pool.accountId,
     pool.assetId,
-    pool.assetAmount,
-    pool.locked
+    pool.assetAmount
   ]);
 };
 
 // TODO(?): Create additional update(s)
 
-// TODO: Have this called when a contract sources from a pool to lock the pool, then call it when the contract is expired to unlock it
-export function updateLocked(poolId: string | number, locked: boolean, accountId: string | number) {
+export function createPoolLock(poolLock: PoolLock) {
   return db.query(`
-    UPDATE pools
-    SET locked=$2
-      WHERE pool_id=$1
-        AND account_id=$3
+    INSERT INTO pool_locks (
+      pool_id,
+      contract_id,
+      asset_amount,
+      expired
+    ) VALUES ($1, $2, $3, $4)
   `,
   [
-    poolId,
-    locked,
-    accountId
+    poolLock.poolId,
+    poolLock.contractId,
+    poolLock.assetAmount,
+    poolLock.expired
   ]);
 };
+
+// TODO: Create method to set poolLock to expired (upon expiry or exercise of the contract)
 
 export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
   let assetId = (

@@ -42,12 +42,14 @@ export function createTrade(trade: Trade) {
       contract_id,
       buyer_id,
       seller_id,
-      sale_price
+      sale_price,
+      trade_fee
     ) VALUES (
       $1,
       $2,
       $3,
-      $4
+      $4,
+      $5
     )
     RETURNING trade_id
   `,
@@ -55,6 +57,7 @@ export function createTrade(trade: Trade) {
     trade.contractId,
     trade.buyerId,
     trade.sellerId,
-    trade.salePrice
+    trade.salePrice,
+    trade.tradeFee
   ]);
 };

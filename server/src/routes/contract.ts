@@ -32,7 +32,7 @@ router.get('/contract', (req, res, next) => {
 
 // Get contract type info by contract type ID
 // Expects in req.query:
-//  id - Contract type ID to retrieve details of
+//  typeId - Contract type ID to retrieve details of
 // Successful response data:
 // contractType: {
 //   contract_type_id
@@ -42,10 +42,10 @@ router.get('/contract', (req, res, next) => {
 //   expires_at
 // }
 router.get('/contract/type', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
+  if (!req.query.typeId) {
+    return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
-  contractTypes.getContractTypeById(req.query.id as string)
+  contractTypes.getContractTypeById(req.query.typeId as string)
     .then((result) => {
       let contractType = result.rows[0];
       res.status(200).send({contractType});
@@ -55,14 +55,14 @@ router.get('/contract/type', (req, res, next) => {
 
 // Retrieve contracts for a given contract type ID
 // Expects in req.query:
-//  id - Asset ID to retrieve contract types of
+//  typeId - ID to retrieve contract types of
 // Successful response data:
 // contracts: [contract]
 router.get('/contract/list', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
+  if (!req.query.typeId) {
+    return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
-  contracts.getContractsByTypeId(req.query.id as string)
+  contracts.getContractsByTypeId(req.query.typeId as string)
     .then((result) => {
       let contracts = result.rows;
       res.status(200).send({contracts});
@@ -84,14 +84,14 @@ router.get('/contract/owned', (req, res, next) => {
 
 // Retrieve contract types for a given asset ID
 // Expects in req.query:
-//  id - Asset to retrieve contract types of
+//  assetId - Asset to retrieve contract types of
 // Successful response data:
 // contractTypes: [contractType]
 router.get('/contract/type/list', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
+  if (!req.query.assetId) {
+    return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
-  contractTypes.getContractTypesByAssetId(req.query.id as string)
+  contractTypes.getContractTypesByAssetId(req.query.assetId as string)
     .then((result) => {
       let contractTypes = result.rows;
       res.status(200).send({contractTypes});
@@ -104,16 +104,18 @@ router.get('/contract/type/list', (req, res, next) => {
 // Create a contract
 // Expects in req.body:
 //  typeId - Integer
-//  poolId - Integer
+//  assetAmount - Decimal
 // TODO: Validate correct types in body
+// TODO: Restrict this, only should be called by app not by users
 router.post('/contract', (req, res, next) => {
-  if (!req.body.typeId || !req.body.poolId) {
+  if (!req.body.typeId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   let contract: Contract = {
     typeId: req.body.typeId,
     ownerId: req.user!.id,
-    poolId: req.body.poolId
+    assetAmount: req.body.assetAmount,
+    exercised: false
   };
   contracts.createContract(contract)
     .then((result) => {
@@ -135,7 +137,7 @@ router.put('/contract', (req, res, next) => {
   }
   contracts.updateAskPrice(req.body.contractId, req.body.askPrice, req.user!.id)
     .then((result) => {
-      res.status(204).send({ message: 'Ask price updated' });
+      res.status(201).send({ message: 'Ask price updated' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error updating contract ask price' }));
 });

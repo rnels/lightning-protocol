@@ -13,7 +13,8 @@ async function checkAccountAssetPairExists(accountId: string | number, assetId: 
 export function getAccountAssetsByAccountId(accountId: string | number) {
   return db.query(`
     SELECT
-      *
+      asset_id,
+      asset_amount
     FROM account_assets
       WHERE account_id=$1
   `, [accountId]);
@@ -23,7 +24,8 @@ export function getAccountAssetsByAccountId(accountId: string | number) {
 export function getAccountAssetsByAssetId(accountId: string | number, assetId: string | number) {
   return db.query(`
     SELECT
-      *
+      asset_id,
+      asset_amount
     FROM account_assets
       WHERE account_id=$1
         AND asset_id=$2
