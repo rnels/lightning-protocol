@@ -98,25 +98,25 @@ INSERT INTO contract_types (
 	CURRENT_TIMESTAMP
 );
 
-INSERT INTO contracts (
-	type_id,
-	owner_id,
-	ask_price
-) VALUES (
-	1,
-	1,
-	2.5
-);
+-- INSERT INTO contracts (
+-- 	type_id,
+-- 	owner_id,
+-- 	ask_price
+-- ) VALUES (
+-- 	1,
+-- 	1,
+-- 	2.5
+-- );
 
-INSERT INTO contracts (
-	type_id,
-	owner_id,
-	ask_price
-) VALUES (
-	2,
-	2,
-	2.5
-);
+-- INSERT INTO contracts (
+-- 	type_id,
+-- 	owner_id,
+-- 	ask_price
+-- ) VALUES (
+-- 	2,
+-- 	2,
+-- 	2.5
+-- );
 
 INSERT INTO bids (
 	type_id,

@@ -1,3 +1,4 @@
+import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Trade } from '../types';
 
@@ -36,8 +37,10 @@ export function getTradesByAccountId(accountId: string | number) {
   `, [accountId]);
 };
 
-export function createTrade(trade: Trade) {
-  return db.query(`
+export function createTrade(trade: Trade, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  return query(`
     INSERT INTO trades (
       contract_id,
       buyer_id,

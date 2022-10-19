@@ -1,3 +1,4 @@
+import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 
@@ -43,14 +44,16 @@ function getTotalAmountSumByAssetId(assetId: string | number) {
 };
 
 // INTERNAL: CALLED BY contractModel.tradeContract() ONLY
-export async function distributeTradeFees(contractId: number, tradeFee: number) {
+export async function distributeTradeFees(contractId: number, tradeFee: number, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
   let feePromises = [];
   let lockPools = (await getLockedPoolsByContractId(contractId)).rows;
   let totalAssetAmount = (await getLockedAmountByContractId(contractId)).rows[0].sum;
   for (let pool of lockPools) {
     let fee = tradeFee * (pool.asset_amount / totalAssetAmount);
     feePromises.push(
-      db.query(`
+      query(`
         UPDATE pool_locks
         SET trade_fees=trade_fees+$2
         WHERE pool_lock_id=$1
@@ -156,10 +159,11 @@ export function createPool(pool: Pool) {
   ]);
 };
 
-// TODO(?): Create additional update(s)
 // TODO: Create method to set poolLock to expired (upon expiry or exercise of the contract)
-export function createPoolLock(poolLock: PoolLock) {
-  return db.query(`
+export function createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  return query(`
     INSERT INTO pool_locks (
       pool_id,
       contract_id,
@@ -175,8 +179,6 @@ export function createPoolLock(poolLock: PoolLock) {
   ]);
 };
 
-// TODO: Add check for poolLocks, subtract locked amount for asset_amount to get max amount to withdraw
-// TODO: Create helper for getting locked amount
 export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
   let unlockedAmount = await getUnlockedAmountByPoolId(poolId);
   if (unlockedAmount < assetAmount) throw new Error('Unlocked balance is not enough to withdraw this amount');

@@ -1,3 +1,4 @@
+import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Bid, Contract } from '../types';
 import { tradeContract } from './contractModel';
@@ -27,7 +28,7 @@ async function getMatchingAsksByBid(bid: Bid) {
     createdAt: contracts[0].created_at,
     exercised: contracts[0].exercised
   }
-  return tradeContract(contract, bid);
+  tradeContract(contract, bid);
 }
 
 export function getAllBids(sort='bid_id ASC', count=10) {
@@ -108,8 +109,10 @@ export async function updateBidPrice(bidId: number | string, bidPrice: number, a
   return result;
 }
 
-export function removeBid(bidId: number | string, accountId: number | string) {
-  return db.query(`
+export function removeBid(bidId: number | string, accountId: number | string, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  return query(`
     DELETE FROM bids
     WHERE bid_id=$1
       AND account_id=$2

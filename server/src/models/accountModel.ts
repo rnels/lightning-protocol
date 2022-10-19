@@ -1,3 +1,4 @@
+import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Account } from '../types';
 
@@ -44,8 +45,10 @@ export function createAccount(account: Account) {
     .then((createRes: any) => createRes.rows[0]);
 };
 
-export function depositPaper(accountId: string | number, amount: number) {
-  return db.query(`
+export function depositPaper(accountId: string | number, amount: number, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  return query(`
     UPDATE accounts
     SET paper=paper+$2
       WHERE account_id=$1
@@ -56,8 +59,10 @@ export function depositPaper(accountId: string | number, amount: number) {
   ]);
 };
 
-export function withdrawPaper(accountId: string | number, amount: number) {
-  return db.query(`
+export function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  return query(`
     UPDATE accounts
     SET paper=paper-$2
       WHERE account_id=$1
