@@ -1,12 +1,28 @@
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 
+function getLockedPoolsByContractId(contractId: number) {
+  return db.query(`
+    SELECT *
+      FROM pool_locks
+      WHERE contract_id=$1
+  `, [contractId]);
+};
+
 function getLockedAmountByPoolId(id: string | number) {
   return db.query(`
     SELECT SUM(asset_amount)
       FROM pool_locks
       WHERE pool_id=$1
   `, [id]);
+};
+
+function getLockedAmountByContractId(contractId: number) {
+  return db.query(`
+    SELECT SUM(asset_amount)
+      FROM pool_locks
+      WHERE contract_id=$1
+  `, [contractId]);
 };
 
 function getLockedAmountSumByAssetId(assetId: string | number) {
@@ -26,7 +42,24 @@ function getTotalAmountSumByAssetId(assetId: string | number) {
   `, [assetId]);
 };
 
-// TODO: BIG TEST THIS ONE
+// INTERNAL: CALLED BY contractModel.tradeContract() ONLY
+export async function distributeTradeFees(contractId: number, tradeFee: number) {
+  let feePromises = [];
+  let lockPools = (await getLockedPoolsByContractId(contractId)).rows;
+  let totalAssetAmount = (await getLockedAmountByContractId(contractId)).rows[0].sum;
+  for (let pool of lockPools) {
+    let fee = tradeFee * (pool.asset_amount / totalAssetAmount);
+    feePromises.push(
+      db.query(`
+        UPDATE pool_locks
+        SET trade_fees=trade_fees+$2
+        WHERE pool_lock_id=$1
+      `, [pool.pool_lock_id, fee])
+    );
+  }
+  return Promise.all(feePromises);
+};
+
 export function getUnlockedAmountByPoolId(id: string | number) {
   return Promise.all([
     getLockedAmountByPoolId(id),

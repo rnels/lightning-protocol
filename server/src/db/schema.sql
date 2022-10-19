@@ -64,7 +64,7 @@ CREATE TABLE contracts (
 	contract_id SERIAL NOT NULL PRIMARY KEY,
 	type_id INTEGER NOT NULL,
 	owner_id INTEGER NOT NULL,
-	ask_price DECIMAL, -- Can be NULL if not being actively offered
+	ask_price DECIMAL DEFAULT NULL, -- Can be NULL if not being actively offered
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	exercised BOOLEAN DEFAULT false,
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
