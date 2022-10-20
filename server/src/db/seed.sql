@@ -81,7 +81,7 @@ INSERT INTO contract_types (
 	10,
 	false,
 	20000.19,
-	CURRENT_TIMESTAMP
+	'5022-12-31 23:24:11.519704'
 );
 
 INSERT INTO contract_types (
@@ -95,7 +95,7 @@ INSERT INTO contract_types (
 	20,
 	true,
 	1500,
-	CURRENT_TIMESTAMP
+	'5022-12-31 23:24:11.519704'
 );
 
 -- INSERT INTO contracts (
@@ -128,15 +128,15 @@ INSERT INTO bids (
 	2.4
 );
 
-INSERT INTO trades (
-	contract_id,
-	buyer_id,
-	seller_id,
-	sale_price
-) VALUES (
-	1,
-	1,
-	2,
-	1.5
-);
+-- INSERT INTO trades (
+-- 	contract_id,
+-- 	buyer_id,
+-- 	seller_id,
+-- 	sale_price
+-- ) VALUES (
+-- 	1,
+-- 	1,
+-- 	2,
+-- 	1.5
+-- );
 

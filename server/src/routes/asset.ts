@@ -9,11 +9,11 @@ const router = Router();
 //  id - asset_id to retrieve details of
 // Successful response data:
 // asset: {
-//   asset_id,
-//   asset_type,
+//   assetId,
+//   assetType,
 //   name,
 //   symbol,
-//   price_feed_url,
+//   priceFeedUrl,
 //   icon_url
 // }
 router.get('/asset', (req, res, next) => {
@@ -21,8 +21,7 @@ router.get('/asset', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
   assets.getAssetById(req.query.id as string)
-    .then((result) => {
-      let asset = result.rows[0];
+    .then((asset) => {
       res.status(200).send({asset});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset info' }));
@@ -32,8 +31,7 @@ router.get('/asset', (req, res, next) => {
 // assets: [asset]
 router.get('/asset/list', (req, res, next) => {
   assets.getAllAssets()
-    .then((result) => {
-      let assets = result.rows;
+    .then((assets) => {
       res.status(200).send({assets});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset list' }));

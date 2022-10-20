@@ -29,8 +29,8 @@ router.post('/register', (req, res, next) => {
   } else {
     accounts
       ._getAccountAuthByEmail(email)
-      .then((accountInfo: any) => {
-        if (accountInfo.rows[0]) {
+      .then((accountAuth) => {
+        if (accountAuth.email) {
           res.status(400).send({ message: 'Email already in use' });
         } else {
           bcrypt.hash(password, 12, function (err, hash) {

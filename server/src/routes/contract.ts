@@ -23,8 +23,7 @@ router.get('/contract', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
   contracts.getContractById(req.query.id as string)
-    .then((result) => {
-      let contract = result.rows[0];
+    .then((contract) => {
       res.status(200).send({contract});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract info' }));
@@ -47,8 +46,7 @@ router.get('/contract/type', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
   contractTypes.getContractTypeById(req.query.typeId as string)
-    .then((result) => {
-      let contractType = result.rows[0];
+    .then((contractType) => {
       res.status(200).send({contractType});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract type info' }));
@@ -64,8 +62,7 @@ router.get('/contract/list', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
   contracts.getContractsByTypeId(req.query.typeId as string)
-    .then((result) => {
-      let contracts = result.rows;
+    .then((contracts) => {
       res.status(200).send({contracts});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract list' }));
@@ -76,8 +73,7 @@ router.get('/contract/list', (req, res, next) => {
 // contracts: [contract]
 router.get('/contract/owned', (req, res, next) => {
   contracts.getContractsByOwnerId(req.user!.id)
-    .then((result) => {
-      let contracts = result.rows;
+    .then((contracts) => {
       res.status(200).send({contracts});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract list' }));
@@ -93,8 +89,7 @@ router.get('/contract/type/list', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
   contractTypes.getActiveContractTypesByAssetId(req.query.assetId as string)
-    .then((result) => {
-      let contractTypes = result.rows;
+    .then((contractTypes) => {
       res.status(200).send({contractTypes});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract type list' }));
@@ -114,6 +109,7 @@ router.post('/contract', (req, res, next) => {
   let contract: Contract = {
     typeId: req.body.typeId,
     askPrice: req.body.askPrice || null,
+    ownerId: req.user!.id, // DEBUG ONLY TODO: DELETE THIS
     exercised: false
   };
   contracts.createContract(contract)

@@ -34,15 +34,13 @@ import { QueryResult } from 'pg';
   let accountId = 1;
   let result = await accounts.getAccountInfoById(accountId);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // GET ACCOUNT AUTH
 (async () => {
-  let email = 'guy@test.com';
+  let email = 'ryan@paper.com';
   let result = await accounts._getAccountAuthByEmail(email);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // ASSETS //
@@ -62,7 +60,6 @@ import { QueryResult } from 'pg';
 (async () => {
   let result = await assets.getAllAssets();
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET ASSET BY ID
@@ -70,17 +67,14 @@ import { QueryResult } from 'pg';
   let assetId = 1;
   let result = await assets.getAssetById(assetId);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // GET ASSETS BY TYPE
 (async () => {
   let assetType = 'crypto';
-  let result: QueryResult;
   try {
-    result = await assets.getAssetsByAssetType(assetType);
+    let result = await assets.getAssetsByAssetType(assetType);
     console.log(result);
-    console.log(result.rows);
   } catch (error) {
     console.log('There was an error', error);
   }
@@ -121,7 +115,6 @@ import { QueryResult } from 'pg';
 (async () => {
   let result = await pools.getAllPools();
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET POOL BY ID
@@ -129,7 +122,6 @@ import { QueryResult } from 'pg';
   let poolId = 1;
   let result = await pools.getPoolById(poolId);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // GET POOLS BY ASSET ID
@@ -137,7 +129,6 @@ import { QueryResult } from 'pg';
   let assetId = 1;
   let result = await pools.getPoolsByAssetId(assetId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET POOLS BY ACCOUNT ID
@@ -145,7 +136,6 @@ import { QueryResult } from 'pg';
   let accountId = 1;
   let result = await pools.getPoolsByAccountId(accountId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // CONTRACT TYPES //
@@ -157,7 +147,7 @@ import { QueryResult } from 'pg';
     assetAmount: 100,
     direction: true,
     strikePrice: 50.54,
-    expiresAt: Date.now()
+    expiresAt: 1340235435039430954309 // TODO: Redo this with epoch representation of long time out
   };
   let result = await contractTypes.createContractType(contractType);
   console.log(result);
@@ -167,7 +157,6 @@ import { QueryResult } from 'pg';
 (async () => {
   let result = await contractTypes.getAllContractTypes();
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET CONTRACT TYPE BY ID
@@ -175,7 +164,6 @@ import { QueryResult } from 'pg';
   let contractTypeId = 1;
   let result = await contractTypes.getContractTypeById(contractTypeId);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // GET CONTRACT TYPES BY ASSET ID
@@ -183,7 +171,6 @@ import { QueryResult } from 'pg';
   let assetId = 1;
   let result = await contractTypes.getActiveContractTypesByAssetId(assetId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // CONTRACTS //
@@ -214,7 +201,6 @@ import { QueryResult } from 'pg';
 (async () => {
   let result = await contracts.getAllContracts();
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET CONTRACT BY ID
@@ -222,7 +208,6 @@ import { QueryResult } from 'pg';
   let contractId = 1;
   let result = await contracts.getContractById(contractId);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // GET CONTRACTS BY TYPE ID
@@ -230,7 +215,6 @@ import { QueryResult } from 'pg';
   let typeId = 1;
   let result = await contracts.getContractsByTypeId(typeId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET CONTRACTS BY BUYER ID
@@ -238,7 +222,6 @@ import { QueryResult } from 'pg';
   let ownerId = 1;
   let result = await contracts.getContractsByOwnerId(ownerId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // BIDS //
@@ -258,7 +241,6 @@ import { QueryResult } from 'pg';
 (async () => {
   let result = await bids.getAllBids();
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET BID BY ID
@@ -266,7 +248,6 @@ import { QueryResult } from 'pg';
   let bidId = 1;
   let result = await bids.getBidById(bidId);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // GET BIDS BY TYPE ID
@@ -274,7 +255,6 @@ import { QueryResult } from 'pg';
   let typeId = 1;
   let result = await bids.getBidsByContractTypeId(typeId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET BIDS BY ACCOUNT ID
@@ -282,7 +262,6 @@ import { QueryResult } from 'pg';
   let accountId = 1;
   let result = await bids.getBidsByAccountId(accountId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // TRADES //
@@ -304,7 +283,6 @@ import { QueryResult } from 'pg';
 (async () => {
   let result = await trades.getAllTrades();
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET TRADE BY ID
@@ -312,7 +290,6 @@ import { QueryResult } from 'pg';
   let tradeId = 1;
   let result = await trades.getTradeById(tradeId);
   console.log(result);
-  console.log(result.rows[0]);
 });
 
 // GET TRADES BY CONTRACT ID
@@ -320,7 +297,6 @@ import { QueryResult } from 'pg';
   let contractId = 1;
   let result = await trades.getTradesByContractId(contractId);
   console.log(result);
-  console.log(result.rows);
 });
 
 // GET TRADES BY ACCOUNT ID
@@ -328,5 +304,4 @@ import { QueryResult } from 'pg';
   let accountId = 1;
   let result = await trades.getTradesByAccountId(accountId);
   console.log(result);
-  console.log(result.rows);
 });

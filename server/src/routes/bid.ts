@@ -10,18 +10,17 @@ const router = Router();
 //  id - Bid ID to retrieve details of
 // Successful response data:
 // bid: {
-//   bid_id
-//   type_id
-//   account_id
-//   bid_price
+//   bidId
+//   typeId
+//   accountId
+//   bidPrice
 // }
 router.get('/bid', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
   bids.getBidById(req.query.id as string)
-    .then((result) => {
-      let bid = result.rows[0];
+    .then((bid) => {
       res.status(200).send({bid});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving bid info' }));
@@ -37,8 +36,7 @@ router.get('/bid/type', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
   bids.getBidsByContractTypeId(req.query.typeId as string)
-    .then((result) => {
-      let bids = result.rows;
+    .then((bids) => {
       res.status(200).send({bids});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving bid list' }));
@@ -49,8 +47,7 @@ router.get('/bid/type', (req, res, next) => {
 // bids: [bid]
 router.get('/bid/owned', (req, res, next) => {
   bids.getBidsByAccountId(req.user!.id)
-    .then((result) => {
-      let bids = result.rows;
+    .then((bids) => {
       res.status(200).send({bids});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving bid list' }));
@@ -72,7 +69,7 @@ router.post('/bid', (req, res, next) => {
     bidPrice: req.body.bidPrice
   };
   bids.createBid(bid)
-    .then((result) => {
+    .then(({bidId}) => {
       res.status(201).send({ message: 'Bid created' });
     })
     .catch((error: any) => {
@@ -92,7 +89,7 @@ router.put('/bid/price', (req, res, next) => {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   bids.updateBidPrice(req.body.bidId, req.body.bidPrice, req.user!.id)
-    .then((result) => {
+    .then(({typeId}) => {
       res.status(201).send({ message: 'Bid price updated' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error updating bid price' }));
@@ -108,7 +105,7 @@ router.delete('/bid', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: bidId' });
   }
   bids.removeBid(req.query.bidId as string, req.user!.id)
-    .then((result) => {
+    .then(() => {
       res.status(202).send({ message: 'Bid removed' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error removing bid' }));

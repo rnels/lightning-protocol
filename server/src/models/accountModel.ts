@@ -1,33 +1,35 @@
-import { PoolClient } from 'pg';
+import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
 import { Account } from '../types';
 
 // TODO: Get rid of any route response that exposes account_id
 // Bids, contracts, pools, etc should be anonymous
 
-export function getAccountInfoById(id: string | number) {
-  return db.query(`
+export async function getAccountInfoById(id: string | number): Promise<Account> {
+  const res = await db.query(`
     SELECT
-      account_id,
+      account_id as "accountId",
       email,
-      first_name,
-      last_name,
+      first_name as "firstName",
+      last_name as "lastName",
       paper
     FROM accounts
       WHERE account_id=$1
   `, [id]);
+  return res.rows[0];
 };
 
 // INTERNAL METHOD: DATA NOT TO BE RETURNED TO CLIENT
-export function _getAccountAuthByEmail(email: string){
-  return db.query(`
+export async function _getAccountAuthByEmail(email: string): Promise<{accountId: number, email: string, passwordHash: string}>{
+  const res = await db.query(`
     SELECT
-      account_id,
+      account_id as "accountId",
       email,
-      pw_hash
+      pw_hash as "passwordHash"
     FROM accounts
       WHERE email=$1
   `, [email]);
+  return res.rows[0];
 };
 
 // account.email
@@ -35,8 +37,8 @@ export function _getAccountAuthByEmail(email: string){
 // account.firstName
 // account.lastName
 // account.paper
-export function createAccount(account: Account) {
-  return db.query(`
+export async function createAccount(account: Account): Promise<{accountId: number}>{
+  const res = await db.query(`
     INSERT INTO accounts(
       email,
       pw_hash,
@@ -44,8 +46,9 @@ export function createAccount(account: Account) {
       last_name,
       paper
     ) VALUES ($1, $2, $3, $4, $5)
-    RETURNING account_id
+    RETURNING account_id as accountId
   `, [account.email, account.passwordHash, account.firstName, account.lastName, account.paper]);
+  return res.rows[0];
 };
 
 export function depositPaper(accountId: string | number, amount: number, client?: PoolClient) {

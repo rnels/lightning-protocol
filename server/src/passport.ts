@@ -1,39 +1,26 @@
 import * as model from './models/accountModel';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcryptjs';
-import { Account, User } from './types';
+import { User } from './types';
 
 export default function createPassport(passport: any) {
   passport.use(
     new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
       model
         ._getAccountAuthByEmail(email)
-        .then((accountRes: any) => {
-          if (accountRes.rows.length === 0) {
-            return done(null, false, {
-              message: "That email is not registered",
-            });
-          }
-          let account: Account = {
-            accountId: accountRes.rows[0].account_id,
-            email: accountRes.rows[0].email,
-            passwordHash: accountRes.rows[0].pw_hash,
-            firstName: accountRes.rows[0].first_name,
-            lastName: accountRes.rows[0].last_name,
-            paper: accountRes.rows[0].paper
-          };
+        .then((accountAuth) => {
           bcrypt
-            .compare(password, account.passwordHash)
+            .compare(password, accountAuth.passwordHash)
             .then((res: any) => {
               let loggedUser: User = {
-                id: account.accountId as number
+                id: accountAuth.accountId as number
               }
               if (res) return done(null, loggedUser);
               else return done(null, false, { message: "Password incorrect" });
             })
             .catch((err: any) => done(err));
         })
-        .catch((err: any) => done(err));
+        .catch((err: any) => done({ message: 'That email is not registered' }));
     })
   );
   passport.serializeUser((user: any, done: any) => {

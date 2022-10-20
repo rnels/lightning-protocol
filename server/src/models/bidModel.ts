@@ -8,78 +8,81 @@ import { _tradeContract } from './contractModel';
 // When this is called, there should be a bid in the table, don't call this before creating a bid
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 async function _getMatchingAsksByBid(bid: Bid) {
-  let contracts = (await
-    db.query(`
-      SELECT contracts.*
-        FROM contracts, contract_types
-        WHERE contracts.type_id=$1
-          AND contracts.ask_price<=$2
-          AND contracts.exercised=false
-          AND contract_types.expires_at < NOW()
-          AND contracts.type_id=contract_types.contract_type_id
-        ORDER BY contracts.ask_price ASC
-    `, [bid.typeId, bid.bidPrice])
-  ).rows;
+  let contracts = (await db.query(`
+    SELECT
+        contracts.contract_id as "contractId",
+        contracts.type_id as "typeId",
+        contracts.owner_id as "ownerId",
+        contracts.ask_price as "askPrice",
+        contracts.created_at as "createdAt",
+        contracts.exercised as "exercised"
+    FROM contracts, contract_types
+    WHERE contracts.type_id=$1
+      AND contracts.ask_price<=$2
+      AND contracts.exercised=false
+      AND contract_types.expires_at > NOW()
+      AND contracts.type_id=contract_types.contract_type_id
+    ORDER BY contracts.ask_price ASC
+  `, [bid.typeId, bid.bidPrice])).rows as Contract[];
+  console.log(contracts);
   if (contracts.length === 0) return;
-  let contract: Contract = {
-    contractId: contracts[0].contract_id,
-    typeId: contracts[0].type_id,
-    ownerId: contracts[0].owner_id,
-    askPrice: contracts[0].ask_price,
-    createdAt: contracts[0].created_at,
-    exercised: contracts[0].exercised
-  }
+  let contract = contracts[0];
   _tradeContract(contract, bid);
 }
 
-export function getAllBids(sort='bid_id ASC', count=10) {
-  return db.query(`
+export async function getAllBids(sort='bid_id ASC'): Promise<Bid[]> {
+  const res = await db.query(`
     SELECT
-      bid_id,
-      type_id,
-      bid_price
+      bid_id as "bidId",
+      type_id as "typeId",
+      bid_price as "bidPrice"
     FROM bids
     ORDER BY $1
-    LIMIT $2
-  `, [sort, count]);
+  `, [sort]);
+  return res.rows;
 }
 
-export function getBidById(id: string | number) {
-  return db.query(`
+export async function getBidById(id: string | number): Promise<Bid> {
+  const res = await db.query(`
     SELECT
-      bid_id,
-      type_id,
-      bid_price
+      bid_id as "bidId",
+      type_id as "typeId",
+      bid_price as "bidPrice"
     FROM bids
       WHERE bid_id=$1
   `, [id]);
+  return res.rows[0];
 }
 
-export function getBidsByContractTypeId(typeId: string | number) {
-  return db.query(`
+export async function getBidsByContractTypeId(typeId: string | number): Promise<Bid[]> {
+  const res = await db.query(`
     SELECT
-      bid_id,
-      type_id,
-      bid_price
+      bid_id as "bidId",
+      type_id as "typeId",
+      bid_price as "bidPrice"
     FROM bids
       WHERE type_id=$1
   `, [typeId]);
+  return res.rows;
 }
 
 // Only intended to take an accountId of the authenticated user (or used by internal functions)
-export function getBidsByAccountId(accountId: string | number) {
-  return db.query(`
+export async function getBidsByAccountId(accountId: string | number): Promise<Bid[]> {
+  const res = await db.query(`
     SELECT
-      bid_id,
-      type_id,
-      bid_price
+      bid_id as "bidId",
+      type_id as "typeId",
+      bid_price as "bidPrice"
     FROM bids
       WHERE account_id=$1
   `, [accountId]);
+  return res.rows;
 }
 
-export async function createBid(bid: Bid) {
-  let result = await db.query(`
+// TODO: Change the arguments to accept typeId, accountId, bidPrice, rather than Bid object
+// Create bid object from result of query to pass to _getMatchingAsksByBid
+export async function createBid(bid: Bid): Promise<{bidId: number}> {
+  const res = await db.query(`
     INSERT INTO bids (
       type_id,
       account_id,
@@ -89,38 +92,38 @@ export async function createBid(bid: Bid) {
       $2,
       $3
     )
-    RETURNING bid_id
+    RETURNING bid_id as "bidId"
   `,
   [
     bid.typeId,
     bid.accountId,
     bid.bidPrice
   ]);
-  bid.bidId = result.rows[0].bid_id;
+  bid.bidId = res.rows[0].bidId;
   _getMatchingAsksByBid(bid);
-  return result;
+  return res.rows[0];
 }
 
-export async function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string) {
-  let result = await db.query(`
+export async function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string): Promise<{typeId: number}> {
+  const res = await db.query(`
     UPDATE bids SET bid_price=$2
     WHERE bid_id=$1
       AND account_id=$3
-    RETURNING type_id
+    RETURNING type_id as "typeId"
   `,
   [
     bidId,
     bidPrice,
     accountId
   ]);
-  let typeId = result.rows[0].type_id;
+  let typeId = res.rows[0].typeId;
   let bid: Bid = {
       typeId,
       accountId: accountId as number,
       bidPrice
   }
   _getMatchingAsksByBid(bid);
-  return result;
+  return res.rows[0].typeId;
 }
 
 export function removeBid(bidId: number | string, accountId: number | string, client?: PoolClient) {

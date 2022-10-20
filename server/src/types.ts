@@ -1,7 +1,7 @@
 export type Account = {
   accountId?: number,
   email: string,
-  passwordHash: string,
+  passwordHash?: string,
   firstName: string,
   lastName: string,
 	paper: number
@@ -12,7 +12,7 @@ export type Asset = {
 	assetType: string,
 	name: string,
 	symbol: string,
-	priceFeedUrl?: string,
+	priceApiId?: number,
 	iconUrl?: string
 };
 

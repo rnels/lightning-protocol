@@ -20,8 +20,7 @@ router.get('/pool', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
   pools.getPoolById(req.query.id as string)
-    .then((result) => {
-      let pool = result.rows[0];
+    .then((pool) => {
       res.status(200).send({pool});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
@@ -37,8 +36,7 @@ router.get('/pool/list', (req, res, next) => {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
   pools.getPoolsByAssetId(req.query.assetId as string)
-    .then((result) => {
-      let pools = result.rows;
+    .then((pools) => {
       res.status(200).send({pools});
     })
     .catch((error: any) => res.status(404).send({ message: `Error retrieving pool list for asset ID ${req.query.assetId}` }));
@@ -49,8 +47,7 @@ router.get('/pool/list', (req, res, next) => {
 // pools: [pool]
 router.get('/pool/owned', (req, res, next) => {
   pools.getPoolsByAccountId(req.user!.id)
-    .then((result) => {
-      let pools = result.rows;
+    .then((pools) => {
       res.status(200).send({pools});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool list' }));
@@ -64,8 +61,7 @@ router.get('/pool/owned', (req, res, next) => {
 // Though really I don't think this should be done by a get request, there should be a listener on the app that calls it
 router.get('/pool/owned/lock', (req, res, next) => {
   pools.getPoolLocksByAccountId(req.user!.id)
-    .then((result) => {
-      let poolLocks = result.rows;
+    .then((poolLocks) => {
       res.status(200).send({poolLocks});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool lock list' }));
@@ -87,7 +83,7 @@ router.post('/pool', (req, res, next) => {
     assetAmount: req.body.assetAmount || 0
   };
   pools.createPool(pool)
-    .then((result) => res.status(201).send({ message: 'Pool created' }))
+    .then(({poolId}) => res.status(201).send({ message: 'Pool created' }))
     .catch((error: any) => {
       console.log('Error creating pool:', error);
       return res.status(400).send({ message: 'Error creating pool' });
@@ -103,7 +99,7 @@ router.post('/pool/deposit', (req, res, next) => {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   pools.depositPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
-    .then((result) => {
+    .then(() => {
       // TODO: Currently provides a success method even if nothing is updated,
       // in the case of a poolId passed that doesn't belong to the user
       // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool
@@ -124,7 +120,7 @@ router.post('/pool/withdraw', (req, res, next) => {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   pools.withdrawPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
-    .then((result) => {
+    .then(({assetId}) => {
       // TODO: Currently provides a success method even if nothing is updated,
       // in the case of a poolId passed that doesn't belong to the user
       // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool

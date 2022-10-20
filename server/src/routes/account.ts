@@ -8,16 +8,15 @@ const router = Router();
 // Get public info for authenticated user account
 // Successful response data:
 // account: {
-//   account_id
+//   accountId
 //   email
-//   first_name
-//   last_name
+//   firstName
+//   lastName
 //   paper
 // }
 router.get('/account', (req, res) => {
   accounts.getAccountInfoById(req.user!.id)
-    .then((result) => {
-      let account = result.rows[0];
+    .then((account) => {
       res.status(200).send({account});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving account info' }));
