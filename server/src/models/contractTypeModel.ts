@@ -1,13 +1,12 @@
 import db from '../db/db';
 import { ContractType } from '../types';
 
-export function getAllContractTypes(sort='contract_type_id ASC', count=10) {
+export function getAllContractTypes(sort='contract_type_id ASC') {
   return db.query(`
     SELECT *
       FROM contract_types
     ORDER BY $1
-    LIMIT $2
-  `, [sort, count]);
+  `, [sort]);
 };
 
 export function getContractTypeById(id: string | number) {
@@ -18,13 +17,23 @@ export function getContractTypeById(id: string | number) {
   `, [id]);
 };
 
+// Get contract by type ID (if exists and non-expired)
+export function getActiveContractTypeById(id: string | number) {
+  return db.query(`
+    SELECT *
+      FROM contract_types
+      WHERE contract_type_id=$1
+        AND expires_at > NOW()
+  `, [id]);
+};
+
 // Get active (non-expired) contract types
 export function getActiveContractTypesByAssetId(assetId: string | number) {
   return db.query(`
     SELECT *
       FROM contract_types
       WHERE asset_id=$1
-      AND expires_at > NOW()
+        AND expires_at > NOW()
   `, [assetId]);
 };
 

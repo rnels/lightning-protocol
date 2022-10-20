@@ -105,6 +105,7 @@ router.get('/contract/type/list', (req, res, next) => {
 // Create a contract
 // Expects in req.body:
 //  typeId (Integer) - Contract type to instantiate for contract
+//  askPrice (Decimal) [Optional - Defaults to null] - Starting price
 // TODO: Restrict this, only should be called by app not by users
 router.post('/contract', (req, res, next) => {
   if (!req.body.typeId) {
@@ -112,7 +113,7 @@ router.post('/contract', (req, res, next) => {
   }
   let contract: Contract = {
     typeId: req.body.typeId,
-    ownerId: req.user!.id,
+    askPrice: req.body.askPrice || null,
     exercised: false
   };
   contracts.createContract(contract)
@@ -151,6 +152,23 @@ router.post('/contract/type', (req, res, next) => {
     .catch((error: any) => {
       console.log('There was an error creating the contract type:', error);
       res.status(400).send({ message: 'Error creating contract type' });
+    });
+});
+
+// Exercises a contract type
+// Expects in req.body:
+//   contractId (Integer)
+router.post('/contract/exercise', (req, res, next) => {
+  if (!req.body.contractId) {
+    return res.status(400).send({ message: 'Missing body parameter: contractId' });
+  }
+  contracts.exerciseContract(req.body.contractId, req.user!.id)
+    .then(() => {
+      res.status(201).send({ message: 'Contract exercised' });
+    })
+    .catch((error: any) => {
+      console.log('There was an error exercises the contract:', error);
+      res.status(400).send({ message: 'Error exercising the contract' });
     });
 });
 

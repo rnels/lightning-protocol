@@ -1,13 +1,12 @@
 import db from '../db/db';
 import { Asset } from '../types';
 
-export function getAllAssets(sort='asset_id ASC', count=100) {
+export function getAllAssets(sort='asset_id ASC') {
   return db.query(`
     SELECT *
       FROM assets
     ORDER BY $1
-    LIMIT $2
-  `, [sort, count]);
+  `, [sort]);
 };
 
 export function getAssetById(id: string | number) {

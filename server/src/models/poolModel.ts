@@ -182,6 +182,16 @@ export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
   ]);
 };
 
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+export function _removePoolLocksByContractId(contractId: number, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  return query(`
+    DELETE FROM pool_locks
+    WHERE contract_id=$1
+  `, [contractId]);
+};
+
 // TODO: Use this function in exercising a contract
 // Add a client?: PoolClient and the works
 export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
@@ -215,6 +225,11 @@ export function depositPoolAssets(poolId: string | number, assetAmount: number, 
     assetAmount,
     accountId
   ]);
+};
+
+
+export async function _sellPoolAssets(poolId: string | number, assetAmount: number) {
+
 };
 
 // TODO: Create delete

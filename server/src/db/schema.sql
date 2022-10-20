@@ -22,7 +22,7 @@ CREATE TABLE assets (
 	asset_type asset_type_enum,
 	name VARCHAR(60) NOT NULL,
 	symbol VARCHAR(24) NOT NULL,
-	price_feed_url TEXT, -- TODO: Figure out how we can get price info for the assets, will need to connect with a service for realtime price updates
+	price_api_id INTEGER, -- Used by respective price API for price lookups
 	icon_url TEXT
 	--CONSTRAINT symbol_unique UNIQUE (assets) -- TODO: Make a constraint where symbol + type combo must be unique
 );
@@ -63,7 +63,7 @@ CREATE INDEX contract_types_asset_id_idx ON contract_types(asset_id);
 CREATE TABLE contracts (
 	contract_id SERIAL NOT NULL PRIMARY KEY,
 	type_id INTEGER NOT NULL,
-	owner_id INTEGER NOT NULL,
+	owner_id INTEGER DEFAULT NULL, -- Can be NULL on creation, TODO: Do I need to say "Default NULL" here?
 	ask_price DECIMAL DEFAULT NULL, -- Can be NULL if not being actively offered
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	exercised BOOLEAN DEFAULT false,

@@ -30,24 +30,24 @@ INSERT INTO assets (
 	asset_type,
 	name,
 	symbol,
-	price_feed_url
+	price_api_id
 ) VALUES (
 	'crypto',
 	'Bitcoin',
 	'BTC',
-	'https://coinmarketcap.com/api/' -- Placeholder, need to do something else once I figure out the implementation
+	1
 );
 
 INSERT INTO assets (
 	asset_type,
 	name,
 	symbol,
-	price_feed_url
+	price_api_id
 ) VALUES (
 	'crypto',
-	'Ethereum',
-	'ETH',
-	'https://coinmarketcap.com/api/' -- Placeholder, need to do something else once I figure out the implementation
+	'Litecoin',
+	'LTC',
+	3
 );
 
 INSERT INTO pools (
