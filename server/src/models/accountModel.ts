@@ -2,6 +2,9 @@ import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Account } from '../types';
 
+// TODO: Get rid of any route response that exposes account_id
+// Bids, contracts, pools, etc should be anonymous
+
 export function getAccountInfoById(id: string | number) {
   return db.query(`
     SELECT
@@ -15,7 +18,8 @@ export function getAccountInfoById(id: string | number) {
   `, [id]);
 };
 
-export function getAccountAuthByEmail(email: string){
+// INTERNAL METHOD: DATA NOT TO BE RETURNED TO CLIENT
+export function _getAccountAuthByEmail(email: string){
   return db.query(`
     SELECT
       account_id,
@@ -41,8 +45,7 @@ export function createAccount(account: Account) {
       paper
     ) VALUES ($1, $2, $3, $4, $5)
     RETURNING account_id
-  `, [account.email, account.passwordHash, account.firstName, account.lastName, account.paper])
-    .then((createRes: any) => createRes.rows[0]);
+  `, [account.email, account.passwordHash, account.firstName, account.lastName, account.paper]);
 };
 
 export function depositPaper(accountId: string | number, amount: number, client?: PoolClient) {

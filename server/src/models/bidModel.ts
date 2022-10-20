@@ -1,12 +1,13 @@
 import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Bid, Contract } from '../types';
-import { tradeContract } from './contractModel';
+import { _tradeContract } from './contractModel';
 
 // Finds matching contracts with ask prices lower than or equal to the provided bid price
 // If there are matches, executes a trade on the lowest price contract
 // When this is called, there should be a bid in the table, don't call this before creating a bid
-async function getMatchingAsksByBid(bid: Bid) {
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+async function _getMatchingAsksByBid(bid: Bid) {
   let contracts = (await
     db.query(`
       SELECT contracts.*
@@ -28,13 +29,16 @@ async function getMatchingAsksByBid(bid: Bid) {
     createdAt: contracts[0].created_at,
     exercised: contracts[0].exercised
   }
-  tradeContract(contract, bid);
+  _tradeContract(contract, bid);
 }
 
 export function getAllBids(sort='bid_id ASC', count=10) {
   return db.query(`
-    SELECT *
-      FROM bids
+    SELECT
+      bid_id,
+      type_id,
+      bid_price
+    FROM bids
     ORDER BY $1
     LIMIT $2
   `, [sort, count]);
@@ -42,24 +46,34 @@ export function getAllBids(sort='bid_id ASC', count=10) {
 
 export function getBidById(id: string | number) {
   return db.query(`
-    SELECT *
-      FROM bids
+    SELECT
+      bid_id,
+      type_id,
+      bid_price
+    FROM bids
       WHERE bid_id=$1
   `, [id]);
 }
 
 export function getBidsByContractTypeId(typeId: string | number) {
   return db.query(`
-    SELECT *
-      FROM bids
+    SELECT
+      bid_id,
+      type_id,
+      bid_price
+    FROM bids
       WHERE type_id=$1
   `, [typeId]);
 }
 
+// Only intended to take an accountId of the authenticated user (or used by internal functions)
 export function getBidsByAccountId(accountId: string | number) {
   return db.query(`
-    SELECT *
-      FROM bids
+    SELECT
+      bid_id,
+      type_id,
+      bid_price
+    FROM bids
       WHERE account_id=$1
   `, [accountId]);
 }
@@ -83,7 +97,7 @@ export async function createBid(bid: Bid) {
     bid.bidPrice
   ]);
   bid.bidId = result.rows[0].bid_id;
-  getMatchingAsksByBid(bid);
+  _getMatchingAsksByBid(bid);
   return result;
 }
 
@@ -105,7 +119,7 @@ export async function updateBidPrice(bidId: number | string, bidPrice: number, a
       accountId: accountId as number,
       bidPrice
   }
-  getMatchingAsksByBid(bid);
+  _getMatchingAsksByBid(bid);
   return result;
 }
 

@@ -2,7 +2,7 @@ import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 
-function getLockedPoolsByContractId(contractId: number) {
+function _getLockedPoolsByContractId(contractId: number) {
   return db.query(`
     SELECT *
       FROM pool_locks
@@ -10,7 +10,7 @@ function getLockedPoolsByContractId(contractId: number) {
   `, [contractId]);
 };
 
-function getLockedAmountByPoolId(id: string | number) {
+function _getLockedAmountByPoolId(id: string | number) {
   return db.query(`
     SELECT SUM(asset_amount)
       FROM pool_locks
@@ -18,7 +18,7 @@ function getLockedAmountByPoolId(id: string | number) {
   `, [id]);
 };
 
-function getLockedAmountByContractId(contractId: number) {
+function _getLockedAmountByContractId(contractId: number) {
   return db.query(`
     SELECT SUM(asset_amount)
       FROM pool_locks
@@ -26,7 +26,7 @@ function getLockedAmountByContractId(contractId: number) {
   `, [contractId]);
 };
 
-function getLockedAmountSumByAssetId(assetId: string | number) {
+function _getLockedAmountSumByAssetId(assetId: string | number) {
   return db.query(`
     SELECT SUM(pool_locks.asset_amount)
       FROM pools, pool_locks
@@ -35,7 +35,7 @@ function getLockedAmountSumByAssetId(assetId: string | number) {
   `, [assetId]);
 };
 
-function getTotalAmountSumByAssetId(assetId: string | number) {
+function _getTotalAmountSumByAssetId(assetId: string | number) {
   return db.query(`
     SELECT SUM(asset_amount)
       FROM pools
@@ -43,13 +43,13 @@ function getTotalAmountSumByAssetId(assetId: string | number) {
   `, [assetId]);
 };
 
-// INTERNAL: CALLED BY contractModel.tradeContract() ONLY
-export async function distributeTradeFees(contractId: number, tradeFee: number, client?: PoolClient) {
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+export async function _distributeTradeFees(contractId: number, tradeFee: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
   let feePromises = [];
-  let lockPools = (await getLockedPoolsByContractId(contractId)).rows;
-  let totalAssetAmount = (await getLockedAmountByContractId(contractId)).rows[0].sum;
+  let lockPools = (await _getLockedPoolsByContractId(contractId)).rows;
+  let totalAssetAmount = (await _getLockedAmountByContractId(contractId)).rows[0].sum;
   for (let pool of lockPools) {
     let fee = tradeFee * (pool.asset_amount / totalAssetAmount);
     feePromises.push(
@@ -63,28 +63,24 @@ export async function distributeTradeFees(contractId: number, tradeFee: number, 
   return Promise.all(feePromises);
 };
 
-export function getUnlockedAmountByPoolId(id: string | number) {
-  return Promise.all([
-    getLockedAmountByPoolId(id),
+export async function getUnlockedAmountByPoolId(id: string | number) {
+  let results = await Promise.all([
+    _getLockedAmountByPoolId(id),
     getPoolById(id)
-  ])
-    .then((results) => {
-      let lockedAmount = results[0].rows[0].sum; // TODO: Test this
-      let totalAmount = results[1].rows[0].asset_amount; // TODO: Test this
-      return totalAmount - lockedAmount;
-    });
+  ]);
+  let lockedAmount = results[0].rows[0].sum;
+  let totalAmount = results[1].rows[0].asset_amount;
+  return totalAmount - lockedAmount;
 };
 
 export async function getUnlockedAmountByAssetId(assetId: string | number) {
-  return Promise.all([
-    getLockedAmountSumByAssetId(assetId),
-    getTotalAmountSumByAssetId(assetId)
-  ])
-    .then((results) => {
-      let lockedAmount = results[0].rows[0].sum; // TODO: Test this
-      let totalAmount = results[1].rows[0].sum; // TODO: Test this
-      return totalAmount - lockedAmount;
-    });
+  let results = await Promise.all([
+    _getLockedAmountSumByAssetId(assetId),
+    _getTotalAmountSumByAssetId(assetId)
+  ]);
+  let lockedAmount = results[0].rows[0].sum;
+  let totalAmount = results[1].rows[0].sum;
+  return totalAmount - lockedAmount;
 };
 
 export function getAllPools(sort='pool_id ASC', count=10) {
@@ -160,7 +156,9 @@ export function createPool(pool: Pool) {
 };
 
 // TODO: Create method to set poolLock to expired (upon expiry or exercise of the contract)
-export function createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
+
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
   return query(`

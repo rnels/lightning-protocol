@@ -27,7 +27,7 @@ router.get('/bid', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving bid info' }));
 });
 
-// Retrieve bids for a given bid type ID
+// Retrieve bids for a given contract type ID
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve bids of
 // Successful response data:
@@ -96,6 +96,22 @@ router.put('/bid/price', (req, res, next) => {
       res.status(201).send({ message: 'Bid price updated' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error updating bid price' }));
+});
+
+// DELETE REQUESTS //
+
+// Remove a bid
+// Expects in req.query:
+//  bidId
+router.delete('/bid', (req, res, next) => {
+  if (!req.query.bidId) {
+    return res.status(400).send({ message: 'Missing query parameter: bidId' });
+  }
+  bids.removeBid(req.query.bidId as string, req.user!.id)
+    .then((result) => {
+      res.status(202).send({ message: 'Bid removed' });
+    })
+    .catch((error: any) => res.status(400).send({ message: 'Error removing bid' }));
 });
 
 export default router;

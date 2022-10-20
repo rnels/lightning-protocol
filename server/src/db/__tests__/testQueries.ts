@@ -40,7 +40,7 @@ import { QueryResult } from 'pg';
 // GET ACCOUNT AUTH
 (async () => {
   let email = 'guy@test.com';
-  let result = await accounts.getAccountAuthByEmail(email);
+  let result = await accounts._getAccountAuthByEmail(email);
   console.log(result);
   console.log(result.rows[0]);
 });
@@ -296,7 +296,7 @@ import { QueryResult } from 'pg';
     salePrice: 2.5,
     tradeFee: 0
   };
-  let result = await trades.createTrade(trade);
+  let result = await trades._createTrade(trade);
   console.log(result);
 });
 

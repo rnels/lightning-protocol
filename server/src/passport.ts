@@ -7,7 +7,7 @@ export default function createPassport(passport: any) {
   passport.use(
     new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
       model
-        .getAccountAuthByEmail(email)
+        ._getAccountAuthByEmail(email)
         .then((accountRes: any) => {
           if (accountRes.rows.length === 0) {
             return done(null, false, {

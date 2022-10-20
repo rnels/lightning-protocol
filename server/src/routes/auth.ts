@@ -28,7 +28,7 @@ router.post('/register', (req, res, next) => {
     res.status(400).send({ message: 'Please provide all required fields' });
   } else {
     accounts
-      .getAccountAuthByEmail(email)
+      ._getAccountAuthByEmail(email)
       .then((accountInfo: any) => {
         if (accountInfo.rows[0]) {
           res.status(400).send({ message: 'Email already in use' });
