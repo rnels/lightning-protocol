@@ -86,7 +86,7 @@ CREATE TABLE pool_locks (
 	pool_id INTEGER NOT NULL,
 	contract_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL,
-	expires_at BOOLEAN DEFAULT false, -- TODO: Change this to be expires_at
+	expires_at TIMESTAMP NOT NULL,
 	trade_fees DECIMAL NOT NULL DEFAULT 0, -- Amount provided by contract trading fees, forwarded to pool owner after lock is removed
 	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id),
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id)
