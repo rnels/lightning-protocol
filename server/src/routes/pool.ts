@@ -59,6 +59,9 @@ router.get('/pool/owned', (req, res, next) => {
 // Retrieve pools for the authenticated user account
 // Successful response data:
 // poolLocks: [poolLocks]
+// TODO: Create a model function for removing a pool lock, call it on any expired locks
+// pools.releaseExpired(req.user!.id)
+// Though really I don't think this should be done by a get request, there should be a listener on the app that calls it
 router.get('/pool/owned/lock', (req, res, next) => {
   pools.getPoolLocksByAccountId(req.user!.id)
     .then((result) => {

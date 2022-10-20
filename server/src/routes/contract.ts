@@ -92,7 +92,7 @@ router.get('/contract/type/list', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
-  contractTypes.getContractTypesByAssetId(req.query.assetId as string)
+  contractTypes.getActiveContractTypesByAssetId(req.query.assetId as string)
     .then((result) => {
       let contractTypes = result.rows;
       res.status(200).send({contractTypes});

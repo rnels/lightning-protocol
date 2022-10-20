@@ -18,11 +18,13 @@ export function getContractTypeById(id: string | number) {
   `, [id]);
 };
 
-export function getContractTypesByAssetId(assetId: string | number) {
+// Get active (non-expired) contract types
+export function getActiveContractTypesByAssetId(assetId: string | number) {
   return db.query(`
     SELECT *
       FROM contract_types
       WHERE asset_id=$1
+      AND expires_at > NOW()
   `, [assetId]);
 };
 

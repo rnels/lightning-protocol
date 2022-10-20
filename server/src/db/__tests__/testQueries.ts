@@ -181,7 +181,7 @@ import { QueryResult } from 'pg';
 // GET CONTRACT TYPES BY ASSET ID
 (async () => {
   let assetId = 1;
-  let result = await contractTypes.getContractTypesByAssetId(assetId);
+  let result = await contractTypes.getActiveContractTypesByAssetId(assetId);
   console.log(result);
   console.log(result.rows);
 });

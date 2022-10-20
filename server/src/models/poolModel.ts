@@ -15,6 +15,7 @@ function _getLockedAmountByPoolId(id: string | number) {
     SELECT SUM(asset_amount)
       FROM pool_locks
       WHERE pool_id=$1
+        AND expires_at > NOW()
   `, [id]);
 };
 
@@ -23,6 +24,7 @@ function _getLockedAmountByContractId(contractId: number) {
     SELECT SUM(asset_amount)
       FROM pool_locks
       WHERE contract_id=$1
+        AND expires_at > NOW()
   `, [contractId]);
 };
 
@@ -32,6 +34,7 @@ function _getLockedAmountSumByAssetId(assetId: string | number) {
       FROM pools, pool_locks
       WHERE pools.asset_id=$1
         AND pool_locks.pool_id=pools.pool_id
+        AND pool_locks.expires_at > NOW()
   `, [assetId]);
 };
 
@@ -63,7 +66,7 @@ export async function _distributeTradeFees(contractId: number, tradeFee: number,
   return Promise.all(feePromises);
 };
 
-export async function getUnlockedAmountByPoolId(id: string | number) {
+export async function getUnlockedAmountByPoolId(id: string | number): Promise<number> {
   let results = await Promise.all([
     _getLockedAmountByPoolId(id),
     getPoolById(id)
@@ -73,7 +76,7 @@ export async function getUnlockedAmountByPoolId(id: string | number) {
   return totalAmount - lockedAmount;
 };
 
-export async function getUnlockedAmountByAssetId(assetId: string | number) {
+export async function getUnlockedAmountByAssetId(assetId: string | number): Promise<number> {
   let results = await Promise.all([
     _getLockedAmountSumByAssetId(assetId),
     _getTotalAmountSumByAssetId(assetId)
@@ -100,14 +103,6 @@ export function getPoolById(id: string | number) {
   `, [id]);
 };
 
-export function getLockedPoolsByPoolId(id: string | number) {
-  return db.query(`
-    SELECT *
-      FROM pool_locks
-      WHERE pool_id=$1
-  `, [id]);
-};
-
 export function getPoolsByAssetId(assetId: string | number) {
   return db.query(`
     SELECT *
@@ -124,12 +119,24 @@ export function getPoolsByAccountId(accountId: string | number) {
   `, [accountId]);
 };
 
+// Only gets active pool locks
+export function getPoolLocksByPoolId(id: string | number) {
+  return db.query(`
+    SELECT *
+      FROM pool_locks
+      WHERE pool_id=$1
+        AND expires_at > NOW()
+  `, [id]);
+};
+
+// Only gets active pool locks
 export function getPoolLocksByAccountId(accountId: string | number) {
   return db.query(`
     SELECT pool_locks.*
       FROM pools, pool_locks
       WHERE pools.account_id=$1
         AND pool_locks.pool_id=pools.pool_id
+        AND expires_at > NOW()
   `, [accountId]);
 };
 
@@ -155,8 +162,6 @@ export function createPool(pool: Pool) {
   ]);
 };
 
-// TODO: Create method to set poolLock to expired (upon expiry or exercise of the contract)
-
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
   let query = db.query.bind(db);
@@ -166,17 +171,19 @@ export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
       pool_id,
       contract_id,
       asset_amount,
-      expired
+      expires_at
     ) VALUES ($1, $2, $3, $4)
   `,
   [
     poolLock.poolId,
     poolLock.contractId,
     poolLock.assetAmount,
-    poolLock.expired
+    poolLock.expiresAt
   ]);
 };
 
+// TODO: Use this function in exercising a contract
+// Add a client?: PoolClient and the works
 export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
   let unlockedAmount = await getUnlockedAmountByPoolId(poolId);
   if (unlockedAmount < assetAmount) throw new Error('Unlocked balance is not enough to withdraw this amount');

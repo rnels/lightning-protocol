@@ -28,7 +28,7 @@ export type PoolLock = {
 	poolId: number,
 	contractId: number,
 	assetAmount: number,
-	expired: boolean,
+	expiresAt: boolean,
 	tradeFees?: number
 };
 

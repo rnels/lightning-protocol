@@ -115,12 +115,7 @@ export async function createContract(contract: Contract) {
         owner_id,
         ask_price,
         exercised
-      ) VALUES (
-        $1,
-        $2,
-        $3,
-        $4
-      )
+      ) VALUES ($1, $2, $3, $4)
       RETURNING contract_id
     `,
     [
@@ -144,7 +139,7 @@ export async function createContract(contract: Contract) {
           poolId: pool.pool_id,
           contractId,
           assetAmount: allocatedAmount,
-          expired: false
+          expiresAt: contractType.expires_at
         }
         poolLockPromises.push(_createPoolLock(poolLock, client));
         unallocatedAmount -= allocatedAmount;
@@ -163,7 +158,7 @@ export async function createContract(contract: Contract) {
   }
 }
 
-// TODO: Ensure someone can't set an ask price on exercised or expired contracts
+// TODO: Ensure someone can't set an ask price on expired contracts
 export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
   let result = await db.query(`
     UPDATE contracts
@@ -240,4 +235,11 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
   } finally {
     client.release();
   }
+}
+
+// Should only be called in route by authenticated user
+// Removes locks (TODO: Make sure locks are removed on contract expiry as well, which will be kind of tough, requires a listener of some kind)
+// Distributes locked funds
+export async function exerciseContract(contractId: string | number, ownerId: string | number) {
+
 }
