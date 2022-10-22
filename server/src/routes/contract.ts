@@ -142,7 +142,7 @@ router.post('/contract/type', (req, res, next) => {
     expiresAt: req.body.expiresAt
   };
   contractTypes.createContractType(contractType)
-    .then(() => {
+    .then(({contractTypeId}) => {
       res.status(201).send({ message: 'Contract type created' });
     })
     .catch((error: any) => {

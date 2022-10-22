@@ -1,6 +1,7 @@
-import { PoolClient } from 'pg';
+import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
+import { depositPaper } from './accountModel';
 
 async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock[]> {
   const res = await db.query(`
@@ -15,7 +16,7 @@ async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock
       WHERE contract_id=$1
   `, [contractId]);
   return res.rows;
-};
+}
 
 async function _getLockedAmountByPoolId(id: string | number): Promise<number> {
   const res = await db.query(`
@@ -25,7 +26,7 @@ async function _getLockedAmountByPoolId(id: string | number): Promise<number> {
           AND expires_at > NOW()
   `, [id]);
   return res.rows[0].sum;
-};
+}
 
 async function _getLockedAmountSumByContractId(contractId: number): Promise<number> {
   const res = await db.query(`
@@ -35,7 +36,7 @@ async function _getLockedAmountSumByContractId(contractId: number): Promise<numb
           AND expires_at > NOW()
   `, [contractId]);
   return res.rows[0].sum;
-};
+}
 
 async function _getLockedAmountSumByAssetId(assetId: string | number): Promise<number> {
   const res = await db.query(`
@@ -46,7 +47,7 @@ async function _getLockedAmountSumByAssetId(assetId: string | number): Promise<n
           AND pool_locks.expires_at > NOW()
   `, [assetId]);
   return res.rows[0].sum;
-};
+}
 
 async function _getTotalAmountSumByAssetId(assetId: string | number): Promise<number> {
   const res = await db.query(`
@@ -55,21 +56,28 @@ async function _getTotalAmountSumByAssetId(assetId: string | number): Promise<nu
         WHERE asset_id=$1
   `, [assetId]);
   return res.rows[0].sum;
-};
+}
 
+async function _getAccountIdByPoolLockId(poolLockId: number): Promise<number> {
+  const res = await db.query(`
+    SELECT pools.account_id as "accountId"
+      FROM pools, pool_locks
+        WHERE pool_locks.pool_lock_id=$1
+          AND pool_locks.pool_id=pools.pool_id
+  `, [poolLockId]);
+  return res.rows[0].accountId;
+}
+
+/** Updates trade_fees on pool_locks for given contractId */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _distributeTradeFees(contractId: number, tradeFee: number, client?: PoolClient) {
+export async function _addToTradeFees(contractId: number, tradeFee: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
   let feePromises = [];
   let lockPools = await _getLockedPoolsByContractId(contractId);
   let totalAssetAmount = await _getLockedAmountSumByContractId(contractId);
-  console.log('totalAssetAmount', totalAssetAmount);
   for (let pool of lockPools) {
-    console.log('pool.assetAmount', pool.assetAmount);
     let fee = tradeFee * (pool.assetAmount / totalAssetAmount);
-    console.log('fee', fee);
-    console.log('tradeFee', tradeFee);
     feePromises.push(
       query(`
         UPDATE pool_locks
@@ -79,7 +87,44 @@ export async function _distributeTradeFees(contractId: number, tradeFee: number,
     );
   }
   return Promise.all(feePromises);
-};
+}
+
+/** Decreases pools.asset_amount by pool_lock.asset_amount and sells the pool_locks for a given contractId */
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+export async function _sellPoolLockAssets(contractId: number, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  let poolAssetPromises = [];
+  let lockPools = await _getLockedPoolsByContractId(contractId);
+  for (let pool of lockPools) {
+    // Opting to write this query here instead of using withdrawPoolAssets because I see them being used in different contexts,
+    // withdrawPoolAssets being used by a route and updated at some point to actually provide pooled assets to the user's wallet balance
+    poolAssetPromises.push(
+      query(`
+        UPDATE pools
+          SET asset_amount=asset_amount-$2
+            WHERE pool_id=$1
+      `,[pool.poolId, pool.assetAmount])
+    );
+  }
+  await Promise.all(poolAssetPromises); // NOTE: Ensure this is resolved before _removePoolLocksByContractId is invoked
+  return _removePoolLocksByContractId(contractId, client);
+}
+
+/** Forwards trade_fees to pool account owners for a given contractId */
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+// TODO: Consider consolidating this with other methods used to drain and delete the pool_locks (_sellPoolLockAssets for example)
+export async function _distributePoolLockFees(contractId: number, client?: PoolClient) {
+  let forwardFeePromises = [];
+  let lockPools = await _getLockedPoolsByContractId(contractId);
+  for (let pool of lockPools) {
+    let accountId = await _getAccountIdByPoolLockId(pool.poolLockId!);
+    forwardFeePromises.push(
+      depositPaper(accountId, pool.tradeFees || 0, client)
+    );
+  }
+  return Promise.all(forwardFeePromises);
+}
 
 export async function getUnlockedAmountByPoolId(id: string | number): Promise<number> {
   let results = await Promise.all([
@@ -89,7 +134,7 @@ export async function getUnlockedAmountByPoolId(id: string | number): Promise<nu
   let lockedAmount = results[0];
   let totalAmount = results[1].assetAmount;
   return totalAmount - lockedAmount;
-};
+}
 
 export async function getUnlockedAmountByAssetId(assetId: string | number): Promise<number> {
   let results = await Promise.all([
@@ -99,7 +144,7 @@ export async function getUnlockedAmountByAssetId(assetId: string | number): Prom
   let lockedAmount = results[0];
   let totalAmount = results[1];
   return totalAmount - lockedAmount;
-};
+}
 
 export async function getAllPools(sort='pool_id ASC'): Promise<Pool[]> {
   const res = await db.query(`
@@ -112,7 +157,7 @@ export async function getAllPools(sort='pool_id ASC'): Promise<Pool[]> {
     ORDER BY $1
   `, [sort]);
   return res.rows;
-};
+}
 
 export async function getPoolById(id: string | number): Promise<Pool> {
   const res = await db.query(`
@@ -125,7 +170,7 @@ export async function getPoolById(id: string | number): Promise<Pool> {
     WHERE pool_id=$1
   `, [id]);
   return res.rows[0];
-};
+}
 
 export async function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
   const res = await db.query(`
@@ -138,7 +183,7 @@ export async function getPoolsByAssetId(assetId: string | number): Promise<Pool[
       WHERE asset_id=$1
   `, [assetId]);
   return res.rows;
-};
+}
 
 export async function getPoolsByAccountId(accountId: string | number): Promise<Pool[]> {
   const res = await db.query(`
@@ -151,7 +196,7 @@ export async function getPoolsByAccountId(accountId: string | number): Promise<P
       WHERE account_id=$1
   `, [accountId]);
   return res.rows;
-};
+}
 
 // Only gets active pool locks
 export async function getPoolLocksByPoolId(id: string | number): Promise<PoolLock[]> {
@@ -168,7 +213,7 @@ export async function getPoolLocksByPoolId(id: string | number): Promise<PoolLoc
         AND expires_at > NOW()
   `, [id]);
   return res.rows;
-};
+}
 
 // Only gets active pool locks
 export async function getPoolLocksByAccountId(accountId: string | number): Promise<PoolLock[]> {
@@ -186,7 +231,7 @@ export async function getPoolLocksByAccountId(accountId: string | number): Promi
         AND expires_at > NOW()
   `, [accountId]);
   return res.rows;
-};
+}
 
 // TODO: Validate that user has enough assets for pool
 // TODO: Only allow users to create a pool for a given asset_id if it doesn't yet exist
@@ -209,7 +254,7 @@ export async function createPool(pool: Pool): Promise<{poolId: number}> {
     pool.assetAmount
   ]);
   return res.rows[0];
-};
+}
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
@@ -229,20 +274,19 @@ export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
     poolLock.assetAmount,
     poolLock.expiresAt
   ]);
-};
+}
 
+/** Removes pool_locks with the given contract_id */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export function _removePoolLocksByContractId(contractId: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
   return query(`
     DELETE FROM pool_locks
-    WHERE contract_id=$1
+      WHERE contract_id=$1
   `, [contractId]);
-};
+}
 
-// TODO: Use this function in exercising a contract
-// Add a client?: PoolClient and the works
 export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number): Promise<{assetId: number}> {
   let unlockedAmount = await getUnlockedAmountByPoolId(poolId);
   if (unlockedAmount < assetAmount) throw new Error('Unlocked balance is not enough to withdraw this amount');
@@ -259,7 +303,7 @@ export async function withdrawPoolAssets(poolId: string | number, assetAmount: n
     accountId
   ]);
   return res.rows[0];
-};
+}
 
 // NOTE: As of now there's no limit on depositing assets, you can just define a number of assets to deposit
 // This is for the paper model, for the bc model it will be wallet based
@@ -275,12 +319,12 @@ export function depositPoolAssets(poolId: string | number, assetAmount: number, 
     assetAmount,
     accountId
   ]);
-};
+}
 
 
 export async function _sellPoolAssets(poolId: string | number, assetAmount: number) {
   // TODO: Implement :^)
-};
+}
 
 // TODO: Create delete
 // Pool delete should happen on assigned contract exercise or on user withdrawal

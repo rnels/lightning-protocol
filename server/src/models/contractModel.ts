@@ -6,11 +6,13 @@ import { removeBid } from './bidModel';
 import { getActiveContractTypeById, getContractTypeById } from './contractTypeModel';
 import {
    _createPoolLock,
-  _distributeTradeFees,
+  _addToTradeFees,
   getPoolsByAssetId,
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
-  _removePoolLocksByContractId
+  _removePoolLocksByContractId,
+  _distributePoolLockFees,
+  _sellPoolLockAssets
 } from './poolModel';
 import { _createTrade } from './tradeModel';
 import { getAssetPrice } from '../prices/getPrices';
@@ -85,8 +87,6 @@ export async function getAllContracts(sort='contract_id ASC'): Promise<Contract[
   return res.rows;
 }
 
-// TODO: Consider using aliases to select data with the typescript type schema
-// i.e. SELECT contract_id as contractId
 export async function getContractById(id: string | number): Promise<Contract> {
   const res = await db.query(`
     SELECT
@@ -242,7 +242,7 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
     let tradeFee = salePrice * 0.01; // TODO: Don't hardcode the 1% fee
     let sellerProceeds = salePrice - tradeFee;
     let trade: Trade = {
-      contractId: contract.contractId as number,
+      contractId: contract.contractId,
       buyerId: bid.accountId,
       sellerId: contract.ownerId!,
       salePrice,
@@ -251,10 +251,10 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
     await Promise.all([
       withdrawPaper(bid.accountId, salePrice, client),
       depositPaper(contract.ownerId!, sellerProceeds, client),
-      _distributeTradeFees(contract.contractId as number, tradeFee, client),
+      _addToTradeFees(contract.contractId, tradeFee, client),
       _createTrade(trade, client),
-      removeBid(bid.bidId as number, bid.accountId, client),
-      removeAskPrice(contract.contractId as number, contract.ownerId!, client),
+      removeBid(bid.bidId, bid.accountId, client),
+      removeAskPrice(contract.contractId, contract.ownerId!, client),
       _updateOwnerId(contract, bid.accountId, client)
     ])
     await client.query('COMMIT');
@@ -270,21 +270,17 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
 // Removes locks (TODO: Make sure locks are removed on contract expiry as well, which will be kind of tough, requires a listener of some kind)
 // Distributes locked funds
 // TODO: Treat compensation / exercising differently if it's a put rather than a call, currently operating as if it's just a call
-export async function exerciseContract(contractId: string | number, ownerId: string | number) {
-  let contract = (await db.query(`
-    SELECT
-      contract_id as "contractId",
-      type_id as "typeId",
-      owner_id as "ownerId",
-      ask_price as "askPrice",
-      created_at as "createdAt",
-      exercised
-    FROM contracts
-      WHERE contract_id=$1
-        AND owner_id=$2
-  `,[contractId, ownerId])).rows[0] as Contract; // Should return an error if the contract can't be found with the contractId and ownerId
+export async function exerciseContract(contractId: number, ownerId: number) {
+  // Should return an error if the contract can't be found with the contractId
+  // TODO: Test this, may just return undefined
+  let contract = await getContractById(contractId);
+  if (contract.ownerId !== ownerId) throw new Error('Provided ownerId does not match contract ownerId');
   if (contract.exercised) throw new Error('Contract has already been exercised');
-  let contractType = await getActiveContractTypeById(contract.typeId); // Should return an error if the contract is past expiry
+
+  // Should return an error if the contract is past expiry
+  // TODO: Test this, may just return undefined
+  let contractType = await getActiveContractTypeById(contract.typeId);
+
   let asset = await getAssetById(contractType.assetId);
   let assetPrice = await getAssetPrice(asset.priceApiId!, asset.assetType);
   if (assetPrice < contractType.strikePrice) {
@@ -293,14 +289,15 @@ export async function exerciseContract(contractId: string | number, ownerId: str
   let client = await db.connect();
   try {
     await client.query('BEGIN');
-    // TODO: DISTRIBUTE POOL LOCK PAYOUTS TO POOL OWNERS
-    await _removePoolLocksByContractId(contractId as number, client); // Ensure that pool lock amounts are distributed before calling this
-    // TODO:
-    // - Sell pool assets at market price
-    // - Provide pool owner with paper equating to the assetAmount * strike price
-    // - Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
-
-    await _updateExercised(contract, true, client)
+    let poolFee = contractType.strikePrice * contractType.assetAmount;
+    let saleProfits = (assetPrice * contractType.assetAmount) - poolFee;
+    // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
+    // NOTE: Ensure this is resolved before _sellPoolLockAssets and _distributePoolLockFees are invoked
+    await _addToTradeFees(contractId, poolFee, client);
+    await _distributePoolLockFees(contractId, client);
+    await _sellPoolLockAssets(contractId, client);
+    await depositPaper(ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
+    await _updateExercised(contract, true, client);
     await client.query('COMMIT');
   } catch(e) {
     console.log(e); // DEBUG

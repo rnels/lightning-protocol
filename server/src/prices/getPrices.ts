@@ -39,4 +39,3 @@ export function getAssetPrice(assetId: number, assetType: string): Promise<numbe
 
 // TEST
 // getAssetPrice(1, 'crypto');
-

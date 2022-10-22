@@ -107,8 +107,8 @@ export async function createBid(bid: Bid): Promise<{bidId: number}> {
 export async function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string): Promise<{typeId: number}> {
   const res = await db.query(`
     UPDATE bids SET bid_price=$2
-    WHERE bid_id=$1
-      AND account_id=$3
+      WHERE bid_id=$1
+        AND account_id=$3
     RETURNING type_id as "typeId"
   `,
   [
@@ -131,8 +131,8 @@ export function removeBid(bidId: number | string, accountId: number | string, cl
   if (client) { query = client.query.bind(client); }
   return query(`
     DELETE FROM bids
-    WHERE bid_id=$1
-      AND account_id=$2
+      WHERE bid_id=$1
+        AND account_id=$2
   `,
   [
     bidId,

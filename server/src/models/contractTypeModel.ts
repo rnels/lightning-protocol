@@ -14,7 +14,7 @@ export async function getAllContractTypes(sort='contract_type_id ASC'): Promise<
     ORDER BY $1
   `, [sort]);
   return res.rows;
-};
+}
 
 export async function getContractTypeById(id: string | number): Promise<ContractType> {
   const res = await db.query(`
@@ -29,7 +29,7 @@ export async function getContractTypeById(id: string | number): Promise<Contract
       WHERE contract_type_id=$1
   `, [id]);
   return res.rows[0];
-};
+}
 
 // Get contract by type ID (if exists and non-expired)
 export async function getActiveContractTypeById(id: string | number): Promise<ContractType> {
@@ -46,7 +46,7 @@ export async function getActiveContractTypeById(id: string | number): Promise<Co
         AND expires_at > NOW()
   `, [id]);
   return res.rows[0];
-};
+}
 
 // Get active (non-expired) contract types
 export async function getActiveContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
@@ -63,7 +63,7 @@ export async function getActiveContractTypesByAssetId(assetId: string | number):
         AND expires_at > NOW()
   `, [assetId]);
   return res.rows;
-};
+}
 
 export async function createContractType(contractType: ContractType): Promise<{contractTypeId: number}> {
   const res = await db.query(`
@@ -90,4 +90,4 @@ export async function createContractType(contractType: ContractType): Promise<{c
     contractType.expiresAt // TODO: Ensure that this is what we want to do going forward, converting epoch to TIMESTAMP with to_timestamp()
   ]);
   return res.rows[0];
-};
+}

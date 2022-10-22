@@ -18,7 +18,7 @@ export async function getAllTrades(sort='trade_id ASC', count=100): Promise<Trad
     LIMIT $2
   `, [sort, count]);
   return res.rows;
-};
+}
 
 export async function getTradeById(id: string | number): Promise<Trade> {
   const res = await db.query(`
@@ -34,7 +34,7 @@ export async function getTradeById(id: string | number): Promise<Trade> {
       WHERE trade_id=$1
   `, [id]);
   return res.rows[0];
-};
+}
 
 // Should definitely be internal facing
 export async function getTradesByContractId(contractId: string | number): Promise<Trade[]> {
@@ -51,7 +51,7 @@ export async function getTradesByContractId(contractId: string | number): Promis
       WHERE contract_id=$1
   `, [contractId]);
   return res.rows;
-};
+}
 
 // Returns both trades for an account as a buyer and a seller
 // TODO: Shouldn't be able to see the account traded with, currently you can
@@ -74,7 +74,7 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
         OR seller_id=$1
   `, [accountId]);
   return res.rows;
-};
+}
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{tradeId: number}> {
@@ -104,4 +104,4 @@ export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{
     trade.tradeFee
   ]);
   return res.rows[0];
-};
+}

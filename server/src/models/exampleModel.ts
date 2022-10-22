@@ -7,7 +7,7 @@ export function getExample(sort: string, count=10) {
     ORDER BY $1
     LIMIT $2
   `, [sort, count]);
-};
+}
 
 export function getByIdExample(id: number) {
   return db.query(`
@@ -15,7 +15,7 @@ export function getByIdExample(id: number) {
       FROM ${'table'}
       WHERE id=$1
   `, [id]);
-};
+}
 
 export function insertExample(data: {firstValue: any, secondValue: any}) {
   return db.query(`
@@ -23,7 +23,7 @@ export function insertExample(data: {firstValue: any, secondValue: any}) {
       VALUES ($1, $2)
     RETURNING data_id
   `, [data.firstValue, data.secondValue]);
-};
+}
 
 export function updateExample(id: string | number, newData: any) {
   return db.query(`
@@ -31,4 +31,4 @@ export function updateExample(id: string | number, newData: any) {
       SET ${'field'} = $2
       WHERE id=$1
   `,[id, newData]);
-};
+}
