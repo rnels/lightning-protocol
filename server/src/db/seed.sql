@@ -57,7 +57,7 @@ INSERT INTO pools (
 ) VALUES (
 	1,
 	1,
-	50.1
+	20
 );
 
 -- INSERT INTO pools (
@@ -78,9 +78,9 @@ INSERT INTO contract_types (
 	expires_at
 ) VALUES (
 	1,
-	10,
+	15,
 	true,
-	0.1,
+	1,
 	'5022-12-31 23:24:11.519704'
 );
 

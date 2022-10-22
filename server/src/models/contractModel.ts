@@ -11,7 +11,6 @@ import {
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
   _removePoolLocksByContractId,
-  _distributePoolLockFees,
   _sellPoolLockAssets
 } from './poolModel';
 import { _createTrade } from './tradeModel';
@@ -186,7 +185,7 @@ export async function createContract(contract: Contract) {
     }
     await Promise.all(poolLockPromises);
     await client.query('COMMIT');
-    await _getMatchingBidsByAsk(contract);
+    _getMatchingBidsByAsk(contract); // TODO: Ensure this doesn't need any error catching
     client.release();
   } catch (e) {
     console.log(e); // DEBUG
@@ -197,7 +196,7 @@ export async function createContract(contract: Contract) {
 }
 
 // TODO: Ensure someone can't set an ask price on expired contracts
-export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number): Promise<Contract> {
+export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
   const contract = (await db.query(`
     UPDATE contracts
     SET ask_price=$2
@@ -217,9 +216,8 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
     contractId,
     askPrice,
     ownerId
-  ])).rows[0] as Contract;
-  _getMatchingBidsByAsk(contract);
-  return contract;
+  ])).rows[0] as Contract; // Should return undefined if no contract matches the WHERE conditionals
+  if (contract) { _getMatchingBidsByAsk(contract); }
 }
 
 // For use where a contract is either sold or the listing is removed
@@ -274,22 +272,25 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
 }
 
 // Should only be called in route by authenticated user
-// Removes locks (TODO: Make sure locks are removed on contract expiry as well, which will be kind of tough, requires a listener of some kind)
-// Distributes locked funds
+// TODO: Make sure locks are removed on contract expiry as well, which will be kind of tough, requires a listener of some kind
 // TODO: Treat compensation / exercising differently if it's a put rather than a call, currently operating as if it's just a call
 export async function exerciseContract(contractId: number, ownerId: number) {
-  // Should return an error if the contract can't be found with the contractId
-  // TODO: Test this, may just return undefined
   let contract = await getContractById(contractId);
-  if (contract.ownerId !== ownerId) throw new Error('Provided ownerId does not match contract ownerId');
-  if (contract.exercised) throw new Error('Contract has already been exercised');
+  if (contract.ownerId !== ownerId) {
+    throw new Error('Provided ownerId does not match contract.ownerId');
+  }
+  if (contract.exercised) {
+    throw new Error('Contract has already been exercised');
+  }
 
   // Should return an error if the contract is past expiry
   // TODO: Test this, may just return undefined
   let contractType = await getActiveContractTypeById(contract.typeId);
-
+  if (!contractType) {
+    throw new Error('Active contractType could not be found');
+  }
   let asset = await getAssetById(contractType.assetId);
-  let assetPrice = (await getAssetPrice(asset.priceApiId!, asset.assetType)) as number;
+  let assetPrice = await getAssetPrice(asset.priceApiId!, asset.assetType); // Not catching potential error on getAssetPrice on purpose
   if (assetPrice < contractType.strikePrice) {
     throw new Error('Contract with asset market price under strike price can not be exercised');
   }
@@ -300,16 +301,17 @@ export async function exerciseContract(contractId: number, ownerId: number) {
     let saleProfits = (assetPrice * contractType.assetAmount) - poolFee;
     // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
     // NOTE: Ensure this is resolved before _sellPoolLockAssets and _distributePoolLockFees are invoked
-    await _addToTradeFees(contractId, poolFee, client);
-    await _distributePoolLockFees(contractId, client);
-    await _sellPoolLockAssets(contractId, client);
-    await depositPaper(ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
+    await _addToTradeFees(contract.contractId!, poolFee, client);
+    await _sellPoolLockAssets(contract.contractId!, client);
+    await depositPaper(contract.ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
+    if (contract.askPrice) { await removeAskPrice(contract.contractId!, contract.ownerId, client); }
     await _setExercised(contract, saleProfits, client);
     await client.query('COMMIT');
+    client.release();
   } catch(e) {
     console.log(e); // DEBUG
     await client.query('ROLLBACK');
-  } finally {
     client.release();
+    throw new Error('There was an error exercising the contract');
   }
 }

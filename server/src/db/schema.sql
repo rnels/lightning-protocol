@@ -37,6 +37,7 @@ CREATE TABLE pools (
 	account_id INTEGER NOT NULL,
 	asset_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
+	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Amount provided by contract trading fees, able to be withdrawn into account balance
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
@@ -86,9 +87,9 @@ CREATE TABLE pool_locks (
 	pool_lock_id SERIAL NOT NULL PRIMARY KEY,
 	pool_id INTEGER NOT NULL,
 	contract_id INTEGER NOT NULL,
-	asset_amount DECIMAL NOT NULL,
+	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
 	expires_at TIMESTAMP NOT NULL,
-	trade_fees DECIMAL NOT NULL DEFAULT 0, -- Amount provided by contract trading fees, forwarded to pool owner after lock is removed
+	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Read-only amount provided by contract trade fees
 	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id),
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id)
 );

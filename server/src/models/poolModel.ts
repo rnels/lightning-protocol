@@ -3,6 +3,9 @@ import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 import { depositPaper } from './accountModel';
 
+// TODO: Create function to remove pool_locks on expired contracts,
+// should be set up to be called by a listener
+
 async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock[]> {
   const res = await db.query(`
     SELECT
@@ -58,14 +61,25 @@ async function _getTotalAmountSumByAssetId(assetId: string | number): Promise<nu
   return res.rows[0].sum;
 }
 
-async function _getAccountIdByPoolLockId(poolLockId: number): Promise<number> {
+async function _doesPoolExist(accountId: number, assetId: number): Promise<boolean> {
   const res = await db.query(`
-    SELECT pools.account_id as "accountId"
-      FROM pools, pool_locks
-        WHERE pool_locks.pool_lock_id=$1
-          AND pool_locks.pool_id=pools.pool_id
-  `, [poolLockId]);
-  return res.rows[0].accountId;
+    SELECT EXISTS(
+      SELECT pool_id
+        FROM pools
+        WHERE account_id=$1
+          AND asset_id=$2
+    )
+  `, [accountId, assetId]);
+  return res.rows[0].exists;
+}
+
+async function _getTradeFeesByPoolId(poolId: number): Promise<number> {
+  const res = await db.query(`
+    SELECT trade_fees as "tradeFees"
+      FROM pools
+        WHERE pool_id=$1
+  `,[poolId])
+  return res.rows[0].tradeFees;
 }
 
 /** Updates trade_fees on pool_locks for given contractId */
@@ -83,7 +97,12 @@ export async function _addToTradeFees(contractId: number, tradeFee: number, clie
         UPDATE pool_locks
         SET trade_fees=trade_fees+$2
           WHERE pool_lock_id=$1
-      `, [pool.poolLockId, fee])
+      `, [pool.poolLockId, fee]),
+      query(`
+        UPDATE pools
+        SET trade_fees=trade_fees+$2
+          WHERE pool_id=$1
+      `, [pool.poolId, fee])
     );
   }
   return Promise.all(feePromises);
@@ -109,21 +128,6 @@ export async function _sellPoolLockAssets(contractId: number, client?: PoolClien
   }
   await Promise.all(poolAssetPromises); // NOTE: Ensure this is resolved before _removePoolLocksByContractId is invoked
   return _removePoolLocksByContractId(contractId, client);
-}
-
-/** Forwards trade_fees to pool account owners for a given contractId */
-// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-// TODO: Consider consolidating this with other methods used to drain and delete the pool_locks (_sellPoolLockAssets for example)
-export async function _distributePoolLockFees(contractId: number, client?: PoolClient) {
-  let forwardFeePromises = [];
-  let lockPools = await _getLockedPoolsByContractId(contractId);
-  for (let pool of lockPools) {
-    let accountId = await _getAccountIdByPoolLockId(pool.poolLockId!);
-    forwardFeePromises.push(
-      depositPaper(accountId, pool.tradeFees || 0, client)
-    );
-  }
-  return Promise.all(forwardFeePromises);
 }
 
 export async function getUnlockedAmountByPoolId(id: string | number): Promise<number> {
@@ -152,7 +156,8 @@ export async function getAllPools(sort='pool_id ASC'): Promise<Pool[]> {
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount"
+      asset_amount as "assetAmount",
+      trade_fees as "tradeFees"
     FROM pools
     ORDER BY $1
   `, [sort]);
@@ -165,7 +170,8 @@ export async function getPoolById(id: string | number): Promise<Pool> {
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount"
+      asset_amount as "assetAmount",
+      trade_fees as "tradeFees"
     FROM pools
     WHERE pool_id=$1
   `, [id]);
@@ -178,7 +184,8 @@ export async function getPoolsByAssetId(assetId: string | number): Promise<Pool[
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount"
+      asset_amount as "assetAmount",
+      trade_fees as "tradeFees"
     FROM pools
       WHERE asset_id=$1
   `, [assetId]);
@@ -191,7 +198,8 @@ export async function getPoolsByAccountId(accountId: string | number): Promise<P
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount"
+      asset_amount as "assetAmount",
+      trade_fees as "tradeFees"
     FROM pools
       WHERE account_id=$1
   `, [accountId]);
@@ -233,9 +241,8 @@ export async function getPoolLocksByAccountId(accountId: string | number): Promi
   return res.rows;
 }
 
-// TODO: Validate that user has enough assets for pool
-// TODO: Only allow users to create a pool for a given asset_id if it doesn't yet exist
 export async function createPool(pool: Pool): Promise<{poolId: number}> {
+  if (await _doesPoolExist(pool.accountId, pool.assetId)) { throw new Error('Pool already exists'); }
   const res = await db.query(`
     INSERT INTO pools (
       account_id,
@@ -321,9 +328,30 @@ export function depositPoolAssets(poolId: string | number, assetAmount: number, 
   ]);
 }
 
-
-export async function _sellPoolAssets(poolId: string | number, assetAmount: number) {
-  // TODO: Implement :^)
+export async function withdrawPoolFees(poolId: string | number, feeAmount: number, accountId: string | number) {
+  let tradeFees = await _getTradeFeesByPoolId(poolId as number);
+  if (tradeFees < feeAmount) throw new Error('Fee balance is not enough to withdraw this amount'); // TODO: Is this needed? May be fine if it doesn't allow us to withdraw an amount that leaves it less than 0
+  let client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    await Promise.all([
+      // TODO: Ensure this query does not complete if it's not updating any tables (given a poolId for a different owner)
+      client.query(`
+        UPDATE pools
+        SET trade_fees=trade_fees-$2
+          WHERE pool_id=$1
+            AND account_id=$3
+      `, [poolId, feeAmount, accountId]),
+      depositPaper(accountId, feeAmount, client)
+    ])
+    await client.query('COMMIT');
+    client.release();
+  } catch(e) {
+    console.log(e); // DEBUG
+    await client.query('ROLLBACK');
+    client.release();
+    throw new Error('There was an error withdrawing pool fees');
+  }
 }
 
 // TODO: Create delete

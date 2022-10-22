@@ -179,7 +179,7 @@ router.put('/contract/ask', (req, res, next) => {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   contracts.updateAskPrice(req.body.contractId, req.body.askPrice, req.user!.id)
-    .then((result) => {
+    .then(() => {
       res.status(201).send({ message: 'Ask price updated' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error updating contract ask price' }));

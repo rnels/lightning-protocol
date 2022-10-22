@@ -193,8 +193,7 @@ import { QueryResult } from 'pg';
   let contractId = 1;
   let askPrice = 2.5;
   let ownerId = 1;
-  let result = await contracts.updateAskPrice(contractId, askPrice, ownerId);
-  console.log(result);
+  await contracts.updateAskPrice(contractId, askPrice, ownerId);
 });
 
 // GET ALL CONTRACTS

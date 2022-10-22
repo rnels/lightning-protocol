@@ -53,12 +53,9 @@ router.get('/pool/owned', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool list' }));
 });
 
-// Retrieve pools for the authenticated user account
+// Retrieve pools locks for the authenticated user account
 // Successful response data:
 // poolLocks: [poolLocks]
-// TODO: Create a model function for removing a pool lock, call it on any expired locks
-// pools.releaseExpired(req.user!.id)
-// Though really I don't think this should be done by a get request, there should be a listener on the app that calls it
 router.get('/pool/owned/lock', (req, res, next) => {
   pools.getPoolLocksByAccountId(req.user!.id)
     .then((poolLocks) => {
@@ -94,9 +91,9 @@ router.post('/pool', (req, res, next) => {
 // Expects in req.body:
 //  poolId (Integer) - pool_id to deposit into
 //  assetAmount (Decimal) - Amount to deposit into pool
-router.post('/pool/deposit', (req, res, next) => {
+router.post('/pool/assets/deposit', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
-    return res.status(400).send({ message: 'Missing body parameters' });
+    return res.status(400).send({ message: 'Missing or invalid body parameters' });
   }
   pools.depositPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then(() => {
@@ -115,9 +112,9 @@ router.post('/pool/deposit', (req, res, next) => {
 // Expects in req.body:
 //  poolId (Integer) - pool_id to withdraw from
 //  assetAmount (Decimal) - Amount to withdraw from pool
-router.post('/pool/withdraw', (req, res, next) => {
+router.post('/pool/assets/withdraw', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
-    return res.status(400).send({ message: 'Missing body parameters' });
+    return res.status(400).send({ message: 'Missing or invalid body parameters' });
   }
   pools.withdrawPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
     .then(({assetId}) => {
@@ -129,6 +126,27 @@ router.post('/pool/withdraw', (req, res, next) => {
     .catch((error: any) => {
       console.log('Error withdrawing pool assets:', error);
       res.status(400).send({ message: 'Error withdrawing assets from pool' });
+    });
+});
+
+// Withdraw an amount of fees from a pool into account balance
+// Expects in req.body:
+//  poolId (Integer) - pool_id to withdraw from
+//  feeAmount (Decimal) - Amount to withdraw from pool
+router.post('/pool/fees/withdraw', (req, res, next) => {
+  if (!req.body.poolId || !req.body.feeAmount) {
+    return res.status(400).send({ message: 'Missing or invalid body parameters' });
+  }
+  pools.withdrawPoolFees(req.body.poolId, req.body.feeAmount, req.user!.id)
+    .then(() => {
+      // TODO: Currently provides a success method even if nothing is updated,
+      // in the case of a poolId passed that doesn't belong to the user
+      // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool
+      res.status(201).send({ message: 'Fees successfully withdrawn from pool and deposited to account' });
+    })
+    .catch((error: any) => {
+      console.log('Error withdrawing pool fees:', error);
+      res.status(400).send({ message: 'Error withdrawing fees from pool' });
     });
 });
 

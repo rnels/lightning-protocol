@@ -20,7 +20,8 @@ export type Pool = {
   poolId?: number,
 	accountId: number,
 	assetId: number,
-	assetAmount: number
+	assetAmount: number,
+	tradeFees?: number
 };
 
 export type PoolLock = {
