@@ -10,19 +10,19 @@ import { _tradeContract } from './contractModel';
 async function _getMatchingAsksByBid(bid: Bid) {
   let contracts = (await db.query(`
     SELECT
-        contracts.contract_id as "contractId",
-        contracts.type_id as "typeId",
-        contracts.owner_id as "ownerId",
-        contracts.ask_price as "askPrice",
-        contracts.created_at as "createdAt",
-        contracts.exercised as "exercised",
-        contracts.exercised_amount as "exercisedAmount"
+      contracts.contract_id as "contractId",
+      contracts.type_id as "typeId",
+      contracts.owner_id as "ownerId",
+      contracts.ask_price as "askPrice",
+      contracts.created_at as "createdAt",
+      contracts.exercised as "exercised",
+      contracts.exercised_amount as "exercisedAmount"
     FROM contracts, contract_types
-    WHERE contracts.type_id=$1
-      AND contracts.ask_price<=$2
-      AND contracts.exercised=false
-      AND contract_types.expires_at > NOW()
-      AND contracts.type_id=contract_types.contract_type_id
+      WHERE contracts.type_id=$1
+        AND contracts.ask_price<=$2
+        AND contracts.exercised=false
+        AND contract_types.expires_at > NOW()
+        AND contracts.type_id=contract_types.contract_type_id
     ORDER BY contracts.ask_price ASC
   `, [bid.typeId, bid.bidPrice])).rows as Contract[];
   if (contracts.length === 0) return;

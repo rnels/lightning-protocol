@@ -14,7 +14,7 @@ const router = Router();
 //   name,
 //   symbol,
 //   priceFeedUrl,
-//   icon_url
+//   iconUrl
 // }
 router.get('/asset', (req, res, next) => {
   if (!req.query.id) {
@@ -35,6 +35,25 @@ router.get('/asset/list', (req, res, next) => {
       res.status(200).send({assets});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset list' }));
+});
+
+// Get asset price by asset ID
+// Expects in req.query:
+//  id - asset_id to retrieve price of
+// Successful response data:
+// asset: {
+//   assetId (Integer)
+//   price (Decimal)
+// }
+router.get('/asset/price', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  assets.getAssetPriceById(req.query.id as string)
+    .then((asset) => {
+      res.status(200).send({asset});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset price' }));
 });
 
 // TODO: Create routes to add assets

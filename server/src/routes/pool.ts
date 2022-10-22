@@ -10,10 +10,11 @@ const router = Router();
 //  id - pool_id to retrieve details of
 // Successful response data:
 // pool: {
-//   pool_id
-//   account_id
-//   asset_id
-//   asset_amount
+//   poolId
+//   accountId
+//   assetId
+//   assetAmount
+//   tradeFees
 // }
 router.get('/pool', (req, res, next) => {
   if (!req.query.id) {

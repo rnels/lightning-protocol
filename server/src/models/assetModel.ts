@@ -1,4 +1,5 @@
 import db from '../db/db';
+import { getAssetPrice } from '../prices/getPrices';
 import { Asset } from '../types';
 
 export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
@@ -29,6 +30,23 @@ export async function getAssetById(id: string | number): Promise<Asset> {
       WHERE asset_id=$1
   `, [id]);
   return res.rows[0];
+};
+
+export async function getAssetPriceById(id: string | number): Promise<{assetId: number, price: number}> {
+  const res = (await db.query(`
+    SELECT
+      asset_id as "assetId",
+      price_api_id as "priceApiId",
+      asset_type as "assetType"
+    FROM assets
+      WHERE asset_id=$1
+  `, [id])).rows[0];
+  let price = await getAssetPrice(res.priceApiId, res.assetType);
+  let assetInfo = {
+    assetId: res.assetId,
+    price
+  };
+  return assetInfo;
 };
 
 export async function getAssetsByAssetType(assetType: string): Promise<Asset[]> {

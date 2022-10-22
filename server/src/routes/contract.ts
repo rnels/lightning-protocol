@@ -11,12 +11,13 @@ const router = Router();
 //  id - Contract ID to retrieve details of
 // Successful response data:
 // contract: {
-//   contract_id
-//   type_id
-//   owner_id
-//   pool_id
-//   created_at
+//   contractId
+//   typeId
+//   ownerId
+//   poolId
+//   createdAt
 //   exercised
+//   exercisedAmount
 // }
 router.get('/contract', (req, res, next) => {
   if (!req.query.id) {
@@ -34,12 +35,12 @@ router.get('/contract', (req, res, next) => {
 //  typeId - Contract type ID to retrieve details of
 // Successful response data:
 // contractType: {
-//   contract_type_id
-//   asset_id
-//   asset_amount
+//   contractTypeId
+//   assetId
+//   assetAmount
 //   direction
-//   strike_price
-//   expires_at
+//   strikePrice
+//   expiresAt
 // }
 router.get('/contract/type', (req, res, next) => {
   if (!req.query.typeId) {

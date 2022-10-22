@@ -22,7 +22,7 @@ CREATE TABLE assets (
 	asset_type asset_type_enum,
 	name VARCHAR(60) NOT NULL,
 	symbol VARCHAR(24) NOT NULL,
-	price_api_id INTEGER, -- Used by respective price API for price lookups
+	price_api_id INTEGER NOT NULL, -- Used by respective price API for price lookups
 	icon_url TEXT
 	--CONSTRAINT symbol_unique UNIQUE (assets) -- TODO: Make a constraint where symbol + type combo must be unique
 );
