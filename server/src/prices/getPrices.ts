@@ -13,7 +13,7 @@ const CMC_API_SANDBOX_URL = 'https://sandbox-api.coinmarketcap.com';
 const CMC_API_SANDBOX_KEY = 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
 
 
-async function getCryptoPrice(assetId: number): Promise<number> {
+async function getCryptoPrice(assetId: number): Promise<number | void> {
   return axios.get(`${CMC_API_SANDBOX_URL}/v2/cryptocurrency/quotes/latest`, {
     params: {
       id: assetId
@@ -23,14 +23,14 @@ async function getCryptoPrice(assetId: number): Promise<number> {
     }
   })
     .then((result) => {
-      // console.log(result.data.data[assetId].quote['USD']);
-      console.log(result.data.data);
+      // console.log(result.data.data); // DEBUG
+      // console.log(result.data.data[assetId].quote['USD']); // DEBUG
       return result.data.data[assetId].quote['USD'].price;
     })
     .catch((error) => console.log(error));
 }
 
-export function getAssetPrice(assetId: number, assetType: string): Promise<number> {
+export function getAssetPrice(assetId: number, assetType: string): Promise<number | void> {
   if (assetType === 'crypto') {
     return getCryptoPrice(assetId);
   }

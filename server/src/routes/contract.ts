@@ -108,7 +108,7 @@ router.post('/contract', (req, res, next) => {
   }
   let contract: Contract = {
     typeId: req.body.typeId,
-    askPrice: req.body.askPrice || null,
+    askPrice: req.body.askPrice,
     ownerId: req.user!.id, // DEBUG ONLY TODO: DELETE THIS
     exercised: false
   };

@@ -15,7 +15,8 @@ async function _getMatchingAsksByBid(bid: Bid) {
         contracts.owner_id as "ownerId",
         contracts.ask_price as "askPrice",
         contracts.created_at as "createdAt",
-        contracts.exercised as "exercised"
+        contracts.exercised as "exercised",
+        contracts.exercised_amount as "exercisedAmount"
     FROM contracts, contract_types
     WHERE contracts.type_id=$1
       AND contracts.ask_price<=$2
@@ -24,7 +25,6 @@ async function _getMatchingAsksByBid(bid: Bid) {
       AND contracts.type_id=contract_types.contract_type_id
     ORDER BY contracts.ask_price ASC
   `, [bid.typeId, bid.bidPrice])).rows as Contract[];
-  console.log(contracts);
   if (contracts.length === 0) return;
   let contract = contracts[0];
   _tradeContract(contract, bid);

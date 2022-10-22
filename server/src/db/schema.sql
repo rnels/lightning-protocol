@@ -67,6 +67,7 @@ CREATE TABLE contracts (
 	ask_price DECIMAL DEFAULT NULL, -- Can be NULL if not being actively offered
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	exercised BOOLEAN DEFAULT false,
+	exercised_amount DECIMAL DEFAULT NULL,
 	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
 	CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES accounts(account_id)
 );

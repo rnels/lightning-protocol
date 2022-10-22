@@ -43,17 +43,19 @@ async function _getMatchingBidsByAsk(contract: Contract) {
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-function _updateExercised(contract: Contract, exercised: boolean, client?: PoolClient) {
+function _setExercised(contract: Contract, exercisedAmount: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
   return query(`
     UPDATE contracts
-    SET exercised=$2
-      WHERE contract_id=$1
+    SET
+      exercised=true,
+      exercised_amount=$2
+    WHERE contract_id=$1
   `,
   [
     contract.contractId,
-    exercised
+    exercisedAmount
   ]);
 }
 
@@ -80,7 +82,8 @@ export async function getAllContracts(sort='contract_id ASC'): Promise<Contract[
       owner_id as "ownerId",
       ask_price as "askPrice",
       created_at as "createdAt",
-      exercised
+      exercised,
+      exercised_amount as "exercisedAmount"
     FROM contracts
       ORDER BY $1
   `, [sort]);
@@ -95,7 +98,8 @@ export async function getContractById(id: string | number): Promise<Contract> {
       owner_id as "ownerId",
       ask_price as "askPrice",
       created_at as "createdAt",
-      exercised
+      exercised,
+      exercised_amount as "exercisedAmount"
     FROM contracts
       WHERE contract_id=$1
   `, [id]);
@@ -110,7 +114,8 @@ export async function getContractsByTypeId(typeId: string | number): Promise<Con
       owner_id as "ownerId",
       ask_price as "askPrice",
       created_at as "createdAt",
-      exercised
+      exercised,
+      exercised_amount as "exercisedAmount"
     FROM contracts
       WHERE type_id=$1
   `, [typeId]);
@@ -125,7 +130,8 @@ export async function getContractsByOwnerId(ownerId: string | number): Promise<C
       owner_id as "ownerId",
       ask_price as "askPrice",
       created_at as "createdAt",
-      exercised
+      exercised,
+      exercised_amount as "exercisedAmount"
     FROM contracts
       WHERE owner_id=$1
   `, [ownerId]);
@@ -136,7 +142,7 @@ export async function getContractsByOwnerId(ownerId: string | number): Promise<C
 // Creating a contract does not assign it an owner by default, since they're not created by people
 // Just requires a type and an ask price
 // Only accepting owner_id for debug atm
-// TODO: Create process of allocating fees, unlocking locked pools on contract expiry / exercise
+// TODO: Decide if the sell to close should credit the pool owners with initial tradeFees that reflect a higher percentage of the sale (i.e. 50%)
 export async function createContract(contract: Contract) {
   let contractType = await getContractTypeById(contract.typeId);
   let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(contractType.assetId);
@@ -204,7 +210,8 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
       owner_id as "ownerId",
       ask_price as "askPrice",
       created_at as "createdAt",
-      exercised
+      exercised,
+      exercised_amount as "exercisedAmount"
   `,
   [
     contractId,
@@ -282,7 +289,7 @@ export async function exerciseContract(contractId: number, ownerId: number) {
   let contractType = await getActiveContractTypeById(contract.typeId);
 
   let asset = await getAssetById(contractType.assetId);
-  let assetPrice = await getAssetPrice(asset.priceApiId!, asset.assetType);
+  let assetPrice = (await getAssetPrice(asset.priceApiId!, asset.assetType)) as number;
   if (assetPrice < contractType.strikePrice) {
     throw new Error('Contract with asset market price under strike price can not be exercised');
   }
@@ -297,7 +304,7 @@ export async function exerciseContract(contractId: number, ownerId: number) {
     await _distributePoolLockFees(contractId, client);
     await _sellPoolLockAssets(contractId, client);
     await depositPaper(ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
-    await _updateExercised(contract, true, client);
+    await _setExercised(contract, saleProfits, client);
     await client.query('COMMIT');
   } catch(e) {
     console.log(e); // DEBUG

@@ -47,7 +47,8 @@ export type Contract = {
 	ownerId?: number,
 	askPrice?: number,
 	createdAt?: number,
-	exercised: boolean
+	exercised: boolean,
+	exercisedAmount?: number
 };
 
 export type Bid = {
