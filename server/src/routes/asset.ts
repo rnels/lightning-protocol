@@ -1,5 +1,6 @@
 import * as assets from '../models/assetModel';
 import { Router } from 'express';
+import { Asset } from '../types';
 const router = Router();
 
 // GET REQUESTS //
@@ -60,5 +61,27 @@ router.get('/asset/price', (req, res, next) => {
 });
 
 // TODO: Create routes to add assets
+// TODO: Make this admin-only
+// Expects in req.body:
+//  assetType (String) - Must be one of 'crypto', 'stock', 'currency'
+//  name (String) - Name of the financial asset
+//  symbol (String) - Symbol or ticker of the financial asset
+//  priceApiId (Integer) - Id to use for retrieving price information from API
+router.post('/asset', (req, res, next) => {
+  if (!req.body.assetType || !req.body.name || !req.body.symbol || !req.body.priceApiId) {
+    return res.status(400).send({ message: 'Missing body parameters' });
+  }
+  let asset: Asset = {
+    assetType: req.body.assetType,
+    name: req.body.name,
+    symbol: req.body.symbol,
+    priceApiId: req.body.priceApiId
+  };
+  assets.createAsset(asset)
+    .then(() => {
+      res.status(201).send({message: 'Asset created'});
+    })
+    .catch((error: any) => res.status(400).send({ message: 'Error creating asset' }));
+});
 
 export default router;

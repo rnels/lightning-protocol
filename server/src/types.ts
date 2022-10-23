@@ -1,3 +1,9 @@
+enum AssetType {
+  Crypto = 'crypto',
+	Stock = 'stock',
+	Currency = 'currency'
+};
+
 export type Account = {
   accountId?: number,
   email: string,
@@ -9,7 +15,7 @@ export type Account = {
 
 export type Asset = {
   assetId?: number,
-	assetType: string,
+	assetType: AssetType,
 	name: string,
 	symbol: string,
 	priceApiId: number,
