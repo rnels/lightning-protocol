@@ -1,6 +1,6 @@
 import { Pool } from "../../lib/types";
 import PoolAssetAmount from "./PoolAssetAmount";
-import PoolLockList from "./PoolLocks/PoolLockList";
+import PoolLockList from "./PoolLock/PoolLockList";
 import PoolTradeFees from "./PoolTradeFees";
 
 export default function PoolDetails(props: {pool: Pool}) {
@@ -13,7 +13,7 @@ export default function PoolDetails(props: {pool: Pool}) {
         <PoolTradeFees
           tradeFees={props.pool.tradeFees}
         />
-        <PoolLockList
+        <PoolLockList // TODO: Create a visual for showing locks, or use a router to see
           poolId={props.pool.poolId}
         />
       </div>

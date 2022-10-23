@@ -14,6 +14,7 @@ import LoginForm from './components/User/LoginForm';
 import RegisterForm from './components/User/RegisterForm';
 import AssetList from './components/Asset/AssetList';
 import NavBar from './components/NavBar';
+import UserContractList from './components/Contract/UserContractList';
 
 type Props = {}
 
@@ -89,7 +90,10 @@ export default class App extends React.Component<Props, State> {
     return (
       <div className="App">
         {debug ?
+          <>
           <AssetList/>
+          <UserContractList/>
+          </>
           :
           <>
           <NavBar
