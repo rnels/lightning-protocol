@@ -50,11 +50,14 @@ input[type='submit'] {
   color: #ee6060;
 }
 
-.asset-details {
+.asset-list {
   display: flex;
   flex-direction: column;
 }
 
+.asset-details {
+  margin: 10px 0px;
+}
 
 @media only screen and (max-width: 768px) {
 

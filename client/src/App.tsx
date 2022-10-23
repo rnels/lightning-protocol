@@ -1,11 +1,19 @@
 import React from 'react';
+// import {
+//   createBrowserRouter,
+//   RouterProvider,
+//   Route,
+//   Link,
+// } from "react-router-dom";
+
 import './App.css';
 import axios from './lib/axios';
 import { serverURL } from './config';
 
-import LoginForm from './components/LoginForm';
-import RegisterForm from './components/RegisterForm';
+import LoginForm from './components/User/LoginForm';
+import RegisterForm from './components/User/RegisterForm';
 import AssetList from './components/Asset/AssetList';
+import NavBar from './components/NavBar';
 
 type Props = {}
 
@@ -16,6 +24,8 @@ type State = {
   paper: number,
   error: string
 }
+
+const debug = true;
 
 export default class App extends React.Component<Props, State> {
 
@@ -59,31 +69,59 @@ export default class App extends React.Component<Props, State> {
   }
 
   render() {
+
+    // const router = createBrowserRouter([
+    //   {
+    //     path: "/",
+    //     element: (
+    //       <div>
+    //         <h1>Hello World</h1>
+    //         <Link to="about">About Us</Link>
+    //       </div>
+    //     ),
+    //   },
+    //   {
+    //     path: "about",
+    //     element: <div>About</div>,
+    //   },
+    // ]);
+
     return (
       <div className="App">
-        <div className='App-header'>
-          {this.state.error ?
-          <div className='error-message'>
-            {serverURL}
-            <br/>
-            {this.state.error}
-          </div> :
+        {debug ?
+          <AssetList/>
+          :
           <>
-            {`Hello ${this.state.firstName} ${this.state.lastName}`}
-            <br/>
-            {`Logged in as ${this.state.email}`}
-            <br/>
-            {`Paper balance ${this.state.paper}`}
+          <NavBar
+            render={
+            <>INSERT NAVBAR HERE</>
+          }
+          />
+          <div className='App-header'>
+            {this.state.error ?
+            <div className='error-message'>
+              {serverURL}
+              <br/>
+              {this.state.error}
+            </div> :
+            <>
+              {`Hello ${this.state.firstName} ${this.state.lastName}`}
+              <br/>
+              {`Logged in as ${this.state.email}`}
+              <br/>
+              {`Paper balance ${this.state.paper}`}
+            </>
+            }
+          </div>
+          <LoginForm
+            submitCallback={this.getAccountInfo}
+          />
+          <RegisterForm
+            submitCallback={this.getAccountInfo}
+          />
+          <AssetList/>
           </>
           }
-        </div>
-        <LoginForm
-          submitCallback={this.getAccountInfo}
-        />
-        <RegisterForm
-          submitCallback={this.getAccountInfo}
-        />
-        <AssetList/>
       </div>
     );
   }

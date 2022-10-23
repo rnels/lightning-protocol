@@ -12,7 +12,7 @@ const CMC_API_SANDBOX_URL = 'https://sandbox-api.coinmarketcap.com';
 const CMC_API_SANDBOX_KEY = 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
 
 
-async function getCryptoPrice(assetId: number): Promise<number> {
+function getCryptoPrice(assetId: number): Promise<number> {
   return axios.get(`${CMC_API_SANDBOX_URL}/v2/cryptocurrency/quotes/latest`, {
     params: {
       id: assetId

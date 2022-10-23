@@ -1,18 +1,23 @@
 import { useState } from 'react';
 import axios from '../../lib/axios';
-import { Asset } from '../../lib/types';
+import { Pool } from '../../lib/types';
 import { serverURL } from '../../config';
 
-import AssetDetails from './AssetDetails';
+import PoolDetails from './PoolDetails';
 
-export default function AssetList(props: any) {
+/** Renders a list of pools for the given assetId */
+export default function AssetPoolList(props: {assetId: number}) {
 
   const [error, setError] = useState('');
-  const [assetList, setAssetList] = useState<Asset[]>([]);
+  const [poolList, setPoolList] = useState<Pool[]>([]);
 
-  axios.get(`${serverURL}/asset/list`)
+  axios.get(`${serverURL}/pool/list`, {
+    params: {
+      assetId: props.assetId
+    }
+  })
     .then((response) => {
-      setAssetList(response.data.assets);
+      setPoolList(response.data.pools);
     })
     .catch((errorRes) => {
       console.log(errorRes);
@@ -24,14 +29,13 @@ export default function AssetList(props: any) {
     });
 
     return (
-      <div className="asset-list">
-        <h2>Assets</h2>
+      <div className="pool-list">
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {assetList.length > 0 &&
-          assetList.map((asset) =>
-            <AssetDetails
-              asset={asset}
-              key={asset.assetId}
+        {poolList.length > 0 &&
+          poolList.map((pool) =>
+            <PoolDetails
+              pool={pool}
+              key={pool.poolId}
             />
           )
         }

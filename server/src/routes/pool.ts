@@ -54,6 +54,20 @@ router.get('/pool/owned', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool list' }));
 });
 
+// Retrieve pools locks for the provided poolId
+// Successful response data:
+// poolLocks: [poolLocks]
+router.get('/pool/lock', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  pools.getPoolLocksByPoolId(req.query.id as string)
+    .then((poolLocks) => {
+      res.status(200).send({poolLocks});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool lock list' }));
+});
+
 // Retrieve pools locks for the authenticated user account
 // Successful response data:
 // poolLocks: [poolLocks]
@@ -92,7 +106,7 @@ router.post('/pool', (req, res, next) => {
 // Expects in req.body:
 //  poolId (Integer) - pool_id to deposit into
 //  assetAmount (Decimal) - Amount to deposit into pool
-router.post('/pool/assets/deposit', (req, res, next) => {
+router.post('/pool/asset/deposit', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing or invalid body parameters' });
   }
@@ -113,7 +127,7 @@ router.post('/pool/assets/deposit', (req, res, next) => {
 // Expects in req.body:
 //  poolId (Integer) - pool_id to withdraw from
 //  assetAmount (Decimal) - Amount to withdraw from pool
-router.post('/pool/assets/withdraw', (req, res, next) => {
+router.post('/pool/asset/withdraw', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing or invalid body parameters' });
   }

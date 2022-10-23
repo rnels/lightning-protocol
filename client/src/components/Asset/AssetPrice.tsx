@@ -23,7 +23,7 @@ export default function AssetPrice(props: {assetId: number}) {
   }, [props.assetId]);
 
     return (
-      <div className="asset-price">
+      <div className="asset-asset-price">
         {assetPrice}
       </div>
 

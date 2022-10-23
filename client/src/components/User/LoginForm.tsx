@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
-import axios from '../lib/axios';
-import { serverURL } from '../config';
+import axios from '../../lib/axios';
+import { serverURL } from '../../config';
 
 export default function LoginForm(props: {submitCallback: Function}) {
 
