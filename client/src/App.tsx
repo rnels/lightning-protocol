@@ -5,11 +5,11 @@ import { serverURL } from './config';
 
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
+import AssetList from './components/Asset/AssetList';
 
 type Props = {}
 
 type State = {
-  accountId: number,
   email: string,
   firstName: string,
   lastName: string,
@@ -22,7 +22,6 @@ export default class App extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      accountId: 0,
       email: '',
       firstName: '',
       lastName: '',
@@ -35,15 +34,24 @@ export default class App extends React.Component<Props, State> {
   getAccountInfo(): void {
     axios.get(`${serverURL}/account`)
       .then((result) => {
-        console.log(result);
         this.setState({
-        email: result.data.account.email,
-        firstName: result.data.account.first_name,
-        lastName: result.data.account.last_name,
-        paper: result.data.account.paper
-      })
+          email: result.data.account.email,
+          firstName: result.data.account.firstName,
+          lastName: result.data.account.lastName,
+          paper: result.data.account.paper,
+          error: ''
+        });
     })
-      .catch((errorRes) => this.setState({error: errorRes.response.data.message}));
+    .catch((errorRes) => {
+      console.log(errorRes);
+      let error = '';
+      if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+        error = errorRes.response.data.message;
+      } else {
+        error = errorRes.message;
+      }
+      this.setState({error});
+    });
   }
 
   componentDidMount(): void {
@@ -55,11 +63,11 @@ export default class App extends React.Component<Props, State> {
       <div className="App">
         <div className='App-header'>
           {this.state.error ?
-          <>
+          <div className='error-message'>
             {serverURL}
             <br/>
             {this.state.error}
-          </> :
+          </div> :
           <>
             {`Hello ${this.state.firstName} ${this.state.lastName}`}
             <br/>
@@ -69,8 +77,13 @@ export default class App extends React.Component<Props, State> {
           </>
           }
         </div>
-        <LoginForm/>
-        <RegisterForm/>
+        <LoginForm
+          submitCallback={this.getAccountInfo}
+        />
+        <RegisterForm
+          submitCallback={this.getAccountInfo}
+        />
+        <AssetList/>
       </div>
     );
   }

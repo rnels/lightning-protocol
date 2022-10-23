@@ -2,20 +2,28 @@ import { FormEvent, useState } from 'react';
 import axios from '../lib/axios';
 import { serverURL } from '../config';
 
-export default function RegisterForm(props: any) {
+export default function RegisterForm(props: {submitCallback: Function}) {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     axios.post(`${serverURL}/register`, {firstName, lastName, email, password})
-      .then((result) => {
-        console.log(result);
+      .then(() => {
+        props.submitCallback();
       })
-      .catch((error) => console.log(error));
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   }
 
     return (
@@ -24,19 +32,21 @@ export default function RegisterForm(props: any) {
           Register
         </h2>
         <label>
-          First Name
+          First name
           <input
             type='text'
             name='first-name-input'
+            autoComplete='given-name'
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
         </label>
         <label>
-          Last Name
+          Last name
           <input
             type='text'
             name='last-name-input'
+            autoComplete='family-name'
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
           />
@@ -46,6 +56,7 @@ export default function RegisterForm(props: any) {
           <input
             type='email'
             name='email-input'
+            autoComplete='username'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -55,6 +66,7 @@ export default function RegisterForm(props: any) {
           <input
             type='password'
             name='password-input'
+            autoComplete='new-password'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -63,6 +75,7 @@ export default function RegisterForm(props: any) {
           type='submit'
           value='Submit'
         />
+        {error && <div className='error-message'>{`Error: ${error}`}</div>}
       </form>
     );
 };

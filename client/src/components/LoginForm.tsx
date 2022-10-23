@@ -2,18 +2,26 @@ import { FormEvent, useState } from 'react';
 import axios from '../lib/axios';
 import { serverURL } from '../config';
 
-export default function LoginForm(props: any) {
+export default function LoginForm(props: {submitCallback: Function}) {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     axios.post(`${serverURL}/login`, {email, password})
-      .then((result) => {
-        console.log(result);
+      .then(() => {
+        props.submitCallback();
       })
-      .catch((error) => console.log(error));
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   }
 
     return (
@@ -26,6 +34,7 @@ export default function LoginForm(props: any) {
           <input
             type='email'
             name='email-input'
+            autoComplete='username'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -35,6 +44,7 @@ export default function LoginForm(props: any) {
           <input
             type='password'
             name='password-input'
+            autoComplete='current-password'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -43,6 +53,8 @@ export default function LoginForm(props: any) {
           type='submit'
           value='Submit'
         />
+        {error && <div className='error-message'>{`Error: ${error}`}</div>}
       </form>
+
     );
 };

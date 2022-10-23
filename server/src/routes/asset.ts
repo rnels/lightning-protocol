@@ -53,7 +53,10 @@ router.get('/asset/price', (req, res, next) => {
     .then((asset) => {
       res.status(200).send({asset});
     })
-    .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset price' }));
+    .catch((error: any) => {
+      console.log('Error retreiving asset price:', error);
+      res.status(404).send({ message: 'Error retrieving asset price' });
+    });
 });
 
 // TODO: Create routes to add assets

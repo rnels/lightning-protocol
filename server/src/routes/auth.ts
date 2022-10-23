@@ -7,7 +7,7 @@ const router = Router();
 
 const authHelper = (req: Request, res: Response, next=()=>{}) => {
   passport.authenticate('local', (err, user, errorInfo) => {
-    if (err) return res.sendStatus(500);
+    if (err) return res.status(500).send({ message: err.message});
     if (!user) return res.status(400).send({ message: errorInfo.message });
     req.logIn(user, function (err) {
       if (err) return res.status(400).send({ message: 'Login failed' });

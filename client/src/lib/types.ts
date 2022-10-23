@@ -1,14 +1,12 @@
 export type Account = {
-  accountId?: number,
   email: string,
-  passwordHash?: string,
   firstName: string,
   lastName: string,
 	paper: number
 };
 
 export type Asset = {
-  assetId?: number,
+  assetId: number,
 	assetType: string,
 	name: string,
 	symbol: string,
@@ -17,15 +15,14 @@ export type Asset = {
 };
 
 export type Pool = {
-  poolId?: number,
-	accountId: number,
+  poolId: number,
 	assetId: number,
 	assetAmount: number,
 	tradeFees?: number
 };
 
 export type PoolLock = {
-  poolLockId?: number,
+  poolLockId: number,
 	poolId: number,
 	contractId: number,
 	assetAmount: number,
@@ -34,7 +31,7 @@ export type PoolLock = {
 };
 
 export type ContractType = {
-	contractTypeId?: number,
+	contractTypeId: number,
 	assetId: number,
 	assetAmount: number,
 	direction: boolean,
@@ -43,33 +40,25 @@ export type ContractType = {
 };
 
 export type Contract = {
-	contractId?: number,
+	contractId: number,
 	typeId: number,
-	ownerId?: number,
 	askPrice?: number,
-	createdAt?: number,
+	createdAt: number,
 	exercised: boolean,
 	exercisedAmount?: number
 };
 
 export type Bid = {
-	bidId?: number,
+	bidId: number,
 	typeId: number,
-	accountId: number,
 	bidPrice: number,
-	createdAt?: number
+	createdAt: number
 };
 
 export type Trade = {
-	tradeId?: number,
+	tradeId: number,
 	contractId: number,
-	buyerId: number,
-  sellerId: number,
 	salePrice: number,
 	tradeFee: number,
-  createdAt?: number
-};
-
-export type User = {
-  id: number
+  createdAt: number
 };

@@ -9,8 +9,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding: 20px 10px;
   width: 100%;
 }
 
@@ -44,6 +43,16 @@ input {
 
 input[type='submit'] {
   width: fit-content;
+}
+
+.error-message {
+  font-size: calc(10px + 1vmin);
+  color: #ee6060;
+}
+
+.asset-details {
+  display: flex;
+  flex-direction: column;
 }
 
 
