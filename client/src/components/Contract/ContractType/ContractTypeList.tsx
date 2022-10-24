@@ -37,13 +37,15 @@ export default function ContractTypeList() {
       <div className="contract-type-list">
         <h2>Contract Types</h2>
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {contractTypeList.length > 0 &&
+        {contractTypeList.length > 0 ?
           contractTypeList.map((contractType) =>
             <ContractTypeDetails
               contractType={contractType}
               key={contractType.contractTypeId}
             />
           )
+          :
+          <p>There are no contract types for this asset</p>
         }
       </div>
 

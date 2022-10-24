@@ -70,21 +70,21 @@ export default class App extends React.Component<Props, State> {
       },
       {
         path: 'assets',
-        element: <AssetList/>,
+        element: <AssetList/>
+      },
+      {
+        path: 'assets/:assetId',
+        element: <AssetDetails/>,
         children: [
           {
-            path: ':assetId',
-            element: <AssetDetails/>
+            path: 'pools',
+            element: <AssetPoolList/>
+          },
+          {
+            path: 'contracts',
+            element: <ContractTypeList/>
           }
         ]
-      },
-      {
-        path: 'assets/:assetId/pools',
-        element: <AssetPoolList/>
-      },
-      {
-        path: 'assets/:assetId/contracts',
-        element: <ContractTypeList/>
       }
     ]);
   }

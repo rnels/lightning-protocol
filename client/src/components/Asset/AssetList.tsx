@@ -5,7 +5,7 @@ import { serverURL } from '../../config';
 
 // import AssetDetails from './AssetDetails';
 
-import { Link, Outlet } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default function AssetList(props: any) {
 
@@ -40,7 +40,6 @@ export default function AssetList(props: any) {
       <h2>Assets</h2>
       {error && <div className='error-message'>{`Error: ${error}`}</div>}
       {renderAssets}
-      <Outlet />
     </div>
 
   );
