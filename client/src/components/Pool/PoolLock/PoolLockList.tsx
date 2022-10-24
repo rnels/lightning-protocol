@@ -34,13 +34,15 @@ export default function PoolLockList(props: {poolId: number}) {
       <div className="pool-lock-list">
         <h2>Locks</h2>
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {poolLockList.length > 0 &&
+        {poolLockList.length > 0 ?
           poolLockList.map((poolLock) =>
             <PoolLockDetails
               poolLock={poolLock}
               key={poolLock.poolLockId}
             />
           )
+          :
+          <p>There are no pool locks for this asset</p>
         }
       </div>
 

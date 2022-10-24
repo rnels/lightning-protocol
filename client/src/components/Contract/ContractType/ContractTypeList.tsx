@@ -4,17 +4,20 @@ import { ContractType } from '../../../lib/types';
 import { serverURL } from '../../../config';
 
 import ContractTypeDetails from './ContractTypeDetails';
+import { useParams } from 'react-router-dom';
 
 /** Renders a list of contract types for the provided assetId */
-export default function ContractTypeList(props: {assetId: number}) {
+export default function ContractTypeList() {
 
   const [error, setError] = useState('');
   const [contractTypeList, setContractTypeList] = useState<ContractType[]>([]);
 
+  const { assetId } = useParams();
+
   useEffect(() => {
     axios.get(`${serverURL}/contract/type/list`, {
       params: {
-        assetId: props.assetId
+        assetId
       }
     })
     .then((response) => {
@@ -28,7 +31,7 @@ export default function ContractTypeList(props: {assetId: number}) {
         setError(errorRes.message);
       }
     });
-  }, [props.assetId]);
+  }, [assetId]);
 
     return (
       <div className="contract-type-list">

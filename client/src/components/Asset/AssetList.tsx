@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from '../../lib/axios';
 import { Asset } from '../../lib/types';
 import { serverURL } from '../../config';
 
-import AssetDetails from './AssetDetails';
+// import AssetDetails from './AssetDetails';
+
+import { Link, Outlet } from 'react-router-dom';
 
 export default function AssetList(props: any) {
 
   const [error, setError] = useState('');
   const [assetList, setAssetList] = useState<Asset[]>([]);
 
-  axios.get(`${serverURL}/asset/list`)
+  useEffect(() => {
+    axios.get(`${serverURL}/asset/list`)
     .then((response) => {
       setAssetList(response.data.assets);
     })
@@ -22,20 +25,23 @@ export default function AssetList(props: any) {
         setError(errorRes.message);
       }
     });
+  }, []);
 
+  const renderAssets = assetList.map((asset) => {
     return (
-      <div className="asset-list">
-        <h2>Assets</h2>
-        {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {assetList.length > 0 &&
-          assetList.map((asset) =>
-            <AssetDetails
-              asset={asset}
-              key={asset.assetId}
-            />
-          )
-        }
-      </div>
-
+      <Link to={asset.assetId.toString()} key={asset.assetId}>
+        {asset.name}
+      </Link>
     );
+  });
+
+  return (
+    <div className="asset-list">
+      <h2>Assets</h2>
+      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      {renderAssets}
+      <Outlet />
+    </div>
+
+  );
 };

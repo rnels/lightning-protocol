@@ -10,8 +10,11 @@ import ContractTypeDetails from "./ContractType/ContractTypeDetails";
 
 export default function ContractDetails(props: {contract: Contract}) {
 
+  // TODO: Possibly refactor to have a component for contractType details which hydrates its information by being passed down a typeId rather than the whole contractType object
+
   const [contractType, setContractType] = useState<ContractType>();
 
+  // Receives contractType information for the given contract
   useEffect(() => {
     axios.get(`${serverURL}/contract/type`, {
       params: {

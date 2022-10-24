@@ -1,10 +1,9 @@
 import React from 'react';
-// import {
-//   createBrowserRouter,
-//   RouterProvider,
-//   Route,
-//   Link,
-// } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Link,
+} from "react-router-dom";
 
 import './App.css';
 import axios from './lib/axios';
@@ -14,7 +13,10 @@ import LoginForm from './components/User/LoginForm';
 import RegisterForm from './components/User/RegisterForm';
 import AssetList from './components/Asset/AssetList';
 import NavBar from './components/NavBar';
-import UserContractList from './components/Contract/UserContractList';
+// import UserContractList from './components/Contract/UserContractList';
+import AssetDetails from './components/Asset/AssetDetails';
+import AssetPoolList from './components/Pool/AssetPoolList';
+import ContractTypeList from './components/Contract/ContractType/ContractTypeList';
 
 type Props = {}
 
@@ -26,9 +28,9 @@ type State = {
   error: string
 }
 
-const debug = true;
-
 export default class App extends React.Component<Props, State> {
+
+  router: any;
 
   constructor(props: Props) {
     super(props);
@@ -40,6 +42,51 @@ export default class App extends React.Component<Props, State> {
       error: ''
     };
     this.getAccountInfo = this.getAccountInfo.bind(this);
+    this.router = createBrowserRouter([
+      {
+        path: '/',
+        element: ( // TODO: Don't display login / register if they are already logged in, take them straight to app
+          <>
+            <h1>Lightning Protocol</h1>
+            <Link to='login'>Login</Link>
+            <Link to='register'>Register</Link>
+            <Link to='assets'>Launch App</Link>
+          </>
+        ),
+      },
+      {
+        path: 'login',
+        element:
+          <LoginForm // TODO: Redirect to /app on login
+            submitCallback={this.getAccountInfo}
+          />
+      },
+      {
+        path: 'register',
+        element:
+          <RegisterForm // TODO: Redirect to /app on registration
+            submitCallback={this.getAccountInfo}
+          />
+      },
+      {
+        path: 'assets',
+        element: <AssetList/>,
+        children: [
+          {
+            path: ':assetId',
+            element: <AssetDetails/>
+          }
+        ]
+      },
+      {
+        path: 'assets/:assetId/pools',
+        element: <AssetPoolList/>
+      },
+      {
+        path: 'assets/:assetId/contracts',
+        element: <ContractTypeList/>
+      }
+    ]);
   }
 
   getAccountInfo(): void {
@@ -70,62 +117,10 @@ export default class App extends React.Component<Props, State> {
   }
 
   render() {
-
-    // const router = createBrowserRouter([
-    //   {
-    //     path: "/",
-    //     element: (
-    //       <div>
-    //         <h1>Hello World</h1>
-    //         <Link to="about">About Us</Link>
-    //       </div>
-    //     ),
-    //   },
-    //   {
-    //     path: "about",
-    //     element: <div>About</div>,
-    //   },
-    // ]);
-
     return (
       <div className="App">
-        {debug ?
-          <>
-          <AssetList/>
-          <UserContractList/>
-          </>
-          :
-          <>
-          <NavBar
-            render={
-            <>INSERT NAVBAR HERE</>
-          }
-          />
-          <div className='App-header'>
-            {this.state.error ?
-            <div className='error-message'>
-              {serverURL}
-              <br/>
-              {this.state.error}
-            </div> :
-            <>
-              {`Hello ${this.state.firstName} ${this.state.lastName}`}
-              <br/>
-              {`Logged in as ${this.state.email}`}
-              <br/>
-              {`Paper balance ${this.state.paper}`}
-            </>
-            }
-          </div>
-          <LoginForm
-            submitCallback={this.getAccountInfo}
-          />
-          <RegisterForm
-            submitCallback={this.getAccountInfo}
-          />
-          <AssetList/>
-          </>
-          }
+        <NavBar/>
+        <RouterProvider router={this.router}/>
       </div>
     );
   }

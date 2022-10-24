@@ -1,10 +1,10 @@
 export default function ContractExercise(props: {exercised: boolean, exercisedAmount: number | undefined}) {
+
+  if (!props.exercised) return null;
+
     return (
       <div className="contract-exercise">
-        {`Exercised: ${props.exercised}`}
-        {props.exercised &&
-        `Exercised Amount: ${props.exercisedAmount}`
-        }
+        {`Exercised Amount: ${props.exercisedAmount}`}
       </div>
 
     );

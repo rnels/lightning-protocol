@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import axios from '../../lib/axios';
 import { serverURL } from '../../config';
+import { Link } from "react-router-dom";
 
 export default function LoginForm(props: {submitCallback: Function}) {
 
@@ -54,6 +55,9 @@ export default function LoginForm(props: {submitCallback: Function}) {
           value='Submit'
         />
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      <Link to='/register'>
+        <small>Don't have an account?</small>
+      </Link>
       </form>
 
     );

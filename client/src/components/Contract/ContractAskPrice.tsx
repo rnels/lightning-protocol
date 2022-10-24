@@ -1,8 +1,10 @@
 export default function ContractAskPrice(props: {askPrice: number | undefined}) {
 
+    if (!props.askPrice) return null;
+
     return (
       <div className="contract-ask-price">
-        {`Price: ${props.askPrice}`}
+        {`Ask Price: ${props.askPrice}`}
       </div>
 
     );
