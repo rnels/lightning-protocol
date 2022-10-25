@@ -73,23 +73,8 @@ function _updateOwnerId(contract: Contract, newOwnerId: number, client?: PoolCli
   ]);
 }
 
-export async function getAllContracts(sort='contract_id ASC'): Promise<Contract[]> {
-  const res = await db.query(`
-    SELECT
-      contract_id as "contractId",
-      type_id as "typeId",
-      owner_id as "ownerId",
-      ask_price as "askPrice",
-      created_at as "createdAt",
-      exercised,
-      exercised_amount as "exercisedAmount"
-    FROM contracts
-      ORDER BY $1
-  `, [sort]);
-  return res.rows;
-}
-
-export async function getContractById(id: string | number): Promise<Contract> {
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+async function _getContractById(id: string | number): Promise<Contract> {
   const res = await db.query(`
     SELECT
       contract_id as "contractId",
@@ -105,7 +90,37 @@ export async function getContractById(id: string | number): Promise<Contract> {
   return res.rows[0];
 }
 
-export async function getContractsByTypeId(typeId: string | number): Promise<Contract[]> {
+export async function getAllContracts(sort='contract_id ASC'): Promise<Contract[]> {
+  const res = await db.query(`
+    SELECT
+      contract_id as "contractId",
+      type_id as "typeId",
+      ask_price as "askPrice",
+      created_at as "createdAt",
+      exercised,
+      exercised_amount as "exercisedAmount"
+    FROM contracts
+      ORDER BY $1
+  `, [sort]);
+  return res.rows;
+}
+
+export async function getContractById(id: string | number): Promise<Contract> {
+  const res = await db.query(`
+    SELECT
+      contract_id as "contractId",
+      type_id as "typeId",
+      ask_price as "askPrice",
+      created_at as "createdAt",
+      exercised,
+      exercised_amount as "exercisedAmount"
+    FROM contracts
+      WHERE contract_id=$1
+  `, [id]);
+  return res.rows[0];
+}
+
+export async function getActiveContractsByTypeId(typeId: string | number): Promise<Contract[]> {
   const res = await db.query(`
     SELECT
       contract_id as "contractId",
@@ -117,6 +132,7 @@ export async function getContractsByTypeId(typeId: string | number): Promise<Con
       exercised_amount as "exercisedAmount"
     FROM contracts
       WHERE type_id=$1
+        AND exercised=false
   `, [typeId]);
   return res.rows;
 }
@@ -248,6 +264,7 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
     let sellerProceeds = salePrice - tradeFee;
     let trade: Trade = {
       contractId: contract.contractId,
+      typeId: contract.typeId,
       buyerId: bid.accountId,
       sellerId: contract.ownerId!,
       salePrice,
@@ -275,7 +292,7 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
 // TODO: Make sure locks are removed on contract expiry as well, which will be kind of tough, requires a listener of some kind
 // TODO: Treat compensation / exercising differently if it's a put rather than a call, currently operating as if it's just a call
 export async function exerciseContract(contractId: number, ownerId: number) {
-  let contract = await getContractById(contractId);
+  let contract = await _getContractById(contractId);
   if (contract.ownerId !== ownerId) {
     throw new Error('Provided ownerId does not match contract.ownerId');
   }

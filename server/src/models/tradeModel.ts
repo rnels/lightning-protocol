@@ -8,6 +8,7 @@ export async function getAllTrades(sort='trade_id ASC', count=100): Promise<Trad
     SELECT
       trade_id as "tradeId",
       contract_id as "contractId",
+      type_id as "typeId",
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
@@ -25,6 +26,7 @@ export async function getTradeById(id: string | number): Promise<Trade> {
     SELECT
       trade_id as "tradeId",
       contract_id as "contractId",
+      type_id as "typeId",
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
@@ -42,6 +44,7 @@ export async function getTradesByContractId(contractId: string | number): Promis
     SELECT
       trade_id as "tradeId",
       contract_id as "contractId",
+      type_id as "typeId",
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
@@ -64,6 +67,7 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
     SELECT
       trade_id as "tradeId",
       contract_id as "contractId",
+      type_id as "typeId",
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
@@ -76,6 +80,61 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
   return res.rows;
 }
 
+export async function getLastTradeByTypeId(typeId: string | number): Promise<Trade> {
+  const res = await db.query(`
+    SELECT
+      trade_id as "tradeId",
+      contract_id as "contractId",
+      type_id as "typeId",
+      buyer_id as "buyerId",
+      seller_id as "sellerId",
+      sale_price as "salePrice",
+      trade_fee as "tradeFee",
+      created_at as "createdAt"
+    FROM trades
+      WHERE type_id=$1
+    ORDER BY created_at DESC
+  `, [typeId]);
+  return res.rows[0];
+}
+
+export async function getTradesWithin24HoursByTypeId(typeId: string | number): Promise<Trade[]> {
+  const res = await db.query(`
+    SELECT
+      trade_id as "tradeId",
+      contract_id as "contractId",
+      type_id as "typeId",
+      buyer_id as "buyerId",
+      seller_id as "sellerId",
+      sale_price as "salePrice",
+      trade_fee as "tradeFee",
+      created_at as "createdAt"
+    FROM trades
+      WHERE type_id=$1
+        AND created_at >= NOW() - INTERVAL '1 day'
+  `, [typeId]);
+  return res.rows;
+}
+
+export async function getTradeAvgSalePrice24HourChange(typeId: string | number): Promise<number> {
+  const res = await db.query(`
+    SELECT ROUND((
+      SELECT AVG(sale_price)
+        FROM trades
+          WHERE type_id=$1
+            AND created_at >= NOW() - INTERVAL '1 day'
+    ) - (
+      SELECT AVG(sale_price)
+        FROM trades
+          WHERE type_id=$1
+            AND created_at >= NOW() - INTERVAL '2 days'
+            AND created_at < NOW() - INTERVAL '1 day'
+    )::numeric, 2) as "salePriceAvg"
+  `, [typeId]);
+  // I'm aware this sucks, TODO: Make it not
+  return res.rows[0].salePriceAvg !== null ? res.rows[0].salePriceAvg : 0;
+}
+
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{tradeId: number}> {
   let query = db.query.bind(db);
@@ -83,6 +142,7 @@ export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{
   const res = await query(`
     INSERT INTO trades (
       contract_id,
+      type_id,
       buyer_id,
       seller_id,
       sale_price,
@@ -98,6 +158,7 @@ export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{
   `,
   [
     trade.contractId,
+    trade.typeId,
     trade.buyerId,
     trade.sellerId,
     trade.salePrice,
@@ -105,3 +166,5 @@ export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{
   ]);
   return res.rows[0];
 }
+
+// TODO: Define a function to get the last sale price for a contractType

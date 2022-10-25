@@ -36,7 +36,7 @@ export type ContractType = {
 	assetAmount: number,
 	direction: boolean,
 	strikePrice: number,
-	expiresAt: number
+	expiresAt: string // TODO: Parse incoming expiresAt to DateTime
 };
 
 export type Contract = {
@@ -58,6 +58,7 @@ export type Bid = {
 export type Trade = {
 	tradeId: number,
 	contractId: number,
+	typeId: number,
 	salePrice: number,
 	tradeFee: number,
   createdAt: number

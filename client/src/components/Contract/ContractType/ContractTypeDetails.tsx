@@ -8,7 +8,6 @@ import ContractTypeExpiresAt from "./ContractTypeExpiresAt";
 export default function ContractTypeDetails(props: {contractType: ContractType}) {
     return (
       <div className="contract-type-details">
-        <p>{`Contract Type ${props.contractType.contractTypeId}`}</p>
         <ContractTypeAssetAmount
           assetAmount={props.contractType.assetAmount}
         />

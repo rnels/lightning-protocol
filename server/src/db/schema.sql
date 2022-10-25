@@ -114,16 +114,19 @@ CREATE INDEX bids_account_id_idx ON bids(account_id);
 CREATE TABLE trades (
 	trade_id SERIAL NOT NULL PRIMARY KEY,
 	contract_id INTEGER NOT NULL,
+	type_id INTEGER NOT NULL,
 	buyer_id INTEGER NOT NULL,
 	seller_id INTEGER NOT NULL,
 	sale_price DECIMAL NOT NULL,
 	trade_fee DECIMAL NOT NULL DEFAULT 0,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id),
+	CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES contract_types(contract_type_id),
 	CONSTRAINT fk_buyer_id FOREIGN KEY(buyer_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_seller_id FOREIGN KEY(seller_id) REFERENCES accounts(account_id)
 );
 
 CREATE INDEX trades_contract_id_idx ON trades(contract_id);
+CREATE INDEX trades_type_id_idx ON trades(type_id);
 CREATE INDEX trades_buyer_id_idx ON trades(buyer_id);
 CREATE INDEX trades_seller_id_idx ON trades(seller_id);

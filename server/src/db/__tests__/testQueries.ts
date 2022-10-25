@@ -7,7 +7,7 @@ import * as contractTypes from '../../models/contractTypeModel';
 import * as contracts from '../../models/contractModel';
 import * as bids from '../../models/bidModel';
 import * as trades from '../../models/tradeModel';
-import { Account, Asset, Pool, Contract, ContractType, Bid, Trade } from '../../types';
+import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } from '../../types';
 import { QueryResult } from 'pg';
 
 // Will eventually replace this with jest testing in queries.test.js, but for now...
@@ -48,9 +48,10 @@ import { QueryResult } from 'pg';
 // CREATE ASSET
 (async () => {
   let asset: Asset = {
-    assetType: 'crypto',
+    assetType: AssetType.Crypto,
     name: 'Ethereum',
-    symbol: 'ETH'
+    symbol: 'ETH',
+    priceApiId: 2
   };
   let result = await assets.createAsset(asset);
   console.log(result);
@@ -212,7 +213,7 @@ import { QueryResult } from 'pg';
 // GET CONTRACTS BY TYPE ID
 (async () => {
   let typeId = 1;
-  let result = await contracts.getContractsByTypeId(typeId);
+  let result = await contracts.getActiveContractsByTypeId(typeId);
   console.log(result);
 });
 
@@ -269,6 +270,7 @@ import { QueryResult } from 'pg';
 (async () => {
   let trade: Trade = {
     contractId: 1,
+    typeId: 1,
     buyerId: 1,
     sellerId: 2,
     salePrice: 2.5,

@@ -1,4 +1,4 @@
-enum AssetType {
+export enum AssetType {
   Crypto = 'crypto',
 	Stock = 'stock',
 	Currency = 'currency'
@@ -69,6 +69,7 @@ export type Bid = {
 export type Trade = {
 	tradeId?: number,
 	contractId: number,
+	typeId: number,
 	buyerId: number,
   sellerId: number,
 	salePrice: number,

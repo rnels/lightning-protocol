@@ -4,17 +4,20 @@ import { Contract } from '../../lib/types';
 import { serverURL } from '../../config';
 
 import ContractDetails from './ContractDetails';
+import { useParams } from 'react-router-dom';
 
-/** Renders a list of contracts for the given typeId */
-export default function TypeContractList(props: {typeId: number}) {
+/** Renders a list of contracts for the given typeId (useParams) */
+export default function ContractList() {
 
   const [error, setError] = useState('');
   const [contractList, setContractList] = useState<Contract[]>([]);
 
+  const { typeId } = useParams();
+
   useEffect(() => {
     axios.get(`${serverURL}/contract/list`, {
       params: {
-        typeId: props.typeId
+        typeId
       }
     })
       .then((response) => {
@@ -28,7 +31,7 @@ export default function TypeContractList(props: {typeId: number}) {
           setError(errorRes.message);
         }
       });
-  }, [props.typeId])
+  }, [typeId]);
 
 
     return (

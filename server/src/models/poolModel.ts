@@ -192,6 +192,16 @@ export async function getPoolsByAssetId(assetId: string | number): Promise<Pool[
   return res.rows;
 }
 
+export async function getPoolAssetsByAssetId(assetId: string | number): Promise<number> {
+  const res = await db.query(`
+    SELECT
+      SUM(asset_amount)
+    FROM pools
+      WHERE asset_id=$1
+  `, [assetId]);
+  return res.rows[0].sum;
+}
+
 export async function getPoolsByAccountId(accountId: string | number): Promise<Pool[]> {
   const res = await db.query(`
     SELECT
@@ -236,9 +246,21 @@ export async function getPoolLocksByAccountId(accountId: string | number): Promi
     FROM pools, pool_locks
       WHERE pools.account_id=$1
         AND pool_locks.pool_id=pools.pool_id
-        AND expires_at > NOW()
+        AND pool_locks.expires_at > NOW()
   `, [accountId]);
   return res.rows;
+}
+
+export async function getPoolLockAssetsByAssetId(assetId: string | number): Promise<number> {
+  const res = await db.query(`
+    SELECT
+      SUM(pool_locks.asset_amount)
+    FROM pools, pool_locks
+      WHERE pools.asset_id=$1
+        AND pool_locks.pool_id=pools.pool_id
+        AND pool_locks.expires_at > NOW()
+  `, [assetId]);
+  return res.rows[0].sum;
 }
 
 export async function createPool(pool: Pool): Promise<{poolId: number}> {

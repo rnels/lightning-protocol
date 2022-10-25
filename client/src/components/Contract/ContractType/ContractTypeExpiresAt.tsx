@@ -1,4 +1,4 @@
-export default function ContractTypeExpiresAt(props: {expiresAt: number}) {
+export default function ContractTypeExpiresAt(props: {expiresAt: string}) {
 
     return (
       <div className="contract-type-expires-at">

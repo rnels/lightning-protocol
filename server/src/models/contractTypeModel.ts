@@ -31,7 +31,7 @@ export async function getContractTypeById(id: string | number): Promise<Contract
   return res.rows[0];
 }
 
-// Get contract by type ID (if exists and non-expired)
+// Get contract type by type ID (if exists and non-expired)
 export async function getActiveContractTypeById(id: string | number): Promise<ContractType> {
   const res = await db.query(`
     SELECT
@@ -48,6 +48,20 @@ export async function getActiveContractTypeById(id: string | number): Promise<Co
   return res.rows[0];
 }
 
+// Get a list of contract asks by contract type ID (if exists and non-expired)
+export async function getAskPricesByTypeId(id: string | number): Promise<{askPrice: number, contractId: number}[]> {
+  const res = await db.query(`
+    SELECT
+      contracts.contract_id as "contractId",
+      contracts.ask_price as "askPrice"
+    FROM contracts, contract_types
+      WHERE contract_types.contract_type_id=$1
+        AND contract_types.contract_type_id=contracts.type_id
+        AND contract_types.expires_at > NOW()
+  `, [id]);
+  return res.rows;
+}
+
 // Get active (non-expired) contract types
 export async function getActiveContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
   const res = await db.query(`
@@ -61,6 +75,7 @@ export async function getActiveContractTypesByAssetId(assetId: string | number):
     FROM contract_types
       WHERE asset_id=$1
         AND expires_at > NOW()
+    ORDER BY expires_at ASC
   `, [assetId]);
   return res.rows;
 }

@@ -98,15 +98,15 @@ INSERT INTO contract_types (
 -- 	'5022-12-31 23:24:11.519704'
 -- );
 
--- INSERT INTO contracts (
--- 	type_id,
--- 	owner_id,
--- 	ask_price
--- ) VALUES (
--- 	1,
--- 	1,
--- 	2.5
--- );
+INSERT INTO contracts (
+	type_id,
+	owner_id,
+	ask_price
+) VALUES (
+	1,
+	1,
+	2.5
+);
 
 -- INSERT INTO contracts (
 -- 	type_id,
@@ -128,15 +128,17 @@ INSERT INTO bids (
 	2.4
 );
 
--- INSERT INTO trades (
--- 	contract_id,
--- 	buyer_id,
--- 	seller_id,
--- 	sale_price
--- ) VALUES (
--- 	1,
--- 	1,
--- 	2,
--- 	1.5
--- );
+INSERT INTO trades (
+	contract_id,
+	type_id,
+	buyer_id,
+	seller_id,
+	sale_price
+) VALUES (
+	1,
+	1,
+	1,
+	1,
+	6
+);
 

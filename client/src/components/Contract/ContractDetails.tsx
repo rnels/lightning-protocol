@@ -31,7 +31,6 @@ export default function ContractDetails(props: {contract: Contract}) {
 
     return (
       <div className="contract-details">
-        <p>{`Contract ${props.contract.contractId}`}</p>
         <ContractAskPrice
           askPrice={props.contract.askPrice}
         />
@@ -42,9 +41,9 @@ export default function ContractDetails(props: {contract: Contract}) {
           exercised={props.contract.exercised}
           exercisedAmount={props.contract.exercisedAmount}
         />
-        {contractType && <ContractTypeDetails
+        {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
           contractType={contractType}
-        />}
+        />} */}
       </div>
 
     );

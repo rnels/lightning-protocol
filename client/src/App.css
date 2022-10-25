@@ -50,6 +50,23 @@ a {
   font-size: calc(12px + 1vmin);
 }
 
+th {
+  background: #232323;
+}
+
+th, td {
+  text-align: center;
+  padding: 5px 10px;
+}
+
+.asset-contracts-view-header {
+  margin-bottom: 5px;
+}
+
+.contract-table-row {
+  background-color: #333333;
+}
+
 .nav-bar {
   display: flex;
   justify-content: space-evenly;

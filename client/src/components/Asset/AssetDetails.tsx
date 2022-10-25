@@ -72,7 +72,7 @@ export default function AssetDetails() {
         Pools
       </Link>
       <Link to={`/assets/${assetId}/contracts`}>
-        Contracts
+        Contract Types
       </Link>
       <Outlet />
     </div>
