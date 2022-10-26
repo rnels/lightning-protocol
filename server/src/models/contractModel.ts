@@ -3,7 +3,7 @@ import db from '../db/db';
 import { Bid, Contract, Pool, PoolLock, Trade } from '../types';
 import { withdrawPaper, depositPaper } from './accountModel';
 import { removeBid } from './bidModel';
-import { getActiveContractTypeById, getContractTypeById } from './contractTypeModel';
+import { getActiveContractTypeById } from './contractTypeModel';
 import {
    _createPoolLock,
   _addToTradeFees,
@@ -61,7 +61,7 @@ function _setExercised(contract: Contract, exercisedAmount: number, client?: Poo
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-function _updateOwnerId(contract: Contract, newOwnerId: number, client?: PoolClient) {
+function _updateOwnerId(contractId: number, newOwnerId: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
   return query(`
@@ -70,8 +70,22 @@ function _updateOwnerId(contract: Contract, newOwnerId: number, client?: PoolCli
       WHERE contract_id=$1
   `,
   [
-    contract.contractId,
+    contractId,
     newOwnerId
+  ]);
+}
+
+// INTERNAL: For use where a contract is either sold or the listing is removed
+function _removeAskPrice(contractId: string | number, client?: PoolClient) {
+  let query = db.query.bind(db);
+  if (client) { query = client.query.bind(client); }
+  return query(`
+    UPDATE contracts
+    SET ask_price=null
+      WHERE contract_id=$1
+  `,
+  [
+    contractId
   ]);
 }
 
@@ -90,21 +104,6 @@ async function _getContractById(id: string | number): Promise<Contract> {
       WHERE contract_id=$1
   `, [id]);
   return res.rows[0];
-}
-
-export async function getAllContracts(sort='contract_id ASC'): Promise<Contract[]> {
-  const res = await db.query(`
-    SELECT
-      contract_id as "contractId",
-      type_id as "typeId",
-      ask_price as "askPrice",
-      created_at as "createdAt",
-      exercised,
-      exercised_amount as "exercisedAmount"
-    FROM contracts
-      ORDER BY $1
-  `, [sort]);
-  return res.rows;
 }
 
 export async function getContractById(id: string | number): Promise<Contract> {
@@ -161,7 +160,7 @@ export async function getContractsByOwnerId(ownerId: string | number): Promise<C
 // Only accepting owner_id for debug atm
 // TODO: Decide if the sell to close should credit the pool owners with initial tradeFees that reflect a higher percentage of the sale (i.e. 50%)
 export async function createContract(contract: Contract) {
-  let contractType = await getContractTypeById(contract.typeId);
+  let contractType = await getActiveContractTypeById(contract.typeId);
   let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(contractType.assetId);
   if (unlockedPoolAssetTotal < contractType.assetAmount) throw new Error('Not enough unlocked assets to create contract');
   let client = await db.connect();
@@ -239,10 +238,8 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
 }
 
 // For use where a contract is either sold or the listing is removed
-export function removeAskPrice(contractId: string | number, accountId: string | number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  return query(`
+export function removeAskPrice(contractId: string | number, accountId: string | number) {
+  return db.query(`
     UPDATE contracts
     SET ask_price=null
       WHERE contract_id=$1
@@ -262,25 +259,26 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
   try {
     let assetAmount = (await getActiveContractTypeById(contract.typeId)).assetAmount;
     let saleCost = contract.askPrice! * assetAmount;
-    let tradeFee = saleCost * poolFee;
+    let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
+      saleCost * poolFee : saleCost;
     let sellerProceeds = saleCost - tradeFee;
     let trade: Trade = {
       contractId: contract.contractId,
       typeId: contract.typeId,
       buyerId: bid.accountId,
-      sellerId: contract.ownerId!,
+      sellerId: contract.ownerId,
       salePrice: contract.askPrice!,
       tradeFee
     };
     await client.query('BEGIN');
     await Promise.all([
-      withdrawPaper(bid.accountId, saleCost, client),
-      depositPaper(contract.ownerId!, sellerProceeds, client),
-      _addToTradeFees(contract.contractId, tradeFee, client),
+      withdrawPaper(trade.buyerId, saleCost, client),
+      trade.sellerId && depositPaper(trade.sellerId, sellerProceeds, client),
+      _addToTradeFees(trade.contractId, tradeFee, client),
       _createTrade(trade, client),
       removeBid(bid.bidId, bid.accountId, client),
-      removeAskPrice(contract.contractId, contract.ownerId!, client),
-      _updateOwnerId(contract, bid.accountId, client)
+      _removeAskPrice(trade.contractId, client),
+      _updateOwnerId(trade.contractId, trade.buyerId, client)
     ])
     await client.query('COMMIT');
   } catch(e) {
@@ -302,9 +300,6 @@ export async function exerciseContract(contractId: number, ownerId: number) {
   if (contract.exercised) {
     throw new Error('Contract has already been exercised');
   }
-
-  // Should return an error if the contract is past expiry
-  // TODO: Test this, may just return undefined
   let contractType = await getActiveContractTypeById(contract.typeId);
   if (!contractType) {
     throw new Error('Active contractType could not be found');
@@ -324,7 +319,7 @@ export async function exerciseContract(contractId: number, ownerId: number) {
     await _addToTradeFees(contract.contractId!, poolFee, client);
     await _sellPoolLockAssets(contract.contractId!, client);
     await depositPaper(contract.ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
-    if (contract.askPrice) { await removeAskPrice(contract.contractId!, contract.ownerId, client); }
+    if (contract.askPrice) { await _removeAskPrice(contract.contractId!, client); }
     await _setExercised(contract, saleProfits, client);
     await client.query('COMMIT');
     client.release();

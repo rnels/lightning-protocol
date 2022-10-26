@@ -1,21 +1,7 @@
 import db from '../db/db';
 import { ContractType } from '../types';
 
-export async function getAllContractTypes(sort='contract_type_id ASC'): Promise<ContractType[]> {
-  const res = await db.query(`
-    SELECT
-      contract_type_id as "contractTypeId",
-      asset_id as "assetId",
-      asset_amount as "assetAmount",
-      direction,
-      strike_price as "strikePrice",
-      expires_at as "expiresAt"
-    FROM contract_types
-    ORDER BY $1
-  `, [sort]);
-  return res.rows;
-}
-
+// NOTE: Should not be used by anything that creates a new contract or references existing contracts
 export async function getContractTypeById(id: string | number): Promise<ContractType> {
   const res = await db.query(`
     SELECT
@@ -63,7 +49,7 @@ export async function getAskPricesByTypeId(id: string | number): Promise<{askPri
   return res.rows;
 }
 
-// Get active (non-expired) contract types
+// Get active (non-expired) contract types by assetID
 export async function getActiveContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
   const res = await db.query(`
     SELECT

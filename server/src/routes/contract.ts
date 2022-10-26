@@ -51,7 +51,7 @@ router.get('/contract/type', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract type info' }));
 });
 
-// Retrieve contracts for a given contract type ID
+// Retrieve active contracts for a given contract type ID
 // Expects in req.query:
 //  typeId - ID to retrieve contracts of
 // Successful response data:

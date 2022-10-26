@@ -71,7 +71,7 @@ export type Trade = {
 	contractId: number,
 	typeId: number,
 	buyerId: number,
-  sellerId: number,
+  sellerId?: number,
 	salePrice: number,
 	tradeFee: number,
   createdAt?: number
