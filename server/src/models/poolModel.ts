@@ -84,21 +84,19 @@ async function _getTradeFeesByPoolId(poolId: number): Promise<number> {
 
 /** Updates trade_fees on pool_locks for given contractId */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _addToTradeFees(contractId: number, tradeFee: number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
+export async function _addToTradeFees(contractId: number, tradeFee: number, client: PoolClient) {
   let feePromises = [];
   let lockPools = await _getLockedPoolsByContractId(contractId);
   let totalAssetAmount = await _getLockedAmountSumByContractId(contractId);
   for (let pool of lockPools) {
     let fee = tradeFee * (pool.assetAmount / totalAssetAmount);
     feePromises.push(
-      query(`
+      client.query(`
         UPDATE pool_locks
         SET trade_fees=trade_fees+$2
           WHERE pool_lock_id=$1
       `, [pool.poolLockId, fee]),
-      query(`
+      client.query(`
         UPDATE pools
         SET trade_fees=trade_fees+$2
           WHERE pool_id=$1
@@ -110,16 +108,14 @@ export async function _addToTradeFees(contractId: number, tradeFee: number, clie
 
 /** Decreases pools.asset_amount by pool_lock.asset_amount and sells the pool_locks for a given contractId */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _sellPoolLockAssets(contractId: number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
+export async function _sellPoolLockAssets(contractId: number, client: PoolClient) {
   let poolAssetPromises = [];
   let lockPools = await _getLockedPoolsByContractId(contractId);
   for (let pool of lockPools) {
     // Opting to write this query here instead of using withdrawPoolAssets because I see them being used in different contexts,
     // withdrawPoolAssets being used by a route and updated at some point to actually provide pooled assets to the user's wallet balance
     poolAssetPromises.push(
-      query(`
+      client.query(`
         UPDATE pools
           SET asset_amount=asset_amount-$2
             WHERE pool_id=$1
@@ -286,10 +282,8 @@ export async function createPool(pool: Pool): Promise<{poolId: number}> {
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  return query(`
+export function _createPoolLock(poolLock: PoolLock,  client: PoolClient) {
+  return client.query(`
     INSERT INTO pool_locks (
       pool_id,
       contract_id,
@@ -307,10 +301,8 @@ export function _createPoolLock(poolLock: PoolLock,  client?: PoolClient) {
 
 /** Removes pool_locks with the given contract_id */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export function _removePoolLocksByContractId(contractId: number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  return query(`
+export function _removePoolLocksByContractId(contractId: number, client: PoolClient) {
+  return client.query(`
     DELETE FROM pool_locks
       WHERE contract_id=$1
   `, [contractId]);

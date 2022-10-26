@@ -135,10 +135,8 @@ export async function getTradeAvgSalePrice24HourChange(typeId: string | number):
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{tradeId: number}> {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  const res = await query(`
+export async function _createTrade(trade: Trade, client: PoolClient): Promise<{tradeId: number}> {
+  const res = await client.query(`
     INSERT INTO trades (
       contract_id,
       type_id,

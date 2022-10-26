@@ -1,11 +1,24 @@
-export default function NavBar(props: any) {
+import { Account } from "../lib/types";
+
+export default function NavBar(props: {logged: boolean, paper: number}) {
 
   // TODO: Change this to use react router once I have a better understanding of it
   return (
     <div className='nav-bar'>
-      <a href='/login'>Login</a>
-      <a href='/register'>Register</a>
-      <a href='/assets'>Launch App</a>
+      {props.logged ?
+      <>
+      <div className='nav-bar-left'>
+        <a href='/profile'>Profile</a>
+        <a href='/assets'>Assets</a>
+      </div>
+      {`${props.paper} Paper`}
+      </>
+      :
+      <>
+        <a href='/login'>Login</a>
+        <a href='/register'>Register</a>
+      </>
+      }
     </div>
   )
 };

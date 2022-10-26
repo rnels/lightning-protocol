@@ -116,7 +116,7 @@ CREATE TABLE trades (
 	contract_id INTEGER NOT NULL,
 	type_id INTEGER NOT NULL,
 	buyer_id INTEGER NOT NULL,
-	seller_id INTEGER NOT NULL,
+	seller_id INTEGER, -- Can be null if the contract is being purchased from the AI
 	sale_price DECIMAL NOT NULL,
 	trade_fee DECIMAL NOT NULL DEFAULT 0,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

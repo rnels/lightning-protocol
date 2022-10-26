@@ -154,12 +154,6 @@ import { QueryResult } from 'pg';
   console.log(result);
 });
 
-// GET ALL CONTRACT TYPES
-(async () => {
-  let result = await contractTypes.getAllContractTypes();
-  console.log(result);
-});
-
 // GET CONTRACT TYPE BY ID
 (async () => {
   let contractTypeId = 1;
@@ -197,12 +191,6 @@ import { QueryResult } from 'pg';
   await contracts.updateAskPrice(contractId, askPrice, ownerId);
 });
 
-// GET ALL CONTRACTS
-(async () => {
-  let result = await contracts.getAllContracts();
-  console.log(result);
-});
-
 // GET CONTRACT BY ID
 (async () => {
   let contractId = 1;
@@ -237,12 +225,6 @@ import { QueryResult } from 'pg';
   console.log(result);
 });
 
-// GET ALL BIDS
-(async () => {
-  let result = await bids.getAllBids();
-  console.log(result);
-});
-
 // GET BID BY ID
 (async () => {
   let bidId = 1;
@@ -267,18 +249,18 @@ import { QueryResult } from 'pg';
 // TRADES //
 
 // CREATE TRADE
-(async () => {
-  let trade: Trade = {
-    contractId: 1,
-    typeId: 1,
-    buyerId: 1,
-    sellerId: 2,
-    salePrice: 2.5,
-    tradeFee: 0
-  };
-  let result = await trades._createTrade(trade);
-  console.log(result);
-});
+// (async () => {
+//   let trade: Trade = {
+//     contractId: 1,
+//     typeId: 1,
+//     buyerId: 1,
+//     sellerId: 2,
+//     salePrice: 2.5,
+//     tradeFee: 0
+//   };
+//   let result = await trades._createTrade(trade);
+//   console.log(result);
+// });
 
 // GET ALL TRADES
 (async () => {

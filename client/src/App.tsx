@@ -19,11 +19,12 @@ import AssetPoolList from './components/Pool/AssetPoolList';
 import ContractTypeList from './components/Contract/ContractType/ContractTypeList';
 import ContractList from './components/Contract/ContractList';
 import AssetContractsView from './components/Views/AssetContractsView';
-import PlaceBidView from './components/Views/PlaceBidView';
+import PlaceBidModal from './components/Views/PlaceBidModal';
 
 type Props = {}
 
 type State = {
+  logged: boolean,
   email: string,
   firstName: string,
   lastName: string,
@@ -38,6 +39,7 @@ export default class App extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
+      logged: false,
       email: '',
       firstName: '',
       lastName: '',
@@ -102,9 +104,8 @@ export default class App extends React.Component<Props, State> {
         element: ( // TODO: Don't display login / register if they are already logged in, take them straight to app
           <>
             <h1>Lightning Protocol</h1>
-            <Link to='login'>Login</Link>
-            <Link to='register'>Register</Link>
-            <Link to='assets'>Launch App</Link>
+            <Link to='/login'>Login</Link>
+            <Link to='/register'>Register</Link>
           </>
         ),
       },
@@ -129,10 +130,13 @@ export default class App extends React.Component<Props, State> {
       {
         path: 'assets/:assetId',
         element: <AssetContractsView/>
-      },
-      {
-        path: 'assets/:assetId/bid/:typeId',
-        element: <PlaceBidView/>
+        // ,
+        // children: [
+        //   {
+        //     path: 'bid/:typeId',
+        //     element: <PlaceBidModal/>
+        //   }
+        // ]
       }
     ]);
   }
@@ -141,6 +145,7 @@ export default class App extends React.Component<Props, State> {
     axios.get(`${serverURL}/account`)
       .then((result) => {
         this.setState({
+          logged: true,
           email: result.data.account.email,
           firstName: result.data.account.firstName,
           lastName: result.data.account.lastName,
@@ -167,7 +172,10 @@ export default class App extends React.Component<Props, State> {
   render() {
     return (
       <div className="App">
-        <NavBar/>
+        <NavBar
+          logged={this.state.logged}
+          paper={this.state.paper}
+        />
         <RouterProvider router={this.router}/>
       </div>
     );

@@ -47,7 +47,6 @@ input[type='submit'] {
 
 a {
   color: #c3c3c3;
-  font-size: calc(12px + 1vmin);
 }
 
 th {
@@ -59,8 +58,17 @@ th, td {
   padding: 5px 10px;
 }
 
+.login-form a {
+  font-size: calc(12px + 1vmin);
+}
+
 .asset-contracts-view-header {
   margin-bottom: 5px;
+}
+
+.place-bid-modal-header {
+  margin-top: 0px;
+  margin-bottom: 20px;
 }
 
 .contract-table-row {
@@ -76,10 +84,17 @@ th, td {
   top: 0;
   width: 100%;
   padding: 10px;
+  font-size: calc(12px + 1vmin);
 }
 
 .nav-bar a {
   color: #ececec;
+}
+
+.nav-bar-left {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .error-message {
@@ -98,6 +113,19 @@ th, td {
   margin: 10px 0px;
 }
 
+.place-bid-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #232323;
+  padding: 40px 30px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 5px white;
+
+  color: #ececec;
+  text-align: center;
+}
 @media only screen and (max-width: 768px) {
 
   .App {

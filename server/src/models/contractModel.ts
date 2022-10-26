@@ -2,7 +2,7 @@ import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Bid, Contract, Pool, PoolLock, Trade } from '../types';
 import { withdrawPaper, depositPaper } from './accountModel';
-import { removeBid } from './bidModel';
+import { _removeBid } from './bidModel';
 import { getActiveContractTypeById } from './contractTypeModel';
 import {
    _createPoolLock,
@@ -23,9 +23,9 @@ const poolFee = 0.01;
 // If there are matches, executes a trade on the highest bid
 // When this is called, there should be a bid in the table, don't call this before creating a bid
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-async function _getMatchingBidsByAsk(contract: Contract) {
+async function _getMatchingBidsByAsk(contract: Contract, client: PoolClient) {
   let bids = (await
-    db.query(`
+    client.query(`
       SELECT
         bid_id as "bidId",
         type_id as "typeId",
@@ -38,16 +38,12 @@ async function _getMatchingBidsByAsk(contract: Contract) {
       ORDER BY bid_price DESC
     `, [contract.typeId, contract.askPrice])
   ).rows as Bid[];
-  if (bids.length === 0) return;
-  let bid = bids[0];
-  _tradeContract(contract, bid);
+  return bids;
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-function _setExercised(contract: Contract, exercisedAmount: number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  return query(`
+function _setExercised(contract: Contract, exercisedAmount: number, client: PoolClient) {
+  return client.query(`
     UPDATE contracts
     SET
       exercised=true,
@@ -61,10 +57,8 @@ function _setExercised(contract: Contract, exercisedAmount: number, client?: Poo
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-function _updateOwnerId(contractId: number, newOwnerId: number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  return query(`
+function _updateOwnerId(contractId: number, newOwnerId: number, client: PoolClient) {
+  return client.query(`
     UPDATE contracts
     SET owner_id=$2
       WHERE contract_id=$1
@@ -76,10 +70,8 @@ function _updateOwnerId(contractId: number, newOwnerId: number, client?: PoolCli
 }
 
 // INTERNAL: For use where a contract is either sold or the listing is removed
-function _removeAskPrice(contractId: string | number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  return query(`
+function _removeAskPrice(contractId: string | number, client: PoolClient) {
+  return client.query(`
     UPDATE contracts
     SET ask_price=null
       WHERE contract_id=$1
@@ -163,7 +155,7 @@ export async function createContract(contract: Contract) {
   let contractType = await getActiveContractTypeById(contract.typeId);
   let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(contractType.assetId);
   if (unlockedPoolAssetTotal < contractType.assetAmount) throw new Error('Not enough unlocked assets to create contract');
-  let client = await db.connect();
+  const client = await db.connect();
   try {
     await client.query('BEGIN');
     const contractId = (await client.query(`
@@ -201,8 +193,9 @@ export async function createContract(contract: Contract) {
       }
     }
     await Promise.all(poolLockPromises);
+    let bids = await _getMatchingBidsByAsk(contract, client);
+    if (bids.length > 0) await _tradeContract(contract, bids[0], client);
     await client.query('COMMIT');
-    _getMatchingBidsByAsk(contract); // TODO: Ensure this doesn't need any error catching
     client.release();
   } catch (e) {
     console.log(e); // DEBUG
@@ -214,27 +207,40 @@ export async function createContract(contract: Contract) {
 
 // TODO: Ensure someone can't set an ask price on expired contracts
 export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
-  const contract = (await db.query(`
-    UPDATE contracts
-    SET ask_price=$2
-      WHERE contract_id=$1
-        AND owner_id=$3
-        AND exercised=false
-    RETURNING
-      contract_id as "contractId",
-      type_id as "typeId",
-      owner_id as "ownerId",
-      ask_price as "askPrice",
-      created_at as "createdAt",
-      exercised,
-      exercised_amount as "exercisedAmount"
-  `,
-  [
-    contractId,
-    askPrice,
-    ownerId
-  ])).rows[0] as Contract; // Should return undefined if no contract matches the WHERE conditionals
-  if (contract) { _getMatchingBidsByAsk(contract); }
+  const client = await db.connect();
+  try {
+    client.query('BEGIN');
+    const contract = (await client.query(`
+      UPDATE contracts
+      SET ask_price=$2
+        WHERE contract_id=$1
+          AND owner_id=$3
+          AND exercised=false
+      RETURNING
+        contract_id as "contractId",
+        type_id as "typeId",
+        owner_id as "ownerId",
+        ask_price as "askPrice",
+        created_at as "createdAt",
+        exercised,
+        exercised_amount as "exercisedAmount"
+    `,
+    [
+      contractId,
+      askPrice,
+      ownerId
+    ])).rows[0] as Contract; // Should return undefined if no contract matches the WHERE conditionals
+    if (contract) {
+      let bids = await _getMatchingBidsByAsk(contract, client);
+      if (bids.length > 0) await _tradeContract(contract, bids[0], client);
+      await client.query('COMMIT');
+    }
+  } catch (e) {
+      console.log(e) // DEBUG
+      await client.query('ROLLBACK');
+  } finally {
+    client.release();
+  }
 }
 
 // For use where a contract is either sold or the listing is removed
@@ -253,12 +259,10 @@ export function removeAskPrice(contractId: string | number, accountId: string | 
 
 // JavaScript can I please have access modifiers
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _tradeContract(contract: Contract, bid: Bid) {
-  if (!contract.contractId || !bid.bidId) return; // DEBUG
-  let client = await db.connect();
-  try {
+export async function _tradeContract(contract: Contract, bid: Bid, client: PoolClient) {
+  if (!contract.askPrice || !contract.contractId || !bid.bidId) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
     let assetAmount = (await getActiveContractTypeById(contract.typeId)).assetAmount;
-    let saleCost = contract.askPrice! * assetAmount;
+    let saleCost = contract.askPrice * assetAmount;
     let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
       saleCost * poolFee : saleCost;
     let sellerProceeds = saleCost - tradeFee;
@@ -267,26 +271,18 @@ export async function _tradeContract(contract: Contract, bid: Bid) {
       typeId: contract.typeId,
       buyerId: bid.accountId,
       sellerId: contract.ownerId,
-      salePrice: contract.askPrice!,
+      salePrice: contract.askPrice,
       tradeFee
     };
-    await client.query('BEGIN');
-    await Promise.all([
+    return Promise.all([
       withdrawPaper(trade.buyerId, saleCost, client),
       trade.sellerId && depositPaper(trade.sellerId, sellerProceeds, client),
       _addToTradeFees(trade.contractId, tradeFee, client),
       _createTrade(trade, client),
-      removeBid(bid.bidId, bid.accountId, client),
+      _removeBid(bid.bidId, client),
       _removeAskPrice(trade.contractId, client),
       _updateOwnerId(trade.contractId, trade.buyerId, client)
-    ])
-    await client.query('COMMIT');
-  } catch(e) {
-    console.log(e); // DEBUG
-    await client.query('ROLLBACK');
-  } finally {
-    client.release();
-  }
+    ]);
 }
 
 // Should only be called in route by authenticated user
@@ -315,7 +311,7 @@ export async function exerciseContract(contractId: number, ownerId: number) {
     let poolFee = contractType.strikePrice * contractType.assetAmount;
     let saleProfits = (assetPrice * contractType.assetAmount) - poolFee;
     // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
-    // NOTE: Ensure this is resolved before _sellPoolLockAssets and _distributePoolLockFees are invoked
+    // Ensure this is resolved before _sellPoolLockAssets and _distributePoolLockFees are invoked
     await _addToTradeFees(contract.contractId!, poolFee, client);
     await _sellPoolLockAssets(contract.contractId!, client);
     await depositPaper(contract.ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)

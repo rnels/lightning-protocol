@@ -69,7 +69,7 @@ router.post('/bid', (req, res, next) => {
     bidPrice: req.body.bidPrice
   };
   bids.createBid(bid)
-    .then(({bidId}) => {
+    .then(() => {
       res.status(201).send({ message: 'Bid created' });
     })
     .catch((error: any) => {
@@ -89,7 +89,7 @@ router.put('/bid/price', (req, res, next) => {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   bids.updateBidPrice(req.body.bidId, req.body.bidPrice, req.user!.id)
-    .then(({typeId}) => {
+    .then(() => {
       res.status(201).send({ message: 'Bid price updated' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error updating bid price' }));

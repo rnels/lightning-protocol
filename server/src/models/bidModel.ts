@@ -7,8 +7,8 @@ import { _tradeContract } from './contractModel';
 // If there are matches, executes a trade on the lowest price contract
 // When this is called, there should be a bid in the table, don't call this before creating a bid
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-async function _getMatchingAsksByBid(bid: Bid) {
-  let contracts = (await db.query(`
+async function _getMatchingAsksByBid(bid: Bid, client: PoolClient) {
+  let contracts = (await client.query(`
     SELECT
       contracts.contract_id as "contractId",
       contracts.type_id as "typeId",
@@ -25,21 +25,17 @@ async function _getMatchingAsksByBid(bid: Bid) {
         AND contracts.type_id=contract_types.contract_type_id
     ORDER BY contracts.ask_price ASC
   `, [bid.typeId, bid.bidPrice])).rows as Contract[];
-  if (contracts.length === 0) return;
-  let contract = contracts[0];
-  _tradeContract(contract, bid);
+  return contracts;
 }
 
-export async function getAllBids(sort='bid_id ASC'): Promise<Bid[]> {
-  const res = await db.query(`
-    SELECT
-      bid_id as "bidId",
-      type_id as "typeId",
-      bid_price as "bidPrice"
-    FROM bids
-    ORDER BY $1
-  `, [sort]);
-  return res.rows;
+export function _removeBid(bidId: number | string, client: PoolClient) {
+  return client.query(`
+    DELETE FROM bids
+      WHERE bid_id=$1
+  `,
+  [
+    bidId
+  ]);
 }
 
 export async function getBidById(id: string | number): Promise<Bid> {
@@ -81,55 +77,73 @@ export async function getBidsByAccountId(accountId: string | number): Promise<Bi
 
 // TODO: Change the arguments to accept typeId, accountId, bidPrice, rather than Bid object
 // Create bid object from result of query to pass to _getMatchingAsksByBid
-export async function createBid(bid: Bid): Promise<{bidId: number}> {
-  const res = await db.query(`
-    INSERT INTO bids (
-      type_id,
-      account_id,
-      bid_price
-    ) VALUES (
-      $1,
-      $2,
-      $3
-    )
-    RETURNING bid_id as "bidId"
-  `,
-  [
-    bid.typeId,
-    bid.accountId,
-    bid.bidPrice
-  ]);
-  bid.bidId = res.rows[0].bidId;
-  _getMatchingAsksByBid(bid);
-  return res.rows[0];
-}
-
-export async function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string): Promise<{typeId: number}> {
-  const res = await db.query(`
-    UPDATE bids SET bid_price=$2
-      WHERE bid_id=$1
-        AND account_id=$3
-    RETURNING type_id as "typeId"
-  `,
-  [
-    bidId,
-    bidPrice,
-    accountId
-  ]);
-  let typeId = res.rows[0].typeId;
-  let bid: Bid = {
-      typeId,
-      accountId: accountId as number,
-      bidPrice
+export async function createBid(bid: Bid) {
+  const client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    const res = await db.query(`
+      INSERT INTO bids (
+        type_id,
+        account_id,
+        bid_price
+      ) VALUES (
+        $1,
+        $2,
+        $3
+      )
+      RETURNING bid_id as "bidId"
+    `,
+    [
+      bid.typeId,
+      bid.accountId,
+      bid.bidPrice
+    ]);
+    bid.bidId = res.rows[0].bidId;
+    let contracts = await _getMatchingAsksByBid(bid, client);
+    if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.log(e); // DEBUG
+  } finally {
+    client.release();
   }
-  _getMatchingAsksByBid(bid);
-  return res.rows[0].typeId;
 }
 
-export function removeBid(bidId: number | string, accountId: number | string, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
-  return query(`
+export async function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string) {
+  const client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    const res = await client.query(`
+      UPDATE bids SET bid_price=$2
+        WHERE bid_id=$1
+          AND account_id=$3
+      RETURNING type_id as "typeId"
+    `,
+    [
+      bidId,
+      bidPrice,
+      accountId
+    ]);
+    let typeId = res.rows[0].typeId;
+    let bid: Bid = {
+        typeId,
+        accountId: accountId as number,
+        bidPrice
+    }
+    let contracts = await _getMatchingAsksByBid(bid, client);
+    if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.log(e); // DEBUG
+  } finally {
+    client.release();
+  }
+}
+
+export function removeBid(bidId: number | string, accountId: number | string) {
+  return db.query(`
     DELETE FROM bids
       WHERE bid_id=$1
         AND account_id=$2
@@ -139,7 +153,3 @@ export function removeBid(bidId: number | string, accountId: number | string, cl
     accountId
   ]);
 }
-
-// TODO: Create model for accepting a bid price against a contract ask price, which turns into a trade
-
-// TODO: Create model function for cancelling a bid (either an update, would require status field, or a full delete)
