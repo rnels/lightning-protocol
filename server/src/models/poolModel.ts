@@ -290,7 +290,7 @@ export function _createPoolLock(
   poolId: number,
   contractId: number,
   assetAmount: number,
-  expiresAt: number,
+  expiresAt: string,
   client: PoolClient
 ) {
   return client.query(`

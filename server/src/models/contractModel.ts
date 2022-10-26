@@ -151,7 +151,7 @@ export async function getContractsByOwnerId(ownerId: string | number): Promise<C
 // Just requires a type and an ask price
 // Only accepting owner_id for debug atm
 // TODO: Decide if the sell to close should credit the pool owners with initial tradeFees that reflect a higher percentage of the sale (i.e. 50%)
-export async function createContract(typeId: number, askPrice?: number, ownerId?: number) {
+export async function createContract(typeId: number, askPrice?: number, ownerId?: number): Promise<Contract> {
   let contractType = await getActiveContractTypeById(typeId);
   let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(contractType.assetId);
   if (unlockedPoolAssetTotal < contractType.assetAmount) throw new Error('Not enough unlocked assets to create contract');
@@ -206,6 +206,7 @@ export async function createContract(typeId: number, askPrice?: number, ownerId?
     if (bids.length > 0) await _tradeContract(contract, bids[0], client);
     await client.query('COMMIT');
     client.release();
+    return contract;
   } catch (e) {
     console.log(e); // DEBUG
     await client.query('ROLLBACK');
@@ -269,7 +270,7 @@ export function removeAskPrice(contractId: string | number, accountId: string | 
 // JavaScript can I please have access modifiers
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _tradeContract(contract: Contract, bid: Bid, client: PoolClient) {
-  if (!contract.askPrice || !contract.contractId || !bid.bidId) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
+  if (!contract.askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
     let assetAmount = (await getActiveContractTypeById(contract.typeId)).assetAmount;
     let saleCost = contract.askPrice * assetAmount;
     let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
@@ -287,6 +288,7 @@ export async function _tradeContract(contract: Contract, bid: Bid, client: PoolC
         buyerId,
         contract.askPrice,
         tradeFee,
+        saleCost,
         client,
         sellerId
       ),
@@ -312,7 +314,7 @@ export async function exerciseContract(contractId: number, ownerId: number) {
     throw new Error('Active contractType could not be found');
   }
   let asset = await getAssetById(contractType.assetId);
-  let assetPrice = await getAssetPrice(asset.priceApiId!, asset.assetType); // Not catching potential error on getAssetPrice on purpose
+  let assetPrice = await getAssetPrice(asset.priceApiId, asset.assetType); // Not catching potential error on getAssetPrice on purpose
   if (assetPrice < contractType.strikePrice) {
     throw new Error('Contract with asset market price under strike price can not be exercised');
   }
@@ -323,10 +325,10 @@ export async function exerciseContract(contractId: number, ownerId: number) {
     let saleProfits = (assetPrice * contractType.assetAmount) - poolFee;
     // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
     // Ensure this is resolved before _sellPoolLockAssets and _distributePoolLockFees are invoked
-    await _addToLockTradeFees(contract.contractId!, poolFee, client);
-    await _sellPoolLockAssets(contract.contractId!, client);
+    await _addToLockTradeFees(contract.contractId, poolFee, client);
+    await _sellPoolLockAssets(contract.contractId, client);
     await depositPaper(contract.ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
-    if (contract.askPrice) { await _removeAskPrice(contract.contractId!, client); }
+    if (contract.askPrice) { await _removeAskPrice(contract.contractId, client); }
     await _setExercised(contract, saleProfits, client);
     await client.query('COMMIT');
     client.release();

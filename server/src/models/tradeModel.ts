@@ -12,6 +12,7 @@ export async function getAllTrades(sort='trade_id ASC', count=100): Promise<Trad
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
+      sale_cost as "saleCost",
       trade_fee as "tradeFee",
       created_at as "createdAt"
     FROM trades
@@ -30,6 +31,7 @@ export async function getTradeById(id: string | number): Promise<Trade> {
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
+      sale_cost as "saleCost",
       trade_fee as "tradeFee",
       created_at as "createdAt"
     FROM trades
@@ -48,6 +50,7 @@ export async function getTradesByContractId(contractId: string | number): Promis
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
+      sale_cost as "saleCost",
       trade_fee as "tradeFee",
       created_at as "createdAt"
     FROM trades
@@ -71,6 +74,7 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
+      sale_cost as "saleCost",
       trade_fee as "tradeFee",
       created_at as "createdAt"
     FROM trades
@@ -89,6 +93,7 @@ export async function getLastTradeByTypeId(typeId: string | number): Promise<Tra
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
+      sale_cost as "saleCost",
       trade_fee as "tradeFee",
       created_at as "createdAt"
     FROM trades
@@ -107,6 +112,7 @@ export async function getTradesWithin24HoursByTypeId(typeId: string | number): P
       buyer_id as "buyerId",
       seller_id as "sellerId",
       sale_price as "salePrice",
+      sale_cost as "saleCost",
       trade_fee as "tradeFee",
       created_at as "createdAt"
     FROM trades
@@ -140,6 +146,7 @@ export async function _createTrade(
   typeId: number,
   buyerId: number,
   salePrice: number,
+  saleCost: number,
   tradeFee: number,
   client: PoolClient,
   sellerId?: number,
@@ -151,6 +158,7 @@ export async function _createTrade(
       buyer_id,
       seller_id,
       sale_price,
+      sale_cost,
       trade_fee
     ) VALUES (
       $1,
@@ -158,7 +166,8 @@ export async function _createTrade(
       $3,
       $4,
       $5,
-      $6
+      $6,
+      $7
     )
     RETURNING trade_id as "tradeId"
   `,
@@ -168,6 +177,7 @@ export async function _createTrade(
     buyerId,
     sellerId,
     salePrice,
+    saleCost,
     tradeFee
   ]);
   return res.rows[0];

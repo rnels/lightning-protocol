@@ -35,7 +35,7 @@ export type PoolLock = {
 	poolId: number,
 	contractId: number,
 	assetAmount: number,
-	expiresAt: number,
+	expiresAt: string,
 	tradeFees: number
 };
 
@@ -45,7 +45,7 @@ export type ContractType = {
 	assetAmount: number,
 	direction: boolean,
 	strikePrice: number,
-	expiresAt: number
+	expiresAt: string
 };
 
 export type Contract = {
@@ -53,7 +53,7 @@ export type Contract = {
 	typeId: number,
 	ownerId?: number,
 	askPrice?: number,
-	createdAt: number,
+	createdAt: string,
 	exercised: boolean,
 	exercisedAmount?: number
 };
@@ -63,7 +63,7 @@ export type Bid = {
 	typeId: number,
 	accountId: number,
 	bidPrice: number,
-	createdAt: number
+	createdAt: string
 };
 
 export type Trade = {
@@ -73,8 +73,9 @@ export type Trade = {
 	buyerId: number,
   sellerId?: number,
 	salePrice: number,
+	saleCost: number,
 	tradeFee: number,
-  createdAt: number
+  createdAt: string
 };
 
 export type User = {

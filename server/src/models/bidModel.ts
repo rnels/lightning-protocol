@@ -81,7 +81,7 @@ export async function createBid(typeId: number, accountId: number, bidPrice: num
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const bid = (await db.query(`
+    const bid = (await client.query(`
       INSERT INTO bids (
         type_id,
         account_id,
@@ -128,7 +128,6 @@ export async function updateBidPrice(bidId: number | string, bidPrice: number, a
         account_id as "accountId",
         bid_price as "bidPrice",
         created_at as "createdAt"
-
     `,
     [
       bidId,

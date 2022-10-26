@@ -57,7 +57,7 @@ INSERT INTO pools (
 ) VALUES (
 	1,
 	1,
-	20
+	10
 );
 
 -- INSERT INTO pools (
@@ -78,10 +78,206 @@ INSERT INTO contract_types (
 	expires_at
 ) VALUES (
 	1,
-	15,
+	0.1,
 	true,
+	20200,
+	'2022-12-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
 	1,
-	'5022-12-31 23:24:11.519704'
+	0.1,
+	true,
+	20400,
+	'2022-12-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20600,
+	'2022-12-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20800,
+	'2022-12-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	21000,
+	'2022-12-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20200,
+	'2022-11-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20400,
+	'2022-11-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20600,
+	'2022-11-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20800,
+	'2022-11-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	21000,
+	'2022-11-26 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20200,
+	'2022-11-06 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20400,
+	'2022-11-06 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20600,
+	'2022-11-06 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	20800,
+	'2022-11-06 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	asset_amount,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	0.1,
+	true,
+	21000,
+	'2022-11-06 15:00:00.000000'
 );
 
 -- INSERT INTO contract_types (

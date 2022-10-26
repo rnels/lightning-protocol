@@ -8,12 +8,14 @@
     "dev": "nodemon src/index.ts",
     "db-dev": "nodemon src/db/db.ts",
     "db-test-queries": "nodemon src/db/__tests__/testQueries.ts",
+    "test-writer": "nodemon src/writer/index.ts",
     "ts-build": "npx tsc",
     "test": "jest"
   },
   "dependencies": {
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
+    "black-scholes": "^1.1.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

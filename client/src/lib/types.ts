@@ -60,6 +60,7 @@ export type Trade = {
 	contractId: number,
 	typeId: number,
 	salePrice: number,
+	saleCost: number,
 	tradeFee: number,
   createdAt: number
 };

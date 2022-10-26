@@ -11,7 +11,7 @@ CREATE TABLE accounts (
 	pw_hash VARCHAR(60) NOT NULL,
 	first_name VARCHAR(24) NOT NULL,
 	last_name VARCHAR(24) NOT NULL,
-	paper DECIMAL DEFAULT 0 -- Represents the paper USD being used for trades
+	paper DECIMAL DEFAULT 0 CHECK (paper>=0) -- Represents the paper USD being used for trades
 );
 
 CREATE INDEX accounts_email_idx ON accounts(email);
@@ -118,6 +118,7 @@ CREATE TABLE trades (
 	buyer_id INTEGER NOT NULL,
 	seller_id INTEGER, -- Can be null if the contract is being purchased from the AI
 	sale_price DECIMAL NOT NULL,
+	sale_cost DECIMAL NOT NULL,
 	trade_fee DECIMAL NOT NULL DEFAULT 0,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id),

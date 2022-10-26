@@ -1,5 +1,3 @@
-import { Account } from "../lib/types";
-
 export default function NavBar(props: {logged: boolean, paper: number}) {
 
   // TODO: Change this to use react router once I have a better understanding of it
@@ -11,7 +9,7 @@ export default function NavBar(props: {logged: boolean, paper: number}) {
         <a href='/profile'>Profile</a>
         <a href='/assets'>Assets</a>
       </div>
-      {`${props.paper} Paper`}
+      {`${props.paper} 💵`}
       </>
       :
       <>

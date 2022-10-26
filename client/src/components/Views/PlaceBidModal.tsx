@@ -11,9 +11,6 @@ export default function PlaceBidModal(props: {contractType: ContractType, defaul
   const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
   const [amount, setAmount] = useState<number>(1);
 
-  console.log(props.defaultBid);
-  console.log(price);
-
   const submitBid = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     for (let i = 0; i < amount; i++) { // TODO: Create a route which allows submitting multiple bids
@@ -43,7 +40,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, defaul
         >
           <label className='place-bid-price'>
             Price
-            <input
+            <input // TODO: There are some problems with entering a value here due to the onChange handler, Ex: 0.29 acts weird. Figure that out
               type='number'
               max={1000}
               min={0}

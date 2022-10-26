@@ -124,14 +124,10 @@ export default function AssetContractsView() {
           <div className='asset-contracts-filter-direction'>
             <button
               onClick={() => setDirectionFilter(true)}
-            >
-              Calls
-            </button>
+            >Calls</button>
             <button
               onClick={() => setDirectionFilter(false)}
-            >
-              Puts
-            </button>
+            >Puts</button>
           </div>
         </form>
         <ContractTypesTable
