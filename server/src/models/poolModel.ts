@@ -84,7 +84,7 @@ async function _getTradeFeesByPoolId(poolId: number): Promise<number> {
 
 /** Updates trade_fees on pool_locks for given contractId */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _addToTradeFees(contractId: number, tradeFee: number, client: PoolClient) {
+export async function _addToLockTradeFees(contractId: number, tradeFee: number, client: PoolClient) {
   let feePromises = [];
   let lockPools = await _getLockedPoolsByContractId(contractId);
   let totalAssetAmount = await _getLockedAmountSumByContractId(contractId);
@@ -259,8 +259,12 @@ export async function getPoolLockAssetsByAssetId(assetId: string | number): Prom
   return res.rows[0].sum;
 }
 
-export async function createPool(pool: Pool): Promise<{poolId: number}> {
-  if (await _doesPoolExist(pool.accountId, pool.assetId)) { throw new Error('Pool already exists'); }
+export async function createPool(
+  accountId: number,
+  assetId: number,
+  assetAmount: number
+): Promise<{poolId: number}> {
+  if (await _doesPoolExist(accountId, assetId)) { throw new Error('Pool already exists'); }
   const res = await db.query(`
     INSERT INTO pools (
       account_id,
@@ -274,15 +278,21 @@ export async function createPool(pool: Pool): Promise<{poolId: number}> {
     RETURNING pool_id as "poolId"
   `,
   [
-    pool.accountId,
-    pool.assetId,
-    pool.assetAmount
+    accountId,
+    assetId,
+    assetAmount
   ]);
   return res.rows[0];
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export function _createPoolLock(poolLock: PoolLock,  client: PoolClient) {
+export function _createPoolLock(
+  poolId: number,
+  contractId: number,
+  assetAmount: number,
+  expiresAt: number,
+  client: PoolClient
+) {
   return client.query(`
     INSERT INTO pool_locks (
       pool_id,
@@ -292,10 +302,10 @@ export function _createPoolLock(poolLock: PoolLock,  client: PoolClient) {
     ) VALUES ($1, $2, $3, $4)
   `,
   [
-    poolLock.poolId,
-    poolLock.contractId,
-    poolLock.assetAmount,
-    poolLock.expiresAt
+    poolId,
+    contractId,
+    assetAmount,
+    expiresAt
   ]);
 }
 
@@ -308,7 +318,11 @@ export function _removePoolLocksByContractId(contractId: number, client: PoolCli
   `, [contractId]);
 }
 
-export async function withdrawPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number): Promise<{assetId: number}> {
+export async function withdrawPoolAssets(
+  poolId: string | number,
+  assetAmount: number,
+  accountId: string | number
+): Promise<{assetId: number}> {
   let unlockedAmount = await getUnlockedAmountByPoolId(poolId);
   if (unlockedAmount < assetAmount) throw new Error('Unlocked balance is not enough to withdraw this amount');
   const res = await db.query(`
@@ -328,7 +342,11 @@ export async function withdrawPoolAssets(poolId: string | number, assetAmount: n
 
 // NOTE: As of now there's no limit on depositing assets, you can just define a number of assets to deposit
 // This is for the paper model, for the bc model it will be wallet based
-export function depositPoolAssets(poolId: string | number, assetAmount: number, accountId: string | number) {
+export function depositPoolAssets(
+  poolId: string | number,
+  assetAmount: number,
+  accountId: string | number
+) {
   return db.query(`
     UPDATE pools
     SET asset_amount=asset_amount+$2
@@ -342,7 +360,11 @@ export function depositPoolAssets(poolId: string | number, assetAmount: number, 
   ]);
 }
 
-export async function withdrawPoolFees(poolId: string | number, feeAmount: number, accountId: string | number) {
+export async function withdrawPoolFees(
+  poolId: string | number,
+  feeAmount: number,
+  accountId: string | number
+) {
   let tradeFees = await _getTradeFeesByPoolId(poolId as number);
   if (tradeFees < feeAmount) throw new Error('Fee balance is not enough to withdraw this amount'); // TODO: Is this needed? May be fine if it doesn't allow us to withdraw an amount that leaves it less than 0
   let client = await db.connect();

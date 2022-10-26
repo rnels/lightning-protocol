@@ -67,7 +67,13 @@ export async function getActiveContractTypesByAssetId(assetId: string | number):
   return res.rows;
 }
 
-export async function createContractType(contractType: ContractType): Promise<{contractTypeId: number}> {
+export async function createContractType(
+  assetId: number,
+  assetAmount: number,
+  direction: boolean,
+  strikePrice: number,
+  expiresAt: number
+): Promise<{contractTypeId: number}> {
   const res = await db.query(`
     INSERT INTO contract_types (
       asset_id,
@@ -85,11 +91,11 @@ export async function createContractType(contractType: ContractType): Promise<{c
     RETURNING contract_type_id as "contractTypeId"
   `,
   [
-    contractType.assetId,
-    contractType.assetAmount,
-    contractType.direction,
-    contractType.strikePrice,
-    contractType.expiresAt // TODO: Ensure that this is what we want to do going forward, converting epoch to TIMESTAMP with to_timestamp()
+    assetId,
+    assetAmount,
+    direction,
+    strikePrice,
+    expiresAt // TODO: Ensure that this is what we want to do going forward, converting epoch to TIMESTAMP with to_timestamp()
   ]);
   return res.rows[0];
 }

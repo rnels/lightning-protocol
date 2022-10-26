@@ -121,12 +121,11 @@ router.post('/pool', (req, res, next) => {
   if (!req.body.assetId || typeof req.body.assetId !== 'number') {
     return res.status(400).send({ message: 'Invalid or missing body parameter: assetId' });
   }
-  let pool: Pool = {
-    accountId: req.user!.id,
-    assetId: req.body.assetId,
-    assetAmount: req.body.assetAmount || 0
-  };
-  pools.createPool(pool)
+  pools.createPool(
+    req.user!.id,
+    req.body.assetId,
+    req.body.assetAmount || 0
+  )
     .then(({poolId}) => res.status(201).send({ message: 'Pool created' }))
     .catch((error: any) => {
       console.log('Error creating pool:', error);

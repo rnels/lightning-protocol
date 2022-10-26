@@ -135,7 +135,15 @@ export async function getTradeAvgSalePrice24HourChange(typeId: string | number):
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _createTrade(trade: Trade, client: PoolClient): Promise<{tradeId: number}> {
+export async function _createTrade(
+  contractId: number,
+  typeId: number,
+  buyerId: number,
+  salePrice: number,
+  tradeFee: number,
+  client: PoolClient,
+  sellerId?: number,
+): Promise<{tradeId: number}> {
   const res = await client.query(`
     INSERT INTO trades (
       contract_id,
@@ -155,12 +163,12 @@ export async function _createTrade(trade: Trade, client: PoolClient): Promise<{t
     RETURNING trade_id as "tradeId"
   `,
   [
-    trade.contractId,
-    trade.typeId,
-    trade.buyerId,
-    trade.sellerId,
-    trade.salePrice,
-    trade.tradeFee
+    contractId,
+    typeId,
+    buyerId,
+    sellerId,
+    salePrice,
+    tradeFee
   ]);
   return res.rows[0];
 }

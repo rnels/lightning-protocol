@@ -6,7 +6,7 @@ import { _removeBid } from './bidModel';
 import { getActiveContractTypeById } from './contractTypeModel';
 import {
    _createPoolLock,
-  _addToTradeFees,
+  _addToLockTradeFees,
   getPoolsByAssetId,
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
@@ -151,43 +151,52 @@ export async function getContractsByOwnerId(ownerId: string | number): Promise<C
 // Just requires a type and an ask price
 // Only accepting owner_id for debug atm
 // TODO: Decide if the sell to close should credit the pool owners with initial tradeFees that reflect a higher percentage of the sale (i.e. 50%)
-export async function createContract(contract: Contract) {
-  let contractType = await getActiveContractTypeById(contract.typeId);
+export async function createContract(typeId: number, askPrice?: number, ownerId?: number) {
+  let contractType = await getActiveContractTypeById(typeId);
   let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(contractType.assetId);
   if (unlockedPoolAssetTotal < contractType.assetAmount) throw new Error('Not enough unlocked assets to create contract');
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const contractId = (await client.query(`
+    const contract = (await client.query(`
       INSERT INTO contracts (
         type_id,
         owner_id,
         ask_price
       ) VALUES ($1, $2, $3)
-      RETURNING contract_id as "contractId"
+      RETURNING
+        contract_id as "contractId",
+        type_id as "typeId",
+        owner_id as "ownerId",
+        ask_price as "askPrice",
+        created_at as "createdAt",
+        exercised,
+        exercised_amount as "exercisedAmount"
+
     `,
     [
-      contract.typeId,
-      contract.ownerId,
-      contract.askPrice
-    ])).rows[0].contractId as number;
-    contract.contractId = contractId;
+      typeId,
+      ownerId,
+      askPrice
+    ])).rows[0] as Contract;
     let pools = await getPoolsByAssetId(contractType.assetId);
     let poolLockPromises = [];
     let unallocatedAmount = contractType.assetAmount;
     // Okay, so this should create a pool lock for all pools with
     // Unlocked assets, cascading down until the contract is spent on locks
     for (let pool of pools) {
-      let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId!); // TODO: Could technically get locked amounts and do the sum here
+      let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId); // TODO: Could technically get locked amounts and do the sum here
       if (unlockedAmount > 0) {
         let allocatedAmount = unallocatedAmount >= unlockedAmount ? unlockedAmount : unallocatedAmount;
-        let poolLock: PoolLock = {
-          poolId: pool.poolId!,
-          contractId,
-          assetAmount: allocatedAmount,
-          expiresAt: contractType.expiresAt
-        }
-        poolLockPromises.push(_createPoolLock(poolLock, client));
+        poolLockPromises.push(
+          _createPoolLock(
+            pool.poolId,
+            contract.contractId,
+            allocatedAmount,
+            contractType.expiresAt,
+            client
+          )
+        );
         unallocatedAmount -= allocatedAmount;
         if (!unallocatedAmount) break; // Stops creating new pools when amount hits 0
       }
@@ -233,11 +242,11 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
     if (contract) {
       let bids = await _getMatchingBidsByAsk(contract, client);
       if (bids.length > 0) await _tradeContract(contract, bids[0], client);
-      await client.query('COMMIT');
     }
+    await client.query('COMMIT');
   } catch (e) {
-      console.log(e) // DEBUG
-      await client.query('ROLLBACK');
+    console.log(e) // DEBUG
+    await client.query('ROLLBACK');
   } finally {
     client.release();
   }
@@ -266,22 +275,24 @@ export async function _tradeContract(contract: Contract, bid: Bid, client: PoolC
     let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
       saleCost * poolFee : saleCost;
     let sellerProceeds = saleCost - tradeFee;
-    let trade: Trade = {
-      contractId: contract.contractId,
-      typeId: contract.typeId,
-      buyerId: bid.accountId,
-      sellerId: contract.ownerId,
-      salePrice: contract.askPrice,
-      tradeFee
-    };
+    let buyerId = bid.accountId;
+    let sellerId = contract.ownerId;
     return Promise.all([
-      withdrawPaper(trade.buyerId, saleCost, client),
-      trade.sellerId && depositPaper(trade.sellerId, sellerProceeds, client),
-      _addToTradeFees(trade.contractId, tradeFee, client),
-      _createTrade(trade, client),
+      withdrawPaper(buyerId, saleCost, client),
+      sellerId && depositPaper(sellerId, sellerProceeds, client),
+      _addToLockTradeFees(contract.contractId, tradeFee, client),
+      _createTrade(
+        contract.contractId,
+        contract.typeId,
+        buyerId,
+        contract.askPrice,
+        tradeFee,
+        client,
+        sellerId
+      ),
       _removeBid(bid.bidId, client),
-      _removeAskPrice(trade.contractId, client),
-      _updateOwnerId(trade.contractId, trade.buyerId, client)
+      _removeAskPrice(contract.contractId, client),
+      _updateOwnerId(contract.contractId, buyerId, client)
     ]);
 }
 
@@ -312,7 +323,7 @@ export async function exerciseContract(contractId: number, ownerId: number) {
     let saleProfits = (assetPrice * contractType.assetAmount) - poolFee;
     // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
     // Ensure this is resolved before _sellPoolLockAssets and _distributePoolLockFees are invoked
-    await _addToTradeFees(contract.contractId!, poolFee, client);
+    await _addToLockTradeFees(contract.contractId!, poolFee, client);
     await _sellPoolLockAssets(contract.contractId!, client);
     await depositPaper(contract.ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
     if (contract.askPrice) { await _removeAskPrice(contract.contractId!, client); }

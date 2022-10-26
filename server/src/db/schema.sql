@@ -7,11 +7,11 @@ CREATE DATABASE lightning;
 -- TODO: Make sure nobody can trace back pools to account information, don't want people harassing others
 CREATE TABLE accounts (
 	account_id SERIAL NOT NULL PRIMARY KEY,
-	email VARCHAR(64) UNIQUE,
-	pw_hash VARCHAR(60),
-	first_name VARCHAR(24),
-	last_name VARCHAR(24),
-	paper DECIMAL -- Represents the paper USD being used for trades
+	email VARCHAR(64) NOT NULL UNIQUE,
+	pw_hash VARCHAR(60) NOT NULL,
+	first_name VARCHAR(24) NOT NULL,
+	last_name VARCHAR(24) NOT NULL,
+	paper DECIMAL DEFAULT 0 -- Represents the paper USD being used for trades
 );
 
 CREATE INDEX accounts_email_idx ON accounts(email);

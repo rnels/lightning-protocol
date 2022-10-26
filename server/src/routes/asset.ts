@@ -71,13 +71,7 @@ router.post('/asset', (req, res, next) => {
   if (!req.body.assetType || !req.body.name || !req.body.symbol || !req.body.priceApiId) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
-  let asset: Asset = {
-    assetType: req.body.assetType,
-    name: req.body.name,
-    symbol: req.body.symbol,
-    priceApiId: req.body.priceApiId
-  };
-  assets.createAsset(asset)
+  assets.createAsset(req.body.assetType, req.body.name, req.body.symbol, req.body.priceApiId)
     .then(() => {
       res.status(201).send({message: 'Asset created'});
     })

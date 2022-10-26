@@ -124,13 +124,11 @@ router.post('/contract', (req, res, next) => {
   if (!req.body.typeId) {
     return res.status(400).send({ message: 'Missing body parameter: typeId' });
   }
-  let contract: Contract = {
-    typeId: req.body.typeId,
-    askPrice: req.body.askPrice,
-    ownerId: req.user!.id, // DEBUG ONLY TODO: DELETE THIS
-    exercised: false
-  };
-  contracts.createContract(contract)
+  contracts.createContract(
+    req.body.typeId,
+    req.body.askPrice,
+    req.user!.id // DEBUG ONLY TODO: DELETE THIS
+  )
     .then(() => {
       res.status(201).send({ message: 'Contract created' });
     })
@@ -152,14 +150,13 @@ router.post('/contract/type', (req, res, next) => {
   if (!req.body.assetId || !req.body.assetAmount || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
-  let contractType: ContractType = {
-    assetId: req.body.assetId,
-    assetAmount: req.body.assetAmount,
-    direction: req.body.direction,
-    strikePrice: req.body.strikePrice,
-    expiresAt: req.body.expiresAt
-  };
-  contractTypes.createContractType(contractType)
+  contractTypes.createContractType(
+    req.body.assetId,
+    req.body.assetAmount,
+    req.body.direction,
+    req.body.strikePrice,
+    req.body.expiresAt
+  )
     .then(({contractTypeId}) => {
       res.status(201).send({ message: 'Contract type created' });
     })

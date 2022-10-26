@@ -5,16 +5,16 @@ export enum AssetType {
 };
 
 export type Account = {
-  accountId?: number,
+  accountId: number,
   email: string,
-  passwordHash?: string,
+  passwordHash: string,
   firstName: string,
   lastName: string,
 	paper: number
 };
 
 export type Asset = {
-  assetId?: number,
+  assetId: number,
 	assetType: AssetType,
 	name: string,
 	symbol: string,
@@ -23,24 +23,24 @@ export type Asset = {
 };
 
 export type Pool = {
-  poolId?: number,
+  poolId: number,
 	accountId: number,
 	assetId: number,
 	assetAmount: number,
-	tradeFees?: number
+	tradeFees: number
 };
 
 export type PoolLock = {
-  poolLockId?: number,
+  poolLockId: number,
 	poolId: number,
 	contractId: number,
 	assetAmount: number,
 	expiresAt: number,
-	tradeFees?: number
+	tradeFees: number
 };
 
 export type ContractType = {
-	contractTypeId?: number,
+	contractTypeId: number,
 	assetId: number,
 	assetAmount: number,
 	direction: boolean,
@@ -49,32 +49,32 @@ export type ContractType = {
 };
 
 export type Contract = {
-	contractId?: number,
+	contractId: number,
 	typeId: number,
 	ownerId?: number,
 	askPrice?: number,
-	createdAt?: number,
+	createdAt: number,
 	exercised: boolean,
 	exercisedAmount?: number
 };
 
 export type Bid = {
-	bidId?: number,
+	bidId: number,
 	typeId: number,
 	accountId: number,
 	bidPrice: number,
-	createdAt?: number
+	createdAt: number
 };
 
 export type Trade = {
-	tradeId?: number,
+	tradeId: number,
 	contractId: number,
 	typeId: number,
 	buyerId: number,
   sellerId?: number,
 	salePrice: number,
 	tradeFee: number,
-  createdAt?: number
+  createdAt: number
 };
 
 export type User = {

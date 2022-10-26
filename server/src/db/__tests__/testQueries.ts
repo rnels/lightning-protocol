@@ -18,14 +18,14 @@ import { QueryResult } from 'pg';
 
 // CREATE ACCOUNT
 (async () => {
-  let account: Account = {
+  let account = {
     email: 'guy@test.com',
     passwordHash: '3oi2jrfldsk290u',
     firstName: 'Guy',
     lastName: 'Person',
     paper: 100
   };
-  let result = await accounts.createAccount(account);
+  let result = await accounts.createAccount(account.email, account.passwordHash, account.firstName, account.lastName);
   console.log(result);
 });
 
@@ -47,13 +47,13 @@ import { QueryResult } from 'pg';
 
 // CREATE ASSET
 (async () => {
-  let asset: Asset = {
+  let asset = {
     assetType: AssetType.Crypto,
     name: 'Ethereum',
     symbol: 'ETH',
     priceApiId: 2
   };
-  let result = await assets.createAsset(asset);
+  let result = await assets.createAsset(asset.assetType, asset.name, asset.symbol, asset.priceApiId);
   console.log(result);
 });
 
@@ -85,12 +85,10 @@ import { QueryResult } from 'pg';
 
 // CREATE POOL
 (async () => {
-  let pool: Pool = {
-    accountId: 1,
-    assetId: 1,
-    assetAmount: 0
-  };
-  let result = await pools.createPool(pool);
+  let accountId = 1;
+  let assetId = 1;
+  let assetAmount = 0;
+  let result = await pools.createPool(accountId, assetId, assetAmount);
   console.log(result);
 });
 
@@ -143,14 +141,18 @@ import { QueryResult } from 'pg';
 
 // CREATE CONTRACT TYPE
 (async () => {
-  let contractType: ContractType = {
-    assetId: 1,
-    assetAmount: 100,
-    direction: true,
-    strikePrice: 50.54,
-    expiresAt: 1340235435039430954309 // TODO: Redo this with epoch representation of long time out
-  };
-  let result = await contractTypes.createContractType(contractType);
+  let assetId = 1;
+  let assetAmount = 100;
+  let direction = true;
+  let strikePrice = 50.54;
+  let expiresAt = 1340235435039430954309; // TODO: Redo this with epoch representation of long time out
+  let result = await contractTypes.createContractType(
+    assetId,
+    assetAmount,
+    direction,
+    strikePrice,
+    expiresAt
+  );
   console.log(result);
 });
 
@@ -172,14 +174,14 @@ import { QueryResult } from 'pg';
 
 // CREATE CONTRACT
 (async () => {
-  let contract: Contract = {
-    typeId: 1,
-    ownerId: 1,
-    askPrice: 20.5,
-    createdAt: Date.now(),
-    exercised: false
-  };
-  let result = await contracts.createContract(contract);
+  let typeId = 1;
+  let ownerId = 1;
+  let askPrice = 20.5;
+  let result = await contracts.createContract(
+    typeId,
+    ownerId,
+    askPrice
+  );
   console.log(result);
 });
 
@@ -216,12 +218,10 @@ import { QueryResult } from 'pg';
 
 // CREATE BID
 (async () => {
-  let bid: Bid = {
-    typeId: 1,
-    accountId: 1,
-    bidPrice: 1.2
-  };
-  let result = await bids.createBid(bid);
+  let typeId = 1;
+  let accountId = 1;
+  let bidPrice = 1.2;
+  let result = await bids.createBid(typeId, accountId, bidPrice);
   console.log(result);
 });
 

@@ -1,6 +1,6 @@
 import db from '../db/db';
 import { getAssetPrice } from '../prices/getPrices';
-import { Asset } from '../types';
+import { Asset, AssetType } from '../types';
 
 export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
   const res = await db.query(`
@@ -64,7 +64,13 @@ export async function getAssetsByAssetType(assetType: string): Promise<Asset[]> 
   return res.rows;
 };
 
-export async function createAsset(asset: Asset): Promise<{assetId: number}> {
+export async function createAsset(
+  assetType: AssetType,
+  name: string,
+  symbol: string,
+  priceApiId: number,
+  iconUrl?: string
+): Promise<{assetId: number}> {
   const res = await db.query(`
     INSERT INTO assets (
       asset_type,
@@ -83,11 +89,11 @@ export async function createAsset(asset: Asset): Promise<{assetId: number}> {
   `,
   [
     // NOTE: This structure of inserting undefined on optional properties DOES work
-    asset.assetType,
-    asset.name,
-    asset.symbol,
-    asset.priceApiId,
-    asset.iconUrl
+    assetType,
+    name,
+    symbol,
+    priceApiId,
+    iconUrl
   ]);
   return res.rows[0];
 };

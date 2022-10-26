@@ -77,11 +77,11 @@ export async function getBidsByAccountId(accountId: string | number): Promise<Bi
 
 // TODO: Change the arguments to accept typeId, accountId, bidPrice, rather than Bid object
 // Create bid object from result of query to pass to _getMatchingAsksByBid
-export async function createBid(bid: Bid) {
+export async function createBid(typeId: number, accountId: number, bidPrice: number) {
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const res = await db.query(`
+    const bid = (await db.query(`
       INSERT INTO bids (
         type_id,
         account_id,
@@ -91,14 +91,18 @@ export async function createBid(bid: Bid) {
         $2,
         $3
       )
-      RETURNING bid_id as "bidId"
+      RETURNING
+        bid_id as "bidId",
+        type_id as "typeId",
+        account_id as "accountId",
+        bid_price as "bidPrice",
+        created_at as "createdAt"
     `,
     [
-      bid.typeId,
-      bid.accountId,
-      bid.bidPrice
-    ]);
-    bid.bidId = res.rows[0].bidId;
+      typeId,
+      accountId,
+      bidPrice
+    ])).rows[0] as Bid;
     let contracts = await _getMatchingAsksByBid(bid, client);
     if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
     await client.query('COMMIT');
@@ -114,23 +118,23 @@ export async function updateBidPrice(bidId: number | string, bidPrice: number, a
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const res = await client.query(`
+    const bid = (await client.query(`
       UPDATE bids SET bid_price=$2
         WHERE bid_id=$1
           AND account_id=$3
-      RETURNING type_id as "typeId"
+      RETURNING
+        bid_id as "bidId",
+        type_id as "typeId",
+        account_id as "accountId",
+        bid_price as "bidPrice",
+        created_at as "createdAt"
+
     `,
     [
       bidId,
       bidPrice,
       accountId
-    ]);
-    let typeId = res.rows[0].typeId;
-    let bid: Bid = {
-        typeId,
-        accountId: accountId as number,
-        bidPrice
-    }
+    ])).rows[0];
     let contracts = await _getMatchingAsksByBid(bid, client);
     if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
     await client.query('COMMIT');

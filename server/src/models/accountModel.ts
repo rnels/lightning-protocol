@@ -37,17 +37,16 @@ export async function _getAccountAuthByEmail(email: string): Promise<{accountId:
 // account.firstName
 // account.lastName
 // account.paper
-export async function createAccount(account: Account): Promise<{accountId: number}>{
+export async function createAccount(email: string, passwordHash: string, firstName: string, lastName: string): Promise<{accountId: number}>{
   const res = await db.query(`
     INSERT INTO accounts(
       email,
       pw_hash,
       first_name,
-      last_name,
-      paper
-    ) VALUES ($1, $2, $3, $4, $5)
+      last_name
+    ) VALUES ($1, $2, $3, $4)
     RETURNING account_id as accountId
-  `, [account.email, account.passwordHash, account.firstName, account.lastName, account.paper]);
+  `, [email, passwordHash, firstName, lastName]);
   return res.rows[0];
 };
 
