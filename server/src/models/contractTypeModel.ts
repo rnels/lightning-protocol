@@ -58,6 +58,7 @@ export async function getAskPricesByTypeId(id: string | number): Promise<{askPri
       WHERE contract_types.contract_type_id=$1
         AND contract_types.contract_type_id=contracts.type_id
         AND contract_types.expires_at > NOW()
+        AND contracts.ask_price IS NOT NULL
   `, [id]);
   return res.rows;
 }

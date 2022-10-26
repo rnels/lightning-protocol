@@ -17,6 +17,8 @@ import { _createTrade } from './tradeModel';
 import { getAssetPrice } from '../prices/getPrices';
 import { getAssetById } from './assetModel';
 
+const poolFee = 0.01;
+
 // Finds matching bids with prices higher than or equal to the contract ask price
 // If there are matches, executes a trade on the highest bid
 // When this is called, there should be a bid in the table, don't call this before creating a bid
@@ -256,22 +258,23 @@ export function removeAskPrice(contractId: string | number, accountId: string | 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _tradeContract(contract: Contract, bid: Bid) {
   if (!contract.contractId || !bid.bidId) return; // DEBUG
-  let salePrice = contract.askPrice!;
   let client = await db.connect();
   try {
-    await client.query('BEGIN');
-    let tradeFee = salePrice * 0.01; // TODO: Don't hardcode the 1% fee
-    let sellerProceeds = salePrice - tradeFee;
+    let assetAmount = (await getActiveContractTypeById(contract.typeId)).assetAmount;
+    let saleCost = contract.askPrice! * assetAmount;
+    let tradeFee = saleCost * poolFee;
+    let sellerProceeds = saleCost - tradeFee;
     let trade: Trade = {
       contractId: contract.contractId,
       typeId: contract.typeId,
       buyerId: bid.accountId,
       sellerId: contract.ownerId!,
-      salePrice,
+      salePrice: contract.askPrice!,
       tradeFee
     };
+    await client.query('BEGIN');
     await Promise.all([
-      withdrawPaper(bid.accountId, salePrice, client),
+      withdrawPaper(bid.accountId, saleCost, client),
       depositPaper(contract.ownerId!, sellerProceeds, client),
       _addToTradeFees(contract.contractId, tradeFee, client),
       _createTrade(trade, client),

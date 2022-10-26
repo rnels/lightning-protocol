@@ -131,7 +131,6 @@ export async function getTradeAvgSalePrice24HourChange(typeId: string | number):
             AND created_at < NOW() - INTERVAL '1 day'
     )::numeric, 2) as "salePriceAvg"
   `, [typeId]);
-  // I'm aware this sucks, TODO: Make it not
   return res.rows[0].salePriceAvg !== null ? res.rows[0].salePriceAvg : 0;
 }
 
@@ -152,7 +151,8 @@ export async function _createTrade(trade: Trade, client?: PoolClient): Promise<{
       $2,
       $3,
       $4,
-      $5
+      $5,
+      $6
     )
     RETURNING trade_id as "tradeId"
   `,
