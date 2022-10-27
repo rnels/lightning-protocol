@@ -7,6 +7,7 @@ import { serverURL } from '../../config';
 import AssetName from "./AssetName";
 import AssetPrice from "./AssetPrice";
 import AssetSymbol from "./AssetSymbol";
+import AssetAmount from "./AssetAmount";
 
 import {
   Link,
@@ -64,6 +65,9 @@ export default function AssetDetails() {
       />
       <AssetSymbol
         assetSymbol={asset.symbol}
+      />
+      <AssetAmount
+        assetAmount={asset.assetAmount}
       />
       <AssetPrice
         assetId={asset.assetId}

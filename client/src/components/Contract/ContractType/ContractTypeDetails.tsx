@@ -1,5 +1,4 @@
 import { ContractType } from "../../../lib/types";
-import ContractTypeAssetAmount from "./ContractTypeAssetAmount";
 import ContractTypeDirection from "./ContractTypeDirection";
 import ContractTypeStrikePrice from "./ContractTypeStrikePrice";
 import ContractTypeExpiresAt from "./ContractTypeExpiresAt";
@@ -8,9 +7,6 @@ import ContractTypeExpiresAt from "./ContractTypeExpiresAt";
 export default function ContractTypeDetails(props: {contractType: ContractType}) {
     return (
       <div className="contract-type-details">
-        <ContractTypeAssetAmount
-          assetAmount={props.contractType.assetAmount}
-        />
         <ContractTypeDirection
           direction={props.contractType.direction}
         />

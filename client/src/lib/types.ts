@@ -8,6 +8,7 @@ export type Account = {
 export type Asset = {
   assetId: number,
 	assetType: string,
+	assetAmount: number,
 	name: string,
 	symbol: string,
 	priceApiId: number,
@@ -33,7 +34,6 @@ export type PoolLock = {
 export type ContractType = {
 	contractTypeId: number,
 	assetId: number,
-	assetAmount: number,
 	direction: boolean,
 	strikePrice: number,
 	expiresAt: string // TODO: Parse incoming expiresAt to DateTime

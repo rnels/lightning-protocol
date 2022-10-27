@@ -4,9 +4,9 @@ import { serverURL } from '../../config';
 
 import { useParams } from 'react-router-dom';
 import Modal from '@mui/material/Modal';
-import { ContractType } from '../../lib/types';
+import { Asset, ContractType } from '../../lib/types';
 
-export default function PlaceBidModal(props: {contractType: ContractType, defaultBid: number | null, onClose: Function}) {
+export default function PlaceBidModal(props: {contractType: ContractType, asset: Asset, defaultBid: number | null, onClose: Function}) {
 
   const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
   const [amount, setAmount] = useState<number>(1);
@@ -48,7 +48,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, defaul
               value={price}
               onChange={(e) => setPrice(Math.min(Math.max(0, Math.trunc(Number(e.target.value) * 100) / 100), 1000))}
             />
-          <small>{`Cost: $${(props.contractType.assetAmount * price).toFixed(2)} ($${price} x ${props.contractType.assetAmount})`}</small>
+          <small>{`Cost: $${(props.asset.assetAmount * price).toFixed(2)} ($${price} x ${props.asset.assetAmount})`}</small>
           </label>
 
           <label className='place-bid-amount'>
@@ -60,7 +60,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, defaul
               value={amount}
               onChange={(e) => setAmount(Math.max(1, Math.floor(Number(e.target.value))))}
             />
-          <small>{`Total: $${(props.contractType.assetAmount * price * amount).toFixed(2)} ($${props.contractType.assetAmount * price} x ${amount})`}</small>
+          <small>{`Total: $${(props.asset.assetAmount * price * amount).toFixed(2)} ($${props.asset.assetAmount * price} x ${amount})`}</small>
           </label>
           <input
             type='submit'

@@ -28,11 +28,13 @@
 
 INSERT INTO assets (
 	asset_type,
+	asset_amount,
 	name,
 	symbol,
 	price_api_id
 ) VALUES (
 	'crypto',
+	0.1,
 	'Bitcoin',
 	'BTC',
 	1
@@ -72,13 +74,11 @@ INSERT INTO pools (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20200,
 	'2022-12-26 15:00:00.000000'
@@ -86,13 +86,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20400,
 	'2022-12-26 15:00:00.000000'
@@ -100,13 +98,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20600,
 	'2022-12-26 15:00:00.000000'
@@ -114,13 +110,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20800,
 	'2022-12-26 15:00:00.000000'
@@ -128,13 +122,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	21000,
 	'2022-12-26 15:00:00.000000'
@@ -142,13 +134,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20200,
 	'2022-11-26 15:00:00.000000'
@@ -156,13 +146,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20400,
 	'2022-11-26 15:00:00.000000'
@@ -170,13 +158,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20600,
 	'2022-11-26 15:00:00.000000'
@@ -184,13 +170,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20800,
 	'2022-11-26 15:00:00.000000'
@@ -198,13 +182,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	21000,
 	'2022-11-26 15:00:00.000000'
@@ -212,13 +194,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20200,
 	'2022-11-06 15:00:00.000000'
@@ -226,13 +206,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20400,
 	'2022-11-06 15:00:00.000000'
@@ -240,13 +218,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20600,
 	'2022-11-06 15:00:00.000000'
@@ -254,13 +230,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	20800,
 	'2022-11-06 15:00:00.000000'
@@ -268,13 +242,11 @@ INSERT INTO contract_types (
 
 INSERT INTO contract_types (
 	asset_id,
-	asset_amount,
 	direction,
 	strike_price,
 	expires_at
 ) VALUES (
 	1,
-	0.1,
 	true,
 	21000,
 	'2022-11-06 15:00:00.000000'

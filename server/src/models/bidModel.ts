@@ -8,6 +8,7 @@ import { _tradeContract } from './contractModel';
 // When this is called, there should be a bid in the table, don't call this before creating a bid
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 async function _getMatchingAsksByBid(bid: Bid, client: PoolClient) {
+  // TODO: Could probably be consolidated with getAskPricesByTypeId
   let contracts = (await client.query(`
     SELECT
       contracts.contract_id as "contractId",
@@ -50,6 +51,7 @@ export async function getBidById(id: string | number): Promise<Bid> {
   return res.rows[0];
 }
 
+/** Get all bids for a given contract type, used by the client */
 export async function getBidsByContractTypeId(typeId: string | number): Promise<Bid[]> {
   const res = await db.query(`
     SELECT
@@ -59,6 +61,23 @@ export async function getBidsByContractTypeId(typeId: string | number): Promise<
     FROM bids
       WHERE type_id=$1
   `, [typeId]);
+  return res.rows;
+}
+
+/** Get bids for a given contract type and account ID, used for an account to see their existing bids on a contract type */
+export async function getBidsByContractTypeAndAccountId(
+  typeId: string | number,
+  accountId: string | number
+): Promise<Bid[]> {
+  const res = await db.query(`
+    SELECT
+      bid_id as "bidId",
+      type_id as "typeId",
+      bid_price as "bidPrice"
+    FROM bids
+      WHERE type_id=$1
+        AND account_id=$2
+  `, [typeId, accountId]);
   return res.rows;
 }
 

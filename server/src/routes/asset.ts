@@ -12,6 +12,7 @@ const router = Router();
 // asset: {
 //   assetId,
 //   assetType,
+//   assetAmount,
 //   name,
 //   symbol,
 //   priceFeedUrl,
@@ -64,14 +65,15 @@ router.get('/asset/price', (req, res, next) => {
 // TODO: Make this admin-only
 // Expects in req.body:
 //  assetType (String) - Must be one of 'crypto', 'stock', 'currency'
+//  assetAmount (Decimal) - Amount of asset to use for contracts
 //  name (String) - Name of the financial asset
 //  symbol (String) - Symbol or ticker of the financial asset
 //  priceApiId (Integer) - Id to use for retrieving price information from API
 router.post('/asset', (req, res, next) => {
-  if (!req.body.assetType || !req.body.name || !req.body.symbol || !req.body.priceApiId) {
+  if (!req.body.assetType || !req.body.assetType || !req.body.name || !req.body.symbol || !req.body.priceApiId) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
-  assets.createAsset(req.body.assetType, req.body.name, req.body.symbol, req.body.priceApiId)
+  assets.createAsset(req.body.assetType, req.body.assetAmount, req.body.name, req.body.symbol, req.body.priceApiId)
     .then(() => {
       res.status(201).send({message: 'Asset created'});
     })

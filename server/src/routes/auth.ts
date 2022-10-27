@@ -38,13 +38,12 @@ router.post('/register', (req, res, next) => {
               console.log(err);
             }
             accounts
-              .createAccount({
+              .createAccount(
                 email,
-                passwordHash: hash,
+                hash,
                 firstName,
-                lastName,
-                paper: 0
-              })
+                lastName
+              )
               .then(() => authHelper(req, res, next))
               .catch((err) => {
                 console.log('Login / registration error:', err);

@@ -7,7 +7,6 @@ export async function getContractTypeById(id: string | number): Promise<Contract
     SELECT
       contract_type_id as "contractTypeId",
       asset_id as "assetId",
-      asset_amount as "assetAmount",
       direction,
       strike_price as "strikePrice",
       expires_at as "expiresAt"
@@ -23,7 +22,6 @@ export async function getActiveContractTypeById(id: string | number): Promise<Co
     SELECT
       contract_type_id as "contractTypeId",
       asset_id as "assetId",
-      asset_amount as "assetAmount",
       direction,
       strike_price as "strikePrice",
       expires_at as "expiresAt"
@@ -45,6 +43,7 @@ export async function getAskPricesByTypeId(id: string | number): Promise<{askPri
         AND contract_types.contract_type_id=contracts.type_id
         AND contract_types.expires_at > NOW()
         AND contracts.ask_price IS NOT NULL
+    ORDER BY contracts.ask_price ASC
   `, [id]);
   return res.rows;
 }
@@ -55,7 +54,6 @@ export async function getActiveContractTypesByAssetId(assetId: string | number):
     SELECT
       contract_type_id as "contractTypeId",
       asset_id as "assetId",
-      asset_amount as "assetAmount",
       direction,
       strike_price as "strikePrice",
       expires_at as "expiresAt"
@@ -69,7 +67,6 @@ export async function getActiveContractTypesByAssetId(assetId: string | number):
 
 export async function createContractType(
   assetId: number,
-  assetAmount: number,
   direction: boolean,
   strikePrice: number,
   expiresAt: number
@@ -77,7 +74,6 @@ export async function createContractType(
   const res = await db.query(`
     INSERT INTO contract_types (
       asset_id,
-      asset_amount,
       direction,
       strike_price,
       expires_at
@@ -85,14 +81,12 @@ export async function createContractType(
       $1,
       $2,
       $3,
-      $4,
-      to_timestamp($5)
+      to_timestamp($4)
     )
     RETURNING contract_type_id as "contractTypeId"
   `,
   [
     assetId,
-    assetAmount,
     direction,
     strikePrice,
     expiresAt // TODO: Ensure that this is what we want to do going forward, converting epoch to TIMESTAMP with to_timestamp()

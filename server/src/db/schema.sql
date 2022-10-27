@@ -20,6 +20,7 @@ CREATE TYPE asset_type_enum AS ENUM ('crypto', 'stock', 'currency');
 CREATE TABLE assets (
 	asset_id SERIAL NOT NULL PRIMARY KEY,
 	asset_type asset_type_enum,
+	asset_amount DECIMAL NOT NULL, -- Represents how much of each asset is underwriting contracts
 	name VARCHAR(60) NOT NULL,
 	symbol VARCHAR(24) NOT NULL,
 	price_api_id INTEGER NOT NULL, -- Used by respective price API for price lookups
@@ -49,7 +50,6 @@ CREATE INDEX pools_asset_id_idx ON pools(asset_id);
 CREATE TABLE contract_types (
 	contract_type_id SERIAL NOT NULL PRIMARY KEY,
 	asset_id INTEGER NOT NULL,
-	asset_amount DECIMAL NOT NULL,
 	direction BOOLEAN NOT NULL, -- true for 'up / call', false for 'down / put'
 	strike_price DECIMAL NOT NULL,
 	expires_at TIMESTAMP NOT NULL, -- TODO: Create constraint, max 2 weeks out from creation

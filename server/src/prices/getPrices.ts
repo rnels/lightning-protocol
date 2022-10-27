@@ -12,10 +12,10 @@ const CMC_API_SANDBOX_URL = 'https://sandbox-api.coinmarketcap.com';
 const CMC_API_SANDBOX_KEY = 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
 
 
-function getCryptoPrice(assetId: number): Promise<number> {
+function getCryptoPrice(priceApiId: number): Promise<number> {
   return axios.get(`${CMC_API_SANDBOX_URL}/v2/cryptocurrency/quotes/latest`, {
     params: {
-      id: assetId
+      id: priceApiId
     },
     headers: {
       'X-CMC_PRO_API_KEY': CMC_API_SANDBOX_KEY as string
@@ -23,17 +23,17 @@ function getCryptoPrice(assetId: number): Promise<number> {
   })
     .then((result) => {
       // console.log(result.data.data); // DEBUG
-      // console.log(result.data.data[assetId].quote['USD']); // DEBUG
+      // console.log(result.data.data[priceApiId].quote['USD']); // DEBUG
       // return 100; // DEBUG
-      return result.data.data[assetId].quote['USD'].price;
+      return result.data.data[priceApiId].quote['USD'].price;
     });
 }
 
-export function getAssetPrice(assetId: number, assetType: string): Promise<number> {
+export function getAssetPrice(priceApiId: number, assetType: string): Promise<number> {
   if (assetType === 'crypto') {
-    return getCryptoPrice(assetId);
+    return getCryptoPrice(priceApiId);
   }
-  return getCryptoPrice(assetId); // DEBUG: Placeholder until other financial APIs are implemented
+  return getCryptoPrice(priceApiId); // DEBUG: Placeholder until other financial APIs are implemented
 }
 
 // TEST

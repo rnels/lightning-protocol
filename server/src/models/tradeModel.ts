@@ -84,6 +84,7 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
   return res.rows;
 }
 
+/** Represents "Last" */
 export async function getLastTradeByTypeId(typeId: string | number): Promise<Trade> {
   const res = await db.query(`
     SELECT
@@ -103,6 +104,7 @@ export async function getLastTradeByTypeId(typeId: string | number): Promise<Tra
   return res.rows[0];
 }
 
+/** Represents "Volume" */
 export async function getTradesWithin24HoursByTypeId(typeId: string | number): Promise<Trade[]> {
   const res = await db.query(`
     SELECT
@@ -122,6 +124,7 @@ export async function getTradesWithin24HoursByTypeId(typeId: string | number): P
   return res.rows;
 }
 
+/** Represents "Change" */
 export async function getTradeAvgSalePrice24HourChange(typeId: string | number): Promise<number> {
   const res = await db.query(`
     SELECT ROUND((

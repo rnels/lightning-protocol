@@ -49,11 +49,12 @@ import { QueryResult } from 'pg';
 (async () => {
   let asset = {
     assetType: AssetType.Crypto,
+    assetAmount: 0.5,
     name: 'Ethereum',
     symbol: 'ETH',
     priceApiId: 2
   };
-  let result = await assets.createAsset(asset.assetType, asset.name, asset.symbol, asset.priceApiId);
+  let result = await assets.createAsset(asset.assetType, asset.assetAmount, asset.name, asset.symbol, asset.priceApiId);
   console.log(result);
 });
 
@@ -142,13 +143,11 @@ import { QueryResult } from 'pg';
 // CREATE CONTRACT TYPE
 (async () => {
   let assetId = 1;
-  let assetAmount = 100;
   let direction = true;
   let strikePrice = 50.54;
   let expiresAt = 1340235435039430954309; // TODO: Redo this with epoch representation of long time out
   let result = await contractTypes.createContractType(
     assetId,
-    assetAmount,
     direction,
     strikePrice,
     expiresAt
@@ -175,11 +174,9 @@ import { QueryResult } from 'pg';
 // CREATE CONTRACT
 (async () => {
   let typeId = 1;
-  let ownerId = 1;
   let askPrice = 20.5;
   let result = await contracts.createContract(
     typeId,
-    ownerId,
     askPrice
   );
   console.log(result);

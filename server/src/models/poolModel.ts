@@ -3,8 +3,14 @@ import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 import { depositPaper } from './accountModel';
 
-// TODO: Create function to remove pool_locks on expired contracts,
-// should be set up to be called by a listener
+// TODO: Set this up to be called by a listener periodically
+// TODO: Consider setting up a new state where pools are unlocked but also can not be re-assigned to within a "cooldown" window
+async function _deleteExpiredLocks(id: string | number) {
+  return db.query(`
+    DELETE FROM pool_locks
+      expires_at <= NOW()
+  `);
+}
 
 async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock[]> {
   const res = await db.query(`

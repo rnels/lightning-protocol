@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from '../../lib/axios';
-import { Bid, Contract, ContractType, Trade } from '../../lib/types';
+import { Asset, Bid, Contract, ContractType, Trade } from '../../lib/types';
 import { serverURL } from '../../config';
 import { Link, Outlet } from 'react-router-dom';
 import PlaceBidModal from './PlaceBidModal';
-import ContractTypeAssetAmount from '../Contract/ContractType/ContractTypeAssetAmount';
 
 /** Renders a row of data for the given ContractType */
 // TODO: Actually integrate this in the file structure in a way that makes sense
-export default function ContractTableRow(props: {contractType: ContractType}) {
+export default function ContractTableRow(props: {contractType: ContractType, asset: Asset}) {
 
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [bids, setBids] = useState<Bid[]>([]);
@@ -101,7 +100,6 @@ export default function ContractTableRow(props: {contractType: ContractType}) {
   const lastPrice = lastTrade ? lastTrade.salePrice : 0;
   return (
     <tr className="contract-table-row">
-      <td>{props.contractType.assetAmount}</td>
       <td>{`$${props.contractType.strikePrice}`}</td>
       <td>{`$${lastPrice}`}</td>
       <td>{`$${dailyPriceChange}`}</td>
@@ -111,6 +109,7 @@ export default function ContractTableRow(props: {contractType: ContractType}) {
       <td>{contracts.length}</td>
       {showModal && <PlaceBidModal
         key={props.contractType.contractTypeId}
+        asset={props.asset}
         contractType={props.contractType}
         defaultBid={lowestAsk}
         onClose={() => {

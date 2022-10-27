@@ -7,6 +7,7 @@ export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
     SELECT
       asset_id as "assetId",
       asset_type as "assetType",
+      asset_amount as "assetAmount",
       name,
       symbol,
       price_api_id as "priceApiId",
@@ -22,6 +23,7 @@ export async function getAssetById(id: string | number): Promise<Asset> {
     SELECT
       asset_id as "assetId",
       asset_type as "assetType",
+      asset_amount as "assetAmount",
       name,
       symbol,
       price_api_id as "priceApiId",
@@ -54,6 +56,7 @@ export async function getAssetsByAssetType(assetType: string): Promise<Asset[]> 
     SELECT
       asset_id as "assetId",
       asset_type as "assetType",
+      asset_amount as "assetAmount",
       name,
       symbol,
       price_api_id as "priceApiId",
@@ -66,6 +69,7 @@ export async function getAssetsByAssetType(assetType: string): Promise<Asset[]> 
 
 export async function createAsset(
   assetType: AssetType,
+  assetAmount: number,
   name: string,
   symbol: string,
   priceApiId: number,
@@ -74,6 +78,7 @@ export async function createAsset(
   const res = await db.query(`
     INSERT INTO assets (
       asset_type,
+      asset_amount,
       name,
       symbol,
       price_api_id,
@@ -83,13 +88,15 @@ export async function createAsset(
       $2,
       $3,
       $4,
-      $5
+      $5,
+      $6
     )
     RETURNING asset_id as assetId
   `,
   [
     // NOTE: This structure of inserting undefined on optional properties DOES work
     assetType,
+    assetAmount,
     name,
     symbol,
     priceApiId,

@@ -1,16 +1,17 @@
-import { ContractType } from '../../lib/types';
+import { Asset, ContractType } from '../../lib/types';
 
-import ContractTableCell from './ContractTableRow';
+import ContractTableRow from './ContractTableRow';
 
 
 /** Renders a table of contract types */
 // TODO: Actually integrate this in the file structure in a way that makes sense
-export default function ContractTypesTable(props: {contractTypes: ContractType[]}) {
+export default function ContractTypesTable(props: {contractTypes: ContractType[], asset: Asset}) {
 
   const renderCells = props.contractTypes.map((contractType) =>
-    <ContractTableCell
+    <ContractTableRow
       key={contractType.contractTypeId}
       contractType={contractType}
+      asset={props.asset}
     />
   );
 
@@ -18,7 +19,6 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
       <table className="contract-types-table">
         <thead className="contract-table-header">
           <tr>
-            <th>Amount</th>
             <th>Strike</th>
             <th>Last</th>
             <th>Change</th>

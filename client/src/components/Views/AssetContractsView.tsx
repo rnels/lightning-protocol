@@ -96,6 +96,7 @@ export default function AssetContractsView() {
       <div className="asset-contracts-view">
         <h2 className='asset-contracts-view-header'>{`${asset.name} ($${asset.symbol})`}</h2>
         <div>{`Price: $${assetPrice >= 1 ? assetPrice.toFixed(2) : assetPrice.toFixed(4)}`}</div>
+        <div>{`Contract Amount: ${asset.assetAmount} ${asset.symbol}`}</div>
         <div>
           {`Pooled: ${poolAssetAmount || 0} ${asset.symbol}
             (${(poolAssetAmount && poolLockAssetAmount) ? 100 * (poolLockAssetAmount / poolAssetAmount) : 0}% Backing)
@@ -132,6 +133,7 @@ export default function AssetContractsView() {
         </form>
         <ContractTypesTable
           contractTypes={filteredTypeList}
+          asset={asset}
         />
       </div>
 

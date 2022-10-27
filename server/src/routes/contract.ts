@@ -35,7 +35,6 @@ router.get('/contract', (req, res, next) => {
 // contractType: {
 //   contractTypeId
 //   assetId
-//   assetAmount
 //   direction
 //   strikePrice
 //   expiresAt
@@ -126,8 +125,7 @@ router.post('/contract', (req, res, next) => {
   }
   contracts.createContract(
     req.body.typeId,
-    req.body.askPrice,
-    req.user!.id // DEBUG ONLY TODO: DELETE THIS
+    req.body.askPrice
   )
     .then(() => {
       res.status(201).send({ message: 'Contract created' });
@@ -141,18 +139,16 @@ router.post('/contract', (req, res, next) => {
 // Create a contract type
 // Expects in req.body:
 //   assetId (Integer)
-//   assetAmount (Decimal)
 //   direction (Boolean)
 //   strikePrice (Decimal)
 //   expiresAt (Integer) // TODO: Still need to revisit using date / time types
 // TODO: Restrict this, only should be called by app not by users
 router.post('/contract/type', (req, res, next) => {
-  if (!req.body.assetId || !req.body.assetAmount || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
+  if (!req.body.assetId || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   contractTypes.createContractType(
     req.body.assetId,
-    req.body.assetAmount,
     req.body.direction,
     req.body.strikePrice,
     req.body.expiresAt
