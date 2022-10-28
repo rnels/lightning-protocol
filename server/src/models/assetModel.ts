@@ -1,6 +1,24 @@
 import db from '../db/db';
-import { getAssetPrice } from '../prices/getPrices';
+import { getAssetPrice } from '../assets/price';
 import { Asset, AssetType } from '../types';
+
+async function _checkIfAssetPriceHistoryExists(
+  assetId: number,
+  dataPeriod: number
+): Promise<boolean> {
+  return (await db.query(`
+    SELECT EXISTS(
+      SELECT asset_price_id
+        FROM asset_prices
+          WHERE asset_id=$1
+            AND data_period=to_timestamp($2)::date
+    )
+  `,
+  [
+    assetId,
+    dataPeriod
+  ])).rows[0].exists;
+};
 
 export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
   const res = await db.query(`
@@ -104,3 +122,54 @@ export async function createAsset(
   ]);
   return res.rows[0];
 };
+
+export async function _getAssetPriceHistoryByAssetId(assetId: number): Promise<{price: string, data_period: string}[]>{
+  return (await db.query(`
+    SELECT price, data_period
+      FROM asset_prices
+        WHERE asset_id=$1
+      ORDER BY data_period DESC
+  `,
+  [
+    assetId,
+  ])).rows;
+};
+
+/** Can be used to limit the query results for limited lookback in calculating greeks / volatility */
+export async function _getAssetPriceHistoryByAssetIdLimit(assetId: number, limit: number): Promise<{price: string, data_period: string}[]>{
+  return (await db.query(`
+    SELECT price, data_period
+      FROM asset_prices
+        WHERE asset_id=$1
+      ORDER BY data_period DESC
+      LIMIT $2
+  `,
+  [
+    assetId,
+    limit
+  ])).rows;
+};
+
+export async function _createAssetPriceHistoryIfNotExists(
+  assetId: number,
+  price: number,
+  dataPeriod: number
+) {
+  const exists = await _checkIfAssetPriceHistoryExists(assetId, dataPeriod);
+  if (exists) return;
+  return db.query(`
+    INSERT INTO asset_prices (
+      asset_id,
+      price,
+      data_period
+    ) VALUES (
+      $1, $2, to_timestamp($3)::date
+    )
+  `,
+  [
+    assetId,
+    price,
+    dataPeriod
+  ]);
+};
+

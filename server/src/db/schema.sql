@@ -30,6 +30,17 @@ CREATE TABLE assets (
 
 CREATE INDEX assets_symbol_idx ON assets(symbol);
 
+CREATE TABLE asset_prices (
+	asset_price_id SERIAL NOT NULL PRIMARY KEY,
+	asset_id INTEGER NOT NULL,
+	price DECIMAL NOT NULL,
+	data_period DATE NOT NULL,
+	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
+);
+
+CREATE INDEX asset_prices_asset_id_idx ON asset_prices(asset_id);
+
+
 -- Represents the pools which exist for an asset
 -- NOTE: With the flat out deletion of account_assets there's now no balance for a user's
 -- assets outside of pools, but when this is translated to the bc/wallet model that should be alright

@@ -9,6 +9,8 @@
     "db-dev": "nodemon src/db/db.ts",
     "db-test-queries": "nodemon src/db/__tests__/testQueries.ts",
     "test-writer": "nodemon src/writer/index.ts",
+    "test-priceapi": "nodemon src/assets/price.ts",
+    "test-volapi": "nodemon src/assets/volatility.ts",
     "ts-build": "npx tsc",
     "test": "jest"
   },

@@ -11,7 +11,8 @@ import { createBid, getBidsByContractTypeAndAccountId, updateBidPrice } from '..
 import { createContract, _writerGetContractsByTypeId, _writerUpdateAskPrice } from "../models/contractModel";
 import { getActiveContractTypesByAssetId, getContractTypeById } from "../models/contractTypeModel";
 import { getUnlockedAmountByAssetId } from "../models/poolModel";
-import { getAssetPrice } from "../prices/getPrices";
+import { getAssetPrice } from "../assets/price";
+import { getAssetPriceVolatility, getAssetPriceVolatilityNoAPI } from '../assets/volatility';
 
 // Goals:
 /**
@@ -39,26 +40,28 @@ import { getAssetPrice } from "../prices/getPrices";
 // For creating new contracts of an existing type with contracts being traded, look at bid / ask spread for determining price rather than using a financial model? It depends on how close models come to the traded price I suppose. Don't want to undersell them
 // For simulating bidding activity, run the BS model function to get a bid price for the contract and have the AI bid on that using an actual account (that's made for the purpose of this, i.e. account_id 1). This should simulate real demand over time as the price of the underlying asset and time expiry changes
 
-async function _getBSPrice(assetPrice: number, strikePrice: number, expiresAt: string, direction: boolean) {
+async function _getBSPrice(assetPrice: number, strikePrice: number, expiresAt: string, volatility: number, direction: boolean) {
   let timeToExpiry = (new Date(expiresAt).getTime() - Date.now()) / 31556926000; // TODO: Make this not so ugly
   return Math.trunc(bs.blackScholes(
     assetPrice, // s - Current price of the underlying
     strikePrice, // k - Strike price
     timeToExpiry, // t - Time to expiration in years
-    .2, // TODO: Define v - Volatility as a decimal
-    .023, // TODO: Define r - Annual risk-free interest rate as a decimal
+    volatility, // v - Volatility as a decimal
+    0, // TODO: Define r - Annual risk-free interest rate as a decimal
     direction ? 'call' : 'put' // callPut - The type of option to be priced - "call" or "put"
   ) * 100) / 100;
 }
 
-export async function createOptionsChain(assetId: number) {
+export async function createContractsChain(assetId: number) {
   const asset = await getAssetById(assetId);
   const assetPrice = 20000; // DEBUG, TODO: Delete for production
   // const assetPrice = await getAssetPrice(asset.priceApiId, asset.assetType); // TODO: Uncomment for production price API results
+  // const volatility = await getAssetPriceVolatility(asset, assetPrice, 365); // TODO: Uncomment for production volatility results
+  const volatility = await getAssetPriceVolatilityNoAPI(asset, assetPrice, 365);
   const unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
-    let askPrice =  await _getBSPrice(assetPrice, contractType.strikePrice, contractType.expiresAt, contractType.direction);
+    let askPrice =  await _getBSPrice(assetPrice, contractType.strikePrice, contractType.expiresAt, volatility, contractType.direction);
     // console.log('askPrice', askPrice);
     // console.log('Actual cost', askPrice * asset.assetAmount);
     // This will create as many contracts as possible with the unlocked pools
@@ -80,9 +83,11 @@ export async function automaticBidTest(assetId: number) {
   const account = await getAccountInfoById(1);
   const assetPrice = 20000; // DEBUG, TODO: Delete for production
   // const assetPrice = await getAssetPrice(asset.priceApiId, asset.assetType); // TODO: Uncomment for production price API results
+  // const volatility = await getAssetPriceVolatility(asset, assetPrice, 365); // TODO: Uncomment for production volatility results
+  const volatility = await getAssetPriceVolatilityNoAPI(asset, assetPrice, 365);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
-    let bidPrice =  await _getBSPrice(assetPrice, contractType.strikePrice, contractType.expiresAt, contractType.direction);
+    let bidPrice =  await _getBSPrice(assetPrice, contractType.strikePrice, contractType.expiresAt, volatility, contractType.direction);
     // Creates 1 bid per contractType
     // TODO: Ensure that this account has "unlimited" paper
     let existingBids = await getBidsByContractTypeAndAccountId(contractType.contractTypeId, account.accountId);
@@ -102,15 +107,16 @@ export async function automaticBidTest(assetId: number) {
 
 export async function automaticAskUpdateTest(assetId: number) {
   const asset = await getAssetById(assetId);
-  const assetPrice = 20000; // DEBUG, TODO: Delete for production
+  const assetPrice = 20295.8; // DEBUG, TODO: Delete for production
   // const assetPrice = await getAssetPrice(asset.priceApiId, asset.assetType); // TODO: Uncomment for production price API results
+  // const volatility = await getAssetPriceVolatility(asset, assetPrice, 365); // TODO: Uncomment for production volatility results
+  const volatility = await getAssetPriceVolatilityNoAPI(asset, assetPrice, 365);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
-    let askPrice =  await _getBSPrice(assetPrice, contractType.strikePrice, contractType.expiresAt, contractType.direction);
+    let askPrice =  await _getBSPrice(assetPrice, contractType.strikePrice, contractType.expiresAt, volatility, contractType.direction);
     // Updates ask price for each active contracts of the contractType
-    // TODO: Ensure that this account has "unlimited" paper
     let activeContracts = await _writerGetContractsByTypeId(contractType.contractTypeId);
-    if (activeContracts.length > 0) { // If bids already exist for this contract type, update them to the new price
+    if (activeContracts.length > 0) {
       for (let contract of activeContracts) {
         await _writerUpdateAskPrice(contract.contractId, askPrice);
       }
@@ -119,6 +125,6 @@ export async function automaticAskUpdateTest(assetId: number) {
 }
 
 // TEST
-// createOptionsChain(1);
+// createContractsChain(1);
 // automaticBidTest(1);
 // automaticAskUpdateTest(1);

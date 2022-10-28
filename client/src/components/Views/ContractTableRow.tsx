@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from '../../lib/axios';
 import { Asset, Bid, Contract, ContractType, Trade } from '../../lib/types';
 import { serverURL } from '../../config';
-import { Link, Outlet } from 'react-router-dom';
+// import { Link, Outlet } from 'react-router-dom';
 import PlaceBidModal from './PlaceBidModal';
 
 /** Renders a row of data for the given ContractType */

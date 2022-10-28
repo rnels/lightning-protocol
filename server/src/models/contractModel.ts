@@ -14,7 +14,7 @@ import {
   _sellPoolLockAssets
 } from './poolModel';
 import { _createTrade } from './tradeModel';
-import { getAssetPrice } from '../prices/getPrices';
+import { getAssetPrice } from '../assets/price';
 import { getAssetById } from './assetModel';
 
 const poolFee = 0.01;
@@ -81,20 +81,42 @@ function _updateOwnerId(
 }
 
 // INTERNAL: For use by the Writer only
-export function _writerUpdateAskPrice(
+export async function _writerUpdateAskPrice(
   contractId: number,
   askPrice: number
 ) {
-  return db.query(`
-    UPDATE contracts
-    SET ask_price=$2
-      WHERE contract_id=$1
-      AND owner_id IS NULL
-  `,
-  [
-    contractId,
-    askPrice
-  ]);
+  const client = await db.connect();
+  try {
+    client.query('BEGIN');
+    const contract = (await client.query(`
+      UPDATE contracts
+      SET ask_price=$2
+        WHERE contract_id=$1
+        AND owner_id IS NULL
+      RETURNING
+        contract_id as "contractId",
+        type_id as "typeId",
+        owner_id as "ownerId",
+        ask_price as "askPrice",
+        created_at as "createdAt",
+        exercised,
+        exercised_amount as "exercisedAmount"
+    `,
+    [
+      contractId,
+      askPrice
+    ])).rows[0] as Contract; // Should return undefined if no contract matches the WHERE conditionals
+    if (contract) {
+      let bids = await _getMatchingBidsByAsk(contract, client);
+      if (bids.length > 0) await _tradeContract(contract, bids[0], client);
+    }
+    await client.query('COMMIT');
+  } catch (e) {
+    console.log(e) // DEBUG
+    await client.query('ROLLBACK');
+  } finally {
+    client.release();
+  }
 }
 
 // INTERNAL: For use where a contract is either sold or the listing is removed

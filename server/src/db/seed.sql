@@ -40,18 +40,6 @@ INSERT INTO assets (
 	1
 );
 
--- INSERT INTO assets (
--- 	asset_type,
--- 	name,
--- 	symbol,
--- 	price_api_id
--- ) VALUES (
--- 	'crypto',
--- 	'Litecoin',
--- 	'LTC',
--- 	3
--- );
-
 INSERT INTO pools (
 	account_id,
 	asset_id,
