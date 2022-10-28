@@ -1,5 +1,5 @@
 import db from '../db/db';
-import { getAssetPrice } from '../assets/price';
+import { getAssetPriceFromAPI } from '../assets/price';
 import { Asset, AssetType } from '../types';
 
 async function _checkIfAssetPriceHistoryExists(
@@ -20,6 +20,22 @@ async function _checkIfAssetPriceHistoryExists(
   ])).rows[0].exists;
 };
 
+async function _updateAssetPrice(assetId: number, assetType: AssetType, priceApiId: number): Promise<number> {
+  let lastPrice = await getAssetPriceFromAPI(priceApiId, assetType);
+  await db.query(`
+    UPDATE assets
+      SET
+        last_price=$2,
+        last_updated=NOW()
+      WHERE asset_id=$1
+  `,
+  [
+    assetId,
+    lastPrice
+  ]);
+  return lastPrice;
+};
+
 export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
   const res = await db.query(`
     SELECT
@@ -28,6 +44,8 @@ export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
       asset_amount as "assetAmount",
       name,
       symbol,
+      last_price as "lastPrice",
+      last_updated as "lastUpdated",
       price_api_id as "priceApiId",
       icon_url as "iconUrl"
     FROM assets
@@ -44,6 +62,8 @@ export async function getAssetById(id: string | number): Promise<Asset> {
       asset_amount as "assetAmount",
       name,
       symbol,
+      last_price as "lastPrice",
+      last_updated as "lastUpdated",
       price_api_id as "priceApiId",
       icon_url as "iconUrl"
     FROM assets
@@ -52,21 +72,24 @@ export async function getAssetById(id: string | number): Promise<Asset> {
   return res.rows[0];
 };
 
-export async function getAssetPriceById(id: string | number): Promise<{assetId: number, price: number}> {
+/** Calling this gives us the chance to update the asset price, done on an hourly maximum */
+export async function getAssetPriceById(id: string | number): Promise<number> {
   const res = (await db.query(`
     SELECT
       asset_id as "assetId",
-      price_api_id as "priceApiId",
-      asset_type as "assetType"
+      asset_type as "assetType",
+      last_price as "lastPrice",
+      last_updated as "lastUpdated",
+      price_api_id as "priceApiId"
     FROM assets
       WHERE asset_id=$1
   `, [id])).rows[0];
-  let price = await getAssetPrice(res.priceApiId, res.assetType);
-  let assetInfo = {
-    assetId: res.assetId,
-    price
-  };
-  return assetInfo;
+  let lastPrice = res.lastPrice;
+  let lastUpdatedHours = (Date.now() - new Date(res.lastUpdated).getTime()) / 3600000
+  if (lastUpdatedHours >= 1) { // Update price if it's been over 1 hour since last update
+    lastPrice = await _updateAssetPrice(res.assetId, res.assetType, res.priceApiId);
+  }
+  return Number(lastPrice);
 };
 
 export async function getAssetsByAssetType(assetType: string): Promise<Asset[]> {
@@ -77,6 +100,8 @@ export async function getAssetsByAssetType(assetType: string): Promise<Asset[]> 
       asset_amount as "assetAmount",
       name,
       symbol,
+      last_price as "lastPrice",
+      last_updated as "lastUpdated",
       price_api_id as "priceApiId",
       icon_url as "iconUrl"
     FROM assets
@@ -93,6 +118,7 @@ export async function createAsset(
   priceApiId: number,
   iconUrl?: string
 ): Promise<{assetId: number}> {
+  let lastPrice = await getAssetPriceFromAPI(priceApiId, assetType);
   const res = await db.query(`
     INSERT INTO assets (
       asset_type,
@@ -100,6 +126,7 @@ export async function createAsset(
       name,
       symbol,
       price_api_id,
+      last_price,
       icon_url
     ) VALUES (
       $1,
@@ -107,7 +134,8 @@ export async function createAsset(
       $3,
       $4,
       $5,
-      $6
+      $6,
+      $7
     )
     RETURNING asset_id as assetId
   `,
@@ -118,6 +146,7 @@ export async function createAsset(
     name,
     symbol,
     priceApiId,
+    lastPrice,
     iconUrl
   ]);
   return res.rows[0];
@@ -155,7 +184,7 @@ export async function _createAssetPriceHistoryIfNotExists(
   price: number,
   dataPeriod: number
 ) {
-  const exists = await _checkIfAssetPriceHistoryExists(assetId, dataPeriod);
+  let exists = await _checkIfAssetPriceHistoryExists(assetId, dataPeriod);
   if (exists) return;
   return db.query(`
     INSERT INTO asset_prices (

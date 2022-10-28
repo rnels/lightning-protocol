@@ -38,7 +38,7 @@ export default function AssetContractsView() {
       }
     })
       .then((response) => {
-        setAssetPrice(response.data.asset.price);
+        setAssetPrice(response.data.price);
       })
       .catch((errorRes) => {
         console.log(errorRes);
@@ -99,7 +99,7 @@ export default function AssetContractsView() {
         <div>{`Contract Amount: ${asset.assetAmount} ${asset.symbol}`}</div>
         <div>
           {`Pooled: ${poolAssetAmount || 0} ${asset.symbol}
-            (${(poolAssetAmount && poolLockAssetAmount) ? 100 * (poolLockAssetAmount / poolAssetAmount) : 0}% Backing)
+            (${(poolAssetAmount && poolLockAssetAmount) ? Math.floor(100 * (poolLockAssetAmount / poolAssetAmount)) : 0}% Backing)
           `}
         </div>
         <form

@@ -1,4 +1,4 @@
-import { PoolClient, QueryResult } from 'pg';
+import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 import { depositPaper } from './accountModel';
@@ -8,7 +8,7 @@ import { depositPaper } from './accountModel';
 async function _deleteExpiredLocks(id: string | number) {
   return db.query(`
     DELETE FROM pool_locks
-      expires_at <= NOW()
+      WHERE expires_at <= NOW()
   `);
 }
 
@@ -27,6 +27,7 @@ async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock
   return res.rows;
 }
 
+// TODO: It's possible that if I set an incremented period from expires_at when comparing to NOW(), I can create a buffer where the lock has expired, but new contract creation still considers it locked since there's that incremental period between expiry and NOW(). For example, saying AND expires_at + (PERIOD) > NOW() means they will be left out of the "locked amount". If I allow users to claim locked_pools which have gone past their expiry but remain within this period, this also gives us a manual way to clear out pool locks, by having users "claim" the locked amounts to add them back to their pool (given the option to either return the assets to their pool or withdraw them completely), deleting the lock in the process. In order to clear out pools that have gone past the cooldown however, this still requires some kind of automated cleaning process. Since the locks are being reviewed at the time of contract creation, perhaps ones that are past expiry + interval can just be deleted. This can piggyback the creation contracts. In fact, it basically just means calling _deleteExpiredLocks right before a contract is to be created. I just need to add that period / interval buffer once I decide on it, so it works properly (and anywhere else which compares expires_at to NOW())
 async function _getLockedAmountByPoolId(id: string | number): Promise<number> {
   const res = await db.query(`
     SELECT SUM(asset_amount)
@@ -34,7 +35,7 @@ async function _getLockedAmountByPoolId(id: string | number): Promise<number> {
         WHERE pool_id=$1
           AND expires_at > NOW()
   `, [id]);
-  return res.rows[0].sum;
+  return Number(res.rows[0].sum);
 }
 
 async function _getLockedAmountSumByContractId(contractId: number): Promise<number> {
@@ -44,7 +45,7 @@ async function _getLockedAmountSumByContractId(contractId: number): Promise<numb
         WHERE contract_id=$1
           AND expires_at > NOW()
   `, [contractId]);
-  return res.rows[0].sum;
+  return Number(res.rows[0].sum);
 }
 
 async function _getLockedAmountSumByAssetId(assetId: string | number): Promise<number> {
@@ -55,7 +56,7 @@ async function _getLockedAmountSumByAssetId(assetId: string | number): Promise<n
           AND pool_locks.pool_id=pools.pool_id
           AND pool_locks.expires_at > NOW()
   `, [assetId]);
-  return res.rows[0].sum;
+  return Number(res.rows[0].sum);
 }
 
 async function _getTotalAmountSumByAssetId(assetId: string | number): Promise<number> {
@@ -64,7 +65,7 @@ async function _getTotalAmountSumByAssetId(assetId: string | number): Promise<nu
       FROM pools
         WHERE asset_id=$1
   `, [assetId]);
-  return res.rows[0].sum;
+  return Number(res.rows[0].sum);
 }
 
 async function _doesPoolExist(accountId: number, assetId: number): Promise<boolean> {
@@ -85,7 +86,7 @@ async function _getTradeFeesByPoolId(poolId: number): Promise<number> {
       FROM pools
         WHERE pool_id=$1
   `,[poolId])
-  return res.rows[0].tradeFees;
+  return Number(res.rows[0].tradeFees);
 }
 
 /** Updates trade_fees on pool_locks for given contractId */
@@ -262,7 +263,7 @@ export async function getPoolLockAssetsByAssetId(assetId: string | number): Prom
         AND pool_locks.pool_id=pools.pool_id
         AND pool_locks.expires_at > NOW()
   `, [assetId]);
-  return res.rows[0].sum;
+  return Number(res.rows[0].sum);
 }
 
 export async function createPool(

@@ -12,6 +12,8 @@ export type Asset = {
 	name: string,
 	symbol: string,
 	priceApiId: number,
+	lastPrice: number,
+	lastUpdated: string,
 	iconUrl?: string
 };
 

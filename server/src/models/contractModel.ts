@@ -1,6 +1,6 @@
 import { PoolClient } from 'pg';
 import db from '../db/db';
-import { Bid, Contract, Pool, PoolLock, Trade } from '../types';
+import { Bid, Contract } from '../types';
 import { withdrawPaper, depositPaper } from './accountModel';
 import { _removeBid } from './bidModel';
 import { getActiveContractTypeById } from './contractTypeModel';
@@ -14,7 +14,7 @@ import {
   _sellPoolLockAssets
 } from './poolModel';
 import { _createTrade } from './tradeModel';
-import { getAssetPrice } from '../assets/price';
+import { getAssetPriceFromAPI } from '../assets/price';
 import { getAssetById } from './assetModel';
 
 const poolFee = 0.01;
@@ -398,7 +398,7 @@ export async function exerciseContract(
     throw new Error('Active contractType could not be found');
   }
   let asset = await getAssetById(contractType.assetId);
-  let assetPrice = await getAssetPrice(asset.priceApiId, asset.assetType); // Not catching potential error on getAssetPrice on purpose
+  let assetPrice = await getAssetPriceFromAPI(asset.priceApiId, asset.assetType); // Not catching potential error on getAssetPriceFromAPI on purpose
   if (assetPrice < contractType.strikePrice) {
     throw new Error('Contract with asset market price under strike price can not be exercised');
   }

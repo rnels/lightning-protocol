@@ -17,7 +17,6 @@ CREATE TABLE accounts (
 CREATE INDEX accounts_email_idx ON accounts(email);
 
 CREATE TYPE asset_type_enum AS ENUM ('crypto', 'stock', 'currency');
--- TODO: Consider making a 'last_price' field which saves the most up to date asset price, rather than relying on the API
 CREATE TABLE assets (
 	asset_id SERIAL NOT NULL PRIMARY KEY,
 	asset_type asset_type_enum,
@@ -25,6 +24,8 @@ CREATE TABLE assets (
 	name VARCHAR(60) NOT NULL,
 	symbol VARCHAR(24) NOT NULL,
 	price_api_id INTEGER NOT NULL, -- Used by respective price API for price lookups
+	last_price DECIMAL NOT NULL,
+	last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- When last_price was updated
 	icon_url TEXT
 	--CONSTRAINT symbol_unique UNIQUE (assets) -- TODO: Make a constraint where symbol + type combo must be unique
 );

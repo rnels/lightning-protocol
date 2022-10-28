@@ -1,23 +1,23 @@
 // Controller for retrieving realtime market data on assets
 // TODO: Requires a price API for each asset type
 // Ex: Using https://coinmarketcap.com/api/ for crypto
-import dotenv from 'dotenv'; // DEBUG
-dotenv.config(); // DEBUG
+import dotenv from 'dotenv'; // DEBUG - Only need when running file standalone
+dotenv.config(); // DEBUG - Only need when running file standalone
 
 import axios from 'axios';
 
 // NOTE: Known crypto asset IDs (CMC):
   // Bitcoin - 1
 
-// TODO: Change *_SANDBOX_URL to process.env.CMC_API_URL and process.env.CMC_API_KEY in production
+// DEBUG: Change process.env.CMC_API_* to process.env.CMC_API_SANDBOX_*
 
 function getCryptoPrice(priceApiId: number): Promise<number> {
-  return axios.get(`${process.env.CMC_API_SANDBOX_URL}/v2/cryptocurrency/quotes/latest`, {
+  return axios.get(`${process.env.CMC_API_URL}/v2/cryptocurrency/quotes/latest`, {
     params: {
       id: priceApiId
     },
     headers: {
-      'X-CMC_PRO_API_KEY': process.env.CMC_API_SANDBOX_KEY as string
+      'X-CMC_PRO_API_KEY': process.env.CMC_API_KEY as string
     }
   })
     .then((result) => {
@@ -25,7 +25,7 @@ function getCryptoPrice(priceApiId: number): Promise<number> {
     });
 }
 
-export function getAssetPrice(priceApiId: number, assetType: string): Promise<number> {
+export function getAssetPriceFromAPI(priceApiId: number, assetType: string): Promise<number> {
   if (assetType === 'crypto') {
     return getCryptoPrice(priceApiId);
   }
@@ -33,4 +33,4 @@ export function getAssetPrice(priceApiId: number, assetType: string): Promise<nu
 }
 
 // TEST
-// getAssetPrice(1, 'crypto');
+// getAssetPriceFromAPI(1, 'crypto');

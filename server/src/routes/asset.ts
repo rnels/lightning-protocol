@@ -16,6 +16,8 @@ const router = Router();
 //   name,
 //   symbol,
 //   priceFeedUrl,
+//   lastPrice,
+//   lastUpdated,
 //   iconUrl
 // }
 router.get('/asset', (req, res, next) => {
@@ -45,15 +47,16 @@ router.get('/asset/list', (req, res, next) => {
 // Successful response data:
 // asset: {
 //   assetId (Integer)
-//   price (Decimal)
+//   lastPrice (Decimal)
+//   lastUpdated (string)
 // }
 router.get('/asset/price', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
   assets.getAssetPriceById(req.query.id as string)
-    .then((asset) => {
-      res.status(200).send({asset});
+    .then((price) => {
+      res.status(200).send({price});
     })
     .catch((error: any) => {
       console.log('Error retreiving asset price:', error);
@@ -75,7 +78,7 @@ router.post('/asset', (req, res, next) => {
   }
   assets.createAsset(req.body.assetType, req.body.assetAmount, req.body.name, req.body.symbol, req.body.priceApiId)
     .then(() => {
-      res.status(201).send({message: 'Asset created'});
+      res.status(201).send({ message: 'Asset created' });
     })
     .catch((error: any) => res.status(400).send({ message: 'Error creating asset' }));
 });

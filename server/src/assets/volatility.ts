@@ -1,22 +1,26 @@
 // Controller for retrieving volatility for provided asset
-// TODO: Create
-
-import dotenv from 'dotenv'; // DEBUG
-dotenv.config(); // DEBUG
+// Utilizes CryptoCompare API for historical "closing price" data on crypto assets
+import dotenv from 'dotenv'; // DEBUG - Only need when running file standalone
+dotenv.config(); // DEBUG - Only need when running file standalone
 
 import axios from 'axios';
 import { Asset, AssetType } from '../types';
-import { _createAssetPriceHistoryIfNotExists, _getAssetPriceHistoryByAssetId, _getAssetPriceHistoryByAssetIdLimit } from '../models/assetModel';
+import {
+  getAssetById,
+  _createAssetPriceHistoryIfNotExists,
+  _getAssetPriceHistoryByAssetId,
+  _getAssetPriceHistoryByAssetIdLimit
+} from '../models/assetModel';
 
 // NOTE: Known crypto asset Symbols (CC):
   // Bitcoin - BTC
   // Ethereum - ETH
 
 // Outputs the volatility in percentage from avg. price (%) for an array of prices
-// TODO: Average it out further by getting volatality in periods, introducing weights for recency, etc.
-function _getPriceVolatilityFromPrices(prices: number[], groupedBy=30): number {
-  if (groupedBy > prices.length) { groupedBy = prices.length; } // Safety in case it's passed less than the groupedBy prices
-  let groupsArray: number[] = [];
+// Split into groups defined by window in order to get multiple averages
+// TODO: Average it out further by introducing weights for recency
+function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
+  if (window > prices.length) { window = prices.length; } // Safety in case it's passed less than the groupedBy prices
   const getGroupVol = (priceGroup: number[]) => {
     let priceSum = priceGroup.reduce((sum, a) => sum + a, 0);
     let priceAvg = priceSum / priceGroup.length;
@@ -31,8 +35,9 @@ function _getPriceVolatilityFromPrices(prices: number[], groupedBy=30): number {
     let groupVolatility = stdev / priceAvg;
     return groupVolatility;
   }
-  for (let i = 0; i < prices.length; i+=groupedBy) {
-    groupsArray.push(getGroupVol(prices.slice(i, i + groupedBy)));
+  let groupsArray: number[] = [];
+  for (let i = 0; i < prices.length; i+=window) {
+    groupsArray.push(getGroupVol(prices.slice(i, i + window)));
   }
   let volatilitySum = groupsArray.reduce((sum, a) => sum + a, 0); // Get sum of group volatility
   let volatility = volatilitySum / groupsArray.length; // Get average volatility
@@ -41,6 +46,7 @@ function _getPriceVolatilityFromPrices(prices: number[], groupedBy=30): number {
 }
 
 function getCryptoPriceHistoricalDataFromApi(symbol: string, limit=365): Promise<any[]> {
+  // NOTE: I know this is ugly but using params / header objects doesn't work with this API for some reason
   return axios.get(`${process.env.CC_API_URL}/data/v2/histoday?fsym=${symbol}&tsym=USD&limit=${limit}&api_key=${process.env.CC_API_KEY}`)
     .then((result) => {
       // console.log(result.data.Data.Data); // DEBUG
@@ -49,7 +55,7 @@ function getCryptoPriceHistoricalDataFromApi(symbol: string, limit=365): Promise
 }
 
 // Get a decimal representing a price volatility for the provided asset from the provided currentPrice
-export async function getAssetPriceVolatility(asset: Asset, currentPrice: number, lookback=365): Promise<number> {
+export async function getAssetPriceVolatility(asset: Asset, currentPrice: number, lookback=365, window=14): Promise<number> {
   // TODO: create conditionals for the different AssetTypes
   let priceData = await getCryptoPriceHistoricalDataFromApi(asset.symbol, lookback);
   for (let entry of priceData) {
@@ -57,30 +63,23 @@ export async function getAssetPriceVolatility(asset: Asset, currentPrice: number
   }
   let res = await _getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
   let dbPrices = res.map((e) => parseFloat(e.price));
-  let decimalVolatility = _getPriceVolatilityFromPrices(dbPrices);
+  let decimalVolatility = _getPriceVolatilityFromPrices(dbPrices, window);
   return decimalVolatility;
 }
 
 // Get a decimal representing a price volatility for the provided asset from the provided currentPrice
 // Doesn't make an API call to update historical volatility
-export async function getAssetPriceVolatilityNoAPI(asset: Asset, currentPrice: number, lookback=365): Promise<number> {
-  // TODO: create conditionals for the different AssetTypes
+export async function getAssetPriceVolatilityDebug(asset: Asset, currentPrice: number, lookback=365, window=14): Promise<number> {
+  // TODO: create conditionals for the different assetTypes
   let res = await _getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
   let dbPrices = res.map((e) => parseFloat(e.price));
-  let decimalVolatility = _getPriceVolatilityFromPrices(dbPrices);
+  let decimalVolatility = _getPriceVolatilityFromPrices(dbPrices, window);
   return decimalVolatility;
 }
 
 // TEST
 (async () => {
-  let testAsset: Asset = {
-    assetId: 1,
-    assetType: AssetType.Crypto,
-    assetAmount: 0.1,
-    name: 'Bitcoin',
-    symbol: 'BTC',
-    priceApiId: 1
-  }
-  let vol = await getAssetPriceVolatilityNoAPI(testAsset, 20253, 365);
+  let testAsset = await getAssetById(1);
+  let vol = await getAssetPriceVolatilityDebug(testAsset, 20295.80, 365);
   console.log(vol);
 });

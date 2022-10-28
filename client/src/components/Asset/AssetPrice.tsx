@@ -14,7 +14,7 @@ export default function AssetPrice(props: {assetId: number}) {
       }
     })
       .then((response) => {
-        setAssetPrice(response.data.asset.price);
+        setAssetPrice(response.data.price);
       })
       .catch((errorRes) => {
         console.log(errorRes);

@@ -40,25 +40,6 @@ export async function getTradeById(id: string | number): Promise<Trade> {
   return res.rows[0];
 }
 
-// Should definitely be internal facing
-export async function getTradesByContractId(contractId: string | number): Promise<Trade[]> {
-  const res = await db.query(`
-    SELECT
-      trade_id as "tradeId",
-      contract_id as "contractId",
-      type_id as "typeId",
-      buyer_id as "buyerId",
-      seller_id as "sellerId",
-      sale_price as "salePrice",
-      sale_cost as "saleCost",
-      trade_fee as "tradeFee",
-      created_at as "createdAt"
-    FROM trades
-      WHERE contract_id=$1
-  `, [contractId]);
-  return res.rows;
-}
-
 // Returns both trades for an account as a buyer and a seller
 // TODO: Shouldn't be able to see the account traded with, currently you can
 // If I wanted to do a system for the client where you can see whether it's a buy or a sell,
@@ -140,7 +121,7 @@ export async function getTradeAvgSalePrice24HourChange(typeId: string | number):
             AND created_at < NOW() - INTERVAL '1 day'
     )::numeric, 2) as "salePriceAvg"
   `, [typeId]);
-  return res.rows[0].salePriceAvg !== null ? res.rows[0].salePriceAvg : 0;
+  return res.rows[0].salePriceAvg !== null ? Number(res.rows[0].salePriceAvg) : 0;
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES

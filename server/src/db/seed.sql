@@ -31,12 +31,14 @@ INSERT INTO assets (
 	asset_amount,
 	name,
 	symbol,
+	last_price,
 	price_api_id
 ) VALUES (
 	'crypto',
 	0.1,
 	'Bitcoin',
 	'BTC',
+	20250,
 	1
 );
 
@@ -238,6 +240,18 @@ INSERT INTO contract_types (
 	true,
 	21000,
 	'2022-11-06 15:00:00.000000'
+);
+
+INSERT INTO contract_types (
+	asset_id,
+	direction,
+	strike_price,
+	expires_at
+) VALUES (
+	1,
+	true,
+	20000,
+	'2022-10-28 15:00:00.000000'
 );
 
 -- INSERT INTO contract_types (

@@ -81,11 +81,12 @@ router.post('/logout', (req, res, next) => {
 // Authenticate all user requests
 // Users should not be able to access any resources without being signed in
 router.use('/', (req, res, next) => {
-  // if (!req.user) { // DEBUG: Uncomment for testing auth
-  //   req.user = {
-  //     id: 1
-  //   }
-  // }
+  // TODO: Delete this block for production
+  if (!req.user) { // DEBUG: Uncomment for testing auth
+    req.user = {
+      id: 1
+    }
+  }
   if (!req.user) {
     res.status(403).send({ message: 'Login required' });
   } else {

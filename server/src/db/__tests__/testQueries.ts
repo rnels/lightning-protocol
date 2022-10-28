@@ -272,13 +272,6 @@ import { QueryResult } from 'pg';
   console.log(result);
 });
 
-// GET TRADES BY CONTRACT ID
-(async () => {
-  let contractId = 1;
-  let result = await trades.getTradesByContractId(contractId);
-  console.log(result);
-});
-
 // GET TRADES BY ACCOUNT ID
 (async () => {
   let accountId = 1;
