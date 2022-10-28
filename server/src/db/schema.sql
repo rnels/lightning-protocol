@@ -17,6 +17,7 @@ CREATE TABLE accounts (
 CREATE INDEX accounts_email_idx ON accounts(email);
 
 CREATE TYPE asset_type_enum AS ENUM ('crypto', 'stock', 'currency');
+-- TODO: Consider making a 'last_price' field which saves the most up to date asset price, rather than relying on the API
 CREATE TABLE assets (
 	asset_id SERIAL NOT NULL PRIMARY KEY,
 	asset_type asset_type_enum,
@@ -68,6 +69,7 @@ CREATE TABLE contract_types (
 );
 
 CREATE INDEX contract_types_asset_id_idx ON contract_types(asset_id);
+CREATE INDEX contract_types_expires_at_idx ON contract_types(expires_at);
 
 -- Represents the instances of outstanding contracts
 -- TODO: There was a reason you seperated contracts and contract_types, but do some research if it's really the right way. Would save on a lot of join lookups if the contract_types properties were consolidated into contracts
@@ -107,6 +109,7 @@ CREATE TABLE pool_locks (
 
 CREATE INDEX pool_locks_pool_id_idx ON pool_locks(pool_id);
 CREATE INDEX pool_locks_contract_id_idx ON pool_locks(contract_id);
+CREATE INDEX pool_locks_expires_at_idx ON pool_locks(expires_at);
 
 -- We are referencing contract types in order to keep bidding organized to specific configurations of contracts
 CREATE TABLE bids (
@@ -138,7 +141,7 @@ CREATE TABLE trades (
 	CONSTRAINT fk_seller_id FOREIGN KEY(seller_id) REFERENCES accounts(account_id)
 );
 
-CREATE INDEX trades_contract_id_idx ON trades(contract_id);
 CREATE INDEX trades_type_id_idx ON trades(type_id);
 CREATE INDEX trades_buyer_id_idx ON trades(buyer_id);
 CREATE INDEX trades_seller_id_idx ON trades(seller_id);
+CREATE INDEX trades_created_at_idx ON trades(created_at);
