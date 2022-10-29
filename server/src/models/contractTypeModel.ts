@@ -1,5 +1,69 @@
 import db from '../db/db';
 import { ContractType } from '../types';
+import { getAssetPriceById } from './assetModel';
+import { getActiveContractsByTypeId } from './contractModel';
+import { _getLockedPoolsByContractId } from './poolModel';
+
+/** Used when put option is approaching strike price, converts assets to reserved liquidity equating to asset value at strikePrice x assetAmount, can be used to pay contract owner if they choose to exercise contract.
+ * The first part simulates a stop loss / limit order.
+ */
+// TODO: Have this called somewhere periodically, possibly whenever asset price is updated for an assetId? Would need to pass it an assetId in that case
+async function _convertActivePutContractTypesNearStrike() {
+  const contractTypes = (await db.query(`
+    SELECT
+      contract_type_id as "contractTypeId",
+      asset_id as "assetId",
+      direction,
+      strike_price as "strikePrice",
+      expires_at as "expiresAt"
+    FROM contract_types
+      WHERE direction=false
+        AND expires_at > NOW()
+  `)).rows as ContractType[];
+  for (let contractType of contractTypes) {
+    let assetPrice = await getAssetPriceById(contractType.assetId);
+    let priceDif = (assetPrice - contractType.strikePrice) / contractType.strikePrice; // Decimal representing difference between asset price and strike
+    if (priceDif < 0.05) { // If difference is less than 5%, time to put into the reserves
+      let contracts = await getActiveContractsByTypeId(contractType.contractTypeId);
+      let typeReservePromises = [];
+      let client = await db.connect();
+      try {
+        await client.query('BEGIN');
+        for (let contract of contracts) {
+          let lockPools = await _getLockedPoolsByContractId(contract.contractId);
+          for (let pool of lockPools) {
+            // Represents selling at the strike price, implied that there's a limit order
+            // Don't worry about the fact that there would be a margin between limit price and actual sale value
+            // This is something that will be expressed much differently in the blockchain application
+            let addReserve = contractType.strikePrice * pool.assetAmount;
+            if (!pool.reserveAmount) {
+              typeReservePromises.push(
+                client.query(`
+                  UPDATE pools
+                    SET asset_amount=asset_amount-$2
+                      WHERE pool_id=$1
+                `,[pool.poolId, pool.assetAmount]),
+                client.query(`
+                  UPDATE pool_locks
+                    SET
+                      asset_amount=0,
+                      reserve_amount=$2
+                    WHERE pool_lock_id=$1
+                `,[pool.poolLockId, addReserve])
+              );
+            }
+          }
+        }
+        await Promise.all(typeReservePromises);
+        await client.query('COMMIT');
+      } catch {
+          await client.query('ROLLBACK');
+      } finally {
+          client.release();
+      }
+    }
+  }
+}
 
 // NOTE: Should not be used by anything that creates a new contract or references existing contracts
 export async function getContractTypeById(id: string | number): Promise<ContractType> {
@@ -93,3 +157,4 @@ export async function createContractType(
   ]);
   return res.rows[0];
 }
+

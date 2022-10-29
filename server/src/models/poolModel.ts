@@ -2,29 +2,40 @@ import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 import { depositPaper } from './accountModel';
+import { getContractById } from './contractModel';
+import { getContractTypeById } from './contractTypeModel';
 
 // TODO: Set this up to be called by a listener periodically
 // TODO: Consider setting up a new state where pools are unlocked but also can not be re-assigned to within a "cooldown" window
-async function _deleteExpiredLocks(id: string | number) {
-  return db.query(`
-    DELETE FROM pool_locks
-      WHERE expires_at <= NOW()
-  `);
-}
-
-async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock[]> {
-  const res = await db.query(`
-    SELECT
-      pool_lock_id as "poolLockId",
-      pool_id as "poolId",
-      contract_id as "contractId",
-      asset_amount as "assetAmount",
-      expires_at as "expiresAt",
-      trade_fees as "tradeFees"
-    FROM pool_locks
-      WHERE contract_id=$1
-  `, [contractId]);
-  return res.rows;
+async function _removeExpiredPoolLocks() {
+  let feePromises = [];
+  let client = await db.connect();
+  try {
+    await client.query('BEGIN')
+    // TODO: Be sure this works with the returning statement and all
+    let deletePoolLocks = (await client.query(`
+      DELETE FROM pool_locks
+        WHERE expires_at <= NOW()
+          RETURNING
+            pool_id as "poolId"
+            reserve_amount as "reserveAmount"
+    `)).rows;
+    for (let pool of deletePoolLocks) {
+      feePromises.push(
+        client.query(`
+          UPDATE pools
+          SET trade_fees=trade_fees+$2
+            WHERE pool_id=$1
+        `, [pool.poolId, pool.reserveAmount])
+      );
+    }
+    await Promise.all(feePromises);
+    await client.query('COMMIT');
+  } catch {
+    await client.query('ROLLBACK');
+  } finally {
+    client.release();
+  }
 }
 
 // TODO: It's possible that if I set an incremented period from expires_at when comparing to NOW(), I can create a buffer where the lock has expired, but new contract creation still considers it locked since there's that incremental period between expiry and NOW(). For example, saying AND expires_at + (PERIOD) > NOW() means they will be left out of the "locked amount". If I allow users to claim locked_pools which have gone past their expiry but remain within this period, this also gives us a manual way to clear out pool locks, by having users "claim" the locked amounts to add them back to their pool (given the option to either return the assets to their pool or withdraw them completely), deleting the lock in the process. In order to clear out pools that have gone past the cooldown however, this still requires some kind of automated cleaning process. Since the locks are being reviewed at the time of contract creation, perhaps ones that are past expiry + interval can just be deleted. This can piggyback the creation contracts. In fact, it basically just means calling _deleteExpiredLocks right before a contract is to be created. I just need to add that period / interval buffer once I decide on it, so it works properly (and anywhere else which compares expires_at to NOW())
@@ -89,6 +100,22 @@ async function _getTradeFeesByPoolId(poolId: number): Promise<number> {
   return Number(res.rows[0].tradeFees);
 }
 
+export async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock[]> {
+  const res = await db.query(`
+    SELECT
+      pool_lock_id as "poolLockId",
+      pool_id as "poolId",
+      contract_id as "contractId",
+      asset_amount as "assetAmount",
+      reserve_amount as "reserveAmount",
+      expires_at as "expiresAt",
+      trade_fees as "tradeFees"
+    FROM pool_locks
+      WHERE contract_id=$1
+  `, [contractId]);
+  return res.rows;
+}
+
 /** Updates trade_fees on pool_locks for given contractId */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _addToLockTradeFees(contractId: number, tradeFee: number, client: PoolClient) {
@@ -113,9 +140,11 @@ export async function _addToLockTradeFees(contractId: number, tradeFee: number, 
   return Promise.all(feePromises);
 }
 
-/** Decreases pools.asset_amount by pool_lock.asset_amount and sells the pool_locks for a given contractId */
+/** Decreases pools.asset_amount by pool_lock.asset_amount and removes the pool_locks for a given contractId.
+ * Used when call option is exercised.
+ */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _sellPoolLockAssets(contractId: number, client: PoolClient) {
+export async function _removePoolLockAssets(contractId: number, client: PoolClient) {
   let poolAssetPromises = [];
   let lockPools = await _getLockedPoolsByContractId(contractId);
   for (let pool of lockPools) {
@@ -129,8 +158,11 @@ export async function _sellPoolLockAssets(contractId: number, client: PoolClient
       `,[pool.poolId, pool.assetAmount])
     );
   }
-  await Promise.all(poolAssetPromises); // NOTE: Ensure this is resolved before _removePoolLocksByContractId is invoked
-  return _removePoolLocksByContractId(contractId, client);
+  await Promise.all(poolAssetPromises);
+  return client.query(`
+    DELETE FROM pool_locks
+      WHERE contract_id=$1
+  `, [contractId]);
 }
 
 export async function getUnlockedAmountByPoolId(id: string | number): Promise<number> {
@@ -244,6 +276,7 @@ export async function getPoolLocksByAccountId(accountId: string | number): Promi
       pool_locks.pool_id as "poolId",
       pool_locks.contract_id as "contractId",
       pool_locks.asset_amount as "assetAmount",
+      pool_locks.reserve_amount as "reserveAmount",
       pool_locks.expires_at as "expiresAt",
       pool_locks.trade_fees as "tradeFees"
     FROM pools, pool_locks
@@ -314,15 +347,6 @@ export function _createPoolLock(
     assetAmount,
     expiresAt
   ]);
-}
-
-/** Removes pool_locks with the given contract_id */
-// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export function _removePoolLocksByContractId(contractId: number, client: PoolClient) {
-  return client.query(`
-    DELETE FROM pool_locks
-      WHERE contract_id=$1
-  `, [contractId]);
 }
 
 export async function withdrawPoolAssets(

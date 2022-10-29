@@ -102,6 +102,7 @@ CREATE TABLE pool_locks (
 	pool_id INTEGER NOT NULL,
 	contract_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
+	reserve_amount DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_amount>=0), -- Stores liquidity to trade if put option is exercised
 	expires_at TIMESTAMP NOT NULL,
 	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Read-only amount provided by contract trade fees
 	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id),

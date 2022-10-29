@@ -10,8 +10,8 @@ import {
   getPoolsByAssetId,
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
-  _removePoolLocksByContractId,
-  _sellPoolLockAssets
+  _removePoolLockAssets,
+  _deletePoolLocksByContractId
 } from './poolModel';
 import { _createTrade } from './tradeModel';
 import { getAssetPriceFromAPI } from '../assets/price';
@@ -219,8 +219,6 @@ export async function getContractsByOwnerId(ownerId: string | number): Promise<C
 
 // Creates a contract, locks in amounts to pools
 // Creating a contract does not assign it an owner by default, since they're not created by people
-// Just requires a type and an ask price
-// Only accepting owner_id for debug atm
 // TODO: Decide if the sell to close should credit the pool owners with initial tradeFees that reflect a higher percentage of the sale (i.e. 50%)
 export async function createContract(
   typeId: number,
@@ -381,7 +379,9 @@ export async function _tradeContract(
 
 // Should only be called in route by authenticated user
 // TODO: Make sure locks are removed on contract expiry as well, which will be kind of tough, requires a listener of some kind
-// TODO: Treat compensation / exercising differently if it's a put rather than a call, currently operating as if it's just a call
+// NOTES on put options:
+// They work differently from calls because there needs to be the liquidity to trade when the contract is exercised ITM, meaning the asset needs to be sold beforehand at or above the strike price. Instead of selling the underlying asset as soon as the put is assigned to a pool, it would be better to put on a stop-limit order with the limit set at a margin above the strike, i.e. stop-limit for 31 - 30 for a strike of 30. Could also back it up with a stop-loss order if the limit order fails, and have some way to back the difference if there is any. The stop limit/loss would expire after the contract expiry date (or it could just be represented by the pool lock). This is a riskier method than just selling the asset at market price when a position is opened on the pool and forwarding the strike price * asset amount to the exerciser when it's exercised, but it means that the pool owner would have their assets sold at a potentially lower price than they would be at if the option is not exercised, missing out on unrealized gains.
+// If I go with the first method, I better have a loss prevention fund to round out potentially failed limit orders
 export async function exerciseContract(
   contractId: number,
   ownerId: number
@@ -398,20 +398,32 @@ export async function exerciseContract(
     throw new Error('Active contractType could not be found');
   }
   let asset = await getAssetById(contractType.assetId);
+  // TODO: Consider if we want to be calling to this directly, or call to assetModel to update and use assets.last_price here
+  // Maybe have a stricter requirement when exercising that the asset price must have been updated within the last 10 seconds or something
+  // For the real implementation on the blockchain this won't really matter (nor will getting price from an API at all)
   let assetPrice = await getAssetPriceFromAPI(asset.priceApiId, asset.assetType); // Not catching potential error on getAssetPriceFromAPI on purpose
-  if (assetPrice < contractType.strikePrice) {
-    throw new Error('Contract with asset market price under strike price can not be exercised');
+  if (contractType.direction && assetPrice < contractType.strikePrice) {
+    throw new Error('Call option with asset market price under strike price can not be exercised');
+  } else if (!contractType.direction && assetPrice > contractType.strikePrice) {
+    throw new Error('Put option with asset market price above strike price can not be exercised');
   }
   let client = await db.connect();
   try {
     await client.query('BEGIN');
+    let saleProfits: number;
     let poolFee = contractType.strikePrice * asset.assetAmount;
-    let saleProfits = (assetPrice * asset.assetAmount) - poolFee;
-    // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
-    // Ensure this is resolved before _sellPoolLockAssets and _distributePoolLockFees are invoked
-    await _addToLockTradeFees(contract.contractId, poolFee, client);
-    await _sellPoolLockAssets(contract.contractId, client);
-    await depositPaper(contract.ownerId, saleProfits, client); // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
+    if (contractType.direction) { // If direction = call
+      saleProfits = (assetPrice * asset.assetAmount) - poolFee;
+      // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
+      // Ensure this is resolved before _removePoolLockAssets and _distributePoolLockFees are invoked
+      await _addToLockTradeFees(contract.contractId, poolFee, client);
+      await _removePoolLockAssets(contract.contractId, client);
+       // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
+    } else { // If direction = put
+      saleProfits = poolFee; // Provides the exerciser with the same amount as the sum of pool_locks.reserve_amount for this contract_id
+      await _deletePoolLocksByContractId(contract.contractId, client);
+    }
+    await depositPaper(contract.ownerId, saleProfits, client);
     if (contract.askPrice) { await _removeAskPrice(contract.contractId, client); }
     await _setExercised(contract, saleProfits, client);
     await client.query('COMMIT');

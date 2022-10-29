@@ -16,16 +16,16 @@ const router = Router();
 //   assetAmount
 //   tradeFees
 // }
-router.get('/pool', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
-  }
-  pools.getPoolById(req.query.id as string)
-    .then((pool) => {
-      res.status(200).send({pool});
-    })
-    .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
-});
+// router.get('/pool', (req, res, next) => {
+//   if (!req.query.id) {
+//     return res.status(400).send({ message: 'Missing query parameter: id' });
+//   }
+//   pools.getPoolById(req.query.id as string)
+//     .then((pool) => {
+//       res.status(200).send({pool});
+//     })
+//     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
+// });
 
 // Retrieve pools for a given asset ID
 // Expects in req.query:

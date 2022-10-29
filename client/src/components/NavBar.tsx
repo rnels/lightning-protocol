@@ -8,6 +8,7 @@ export default function NavBar(props: {logged: boolean, paper: number}) {
       <div className='nav-bar-left'>
         <a href='/profile'>Profile</a>
         <a href='/assets'>Assets</a>
+        <a href='/pools'>Pools</a>
       </div>
       {`${props.paper} 💵`}
       </>

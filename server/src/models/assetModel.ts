@@ -20,6 +20,7 @@ async function _checkIfAssetPriceHistoryExists(
   ])).rows[0].exists;
 };
 
+// TODO: Set this up with a listener that automatically updates it periodically, rather than attaching it to getAssetPriceById()
 async function _updateAssetPrice(assetId: number, assetType: AssetType, priceApiId: number): Promise<number> {
   let lastPrice = await getAssetPriceFromAPI(priceApiId, assetType);
   await db.query(`
@@ -87,7 +88,11 @@ export async function getAssetPriceById(id: string | number): Promise<number> {
   let lastPrice = res.lastPrice;
   let lastUpdatedHours = (Date.now() - new Date(res.lastUpdated).getTime()) / 3600000
   if (lastUpdatedHours >= 1) { // Update price if it's been over 1 hour since last update
-    lastPrice = await _updateAssetPrice(res.assetId, res.assetType, res.priceApiId);
+    try {
+      lastPrice = await _updateAssetPrice(res.assetId, res.assetType, res.priceApiId);
+    } catch {
+      lastPrice = res.lastPrice; // Probably not needed
+    }
   }
   return Number(lastPrice);
 };
