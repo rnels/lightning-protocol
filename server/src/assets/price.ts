@@ -8,6 +8,7 @@ import axios from 'axios';
 
 // NOTE: Known crypto asset IDs (CMC):
   // Bitcoin - 1
+  // Ethereum - 1027
 
 // DEBUG: Change process.env.CMC_API_* to process.env.CMC_API_SANDBOX_*
 

@@ -141,26 +141,26 @@ router.post('/contract', (req, res, next) => {
 //   assetId (Integer)
 //   direction (Boolean)
 //   strikePrice (Decimal)
-//   expiresAt (Integer) // TODO: Still need to revisit using date / time types
+//   expiresAt (Date) // TODO: Still need to revisit using date / time types
 // TODO: Restrict this, only should be called by app not by users
-router.post('/contract/type', (req, res, next) => {
-  if (!req.body.assetId || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
-    return res.status(400).send({ message: 'Missing body parameters' });
-  }
-  contractTypes.createContractType(
-    req.body.assetId,
-    req.body.direction,
-    req.body.strikePrice,
-    req.body.expiresAt
-  )
-    .then(({contractTypeId}) => {
-      res.status(201).send({ message: 'Contract type created' });
-    })
-    .catch((error: any) => {
-      console.log('There was an error creating the contract type:', error);
-      res.status(400).send({ message: 'Error creating contract type' });
-    });
-});
+// router.post('/contract/type', (req, res, next) => {
+//   if (!req.body.assetId || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
+//     return res.status(400).send({ message: 'Missing body parameters' });
+//   }
+//   contractTypes.createContractType(
+//     req.body.assetId,
+//     req.body.direction,
+//     req.body.strikePrice,
+//     req.body.expiresAt
+//   )
+//     .then(({contractTypeId}) => {
+//       res.status(201).send({ message: 'Contract type created' });
+//     })
+//     .catch((error: any) => {
+//       console.log('There was an error creating the contract type:', error);
+//       res.status(400).send({ message: 'Error creating contract type' });
+//     });
+// });
 
 // Exercises a contract type
 // Expects in req.body:

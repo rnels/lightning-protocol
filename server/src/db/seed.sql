@@ -42,6 +42,20 @@ INSERT INTO assets (
 	1
 );
 
+INSERT INTO assets (
+	asset_type,
+	asset_amount,
+	name,
+	symbol,
+	price_api_id
+) VALUES (
+	'crypto',
+	1,
+	'Ethereum',
+	'ETH',
+	1027
+);
+
 INSERT INTO pools (
 	account_id,
 	asset_id,
@@ -52,15 +66,15 @@ INSERT INTO pools (
 	10
 );
 
--- INSERT INTO pools (
--- 	account_id,
--- 	asset_id,
--- 	asset_amount
--- ) VALUES (
--- 	2,
--- 	2,
--- 	100.2
--- );
+INSERT INTO pools (
+	account_id,
+	asset_id,
+	asset_amount
+) VALUES (
+	1,
+	2,
+	10
+);
 
 INSERT INTO contract_types (
 	asset_id,
@@ -268,15 +282,15 @@ INSERT INTO contract_types (
 -- 	'5022-12-31 23:24:11.519704'
 -- );
 
-INSERT INTO contracts (
-	type_id,
-	owner_id,
-	ask_price
-) VALUES (
-	1,
-	1,
-	2.5
-);
+-- INSERT INTO contracts (
+-- 	type_id,
+-- 	owner_id,
+-- 	ask_price
+-- ) VALUES (
+-- 	1,
+-- 	1,
+-- 	2.5
+-- );
 
 -- INSERT INTO contracts (
 -- 	type_id,
@@ -288,27 +302,27 @@ INSERT INTO contracts (
 -- 	2.5
 -- );
 
-INSERT INTO bids (
-	type_id,
-	account_id,
-	bid_price
-) VALUES (
-	1,
-	2,
-	2.4
-);
+-- INSERT INTO bids (
+-- 	type_id,
+-- 	account_id,
+-- 	bid_price
+-- ) VALUES (
+-- 	1,
+-- 	1,
+-- 	2.4
+-- );
 
-INSERT INTO trades (
-	contract_id,
-	type_id,
-	buyer_id,
-	seller_id,
-	sale_price
-) VALUES (
-	1,
-	1,
-	1,
-	1,
-	6
-);
+-- INSERT INTO trades (
+-- 	contract_id,
+-- 	type_id,
+-- 	buyer_id,
+-- 	seller_id,
+-- 	sale_price
+-- ) VALUES (
+-- 	1,
+-- 	1,
+-- 	1,
+-- 	1,
+-- 	6
+-- );
 
