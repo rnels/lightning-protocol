@@ -350,32 +350,33 @@ export async function _tradeContract(
   client: PoolClient
 ) {
   if (!contract.askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
-    let contractType = await getActiveContractTypeById(contract.typeId);
-    let asset = await getAssetById(contractType.assetId);
-    let saleCost = contract.askPrice * asset.assetAmount;
-    let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
-      saleCost * poolFee : saleCost;
-    let sellerProceeds = saleCost - tradeFee; // TODO: Ensure this is resulting in 0 sellerProceeds when it's an initial sale
-    let buyerId = bid.accountId;
-    let sellerId = contract.ownerId;
-    return Promise.all([
-      withdrawPaper(buyerId, saleCost, client),
-      sellerId && depositPaper(sellerId, sellerProceeds, client),  // TODO: Ensure this is not calling depositPaper on an initial sale
-      _addToLockTradeFees(contract.contractId, tradeFee, client),
-      _createTrade(
-        contract.contractId,
-        contract.typeId,
-        buyerId,
-        contract.askPrice,
-        tradeFee,
-        saleCost,
-        client,
-        sellerId
-      ),
-      _removeBid(bid.bidId, client),
-      _removeAskPrice(contract.contractId, client),
-      _updateOwnerId(contract.contractId, buyerId, client)
-    ]);
+  await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
+  let contractType = await getActiveContractTypeById(contract.typeId);
+  let asset = await getAssetById(contractType.assetId);
+  let saleCost = contract.askPrice * asset.assetAmount;
+  let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
+    saleCost * poolFee : saleCost;
+  let sellerProceeds = saleCost - tradeFee; // TODO: Ensure this is resulting in 0 sellerProceeds when it's an initial sale
+  let buyerId = bid.accountId;
+  let sellerId = contract.ownerId;
+  return Promise.all([
+    withdrawPaper(buyerId, saleCost, client),
+    sellerId && depositPaper(sellerId, sellerProceeds, client),  // TODO: Ensure this is not calling depositPaper on an initial sale
+    _addToLockTradeFees(contract.contractId, tradeFee, client),
+    _createTrade(
+      contract.contractId,
+      contract.typeId,
+      buyerId,
+      contract.askPrice,
+      tradeFee,
+      saleCost,
+      client,
+      sellerId
+    ),
+    _removeBid(bid.bidId, client),
+    _removeAskPrice(contract.contractId, client),
+    _updateOwnerId(contract.contractId, buyerId, client)
+  ]);
 }
 
 // Should only be called in route by authenticated user
