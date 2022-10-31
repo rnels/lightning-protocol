@@ -224,5 +224,5 @@ export async function writerAskUpdate(assetId: number) {
   // await createContractTypeChain(assetId);
   // await createContractsChain(assetId);
   // await automaticBidTest(assetId);
-  await writerAskUpdate(assetId);
+  // await writerAskUpdate(assetId);
 })();

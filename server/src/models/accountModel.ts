@@ -64,9 +64,11 @@ export function depositPaper(accountId: string | number, amount: number, client?
   ]);
 };
 
-export function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
+// TODO: Create lock mode
+export async function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
+  await query('LOCK TABLE accounts IN ROW EXCLUSIVE MODE');
   return query(`
     UPDATE accounts
     SET paper=paper-$2

@@ -99,6 +99,7 @@ export async function createBid(typeId: number, accountId: number, bidPrice: num
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     const bid = (await client.query(`
       INSERT INTO bids (
         type_id,
@@ -136,6 +137,9 @@ export async function updateBidPrice(bidId: number | string, bidPrice: number, a
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
+    // TODO: Ensure this works
+    await client.query('LOCK TABLE bids IN ROW EXCLUSIVE MODE');
     const bid = (await client.query(`
       UPDATE bids SET bid_price=$2
         WHERE bid_id=$1

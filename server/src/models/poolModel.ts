@@ -119,6 +119,9 @@ export async function _getLockedPoolsByContractId(contractId: number): Promise<P
 /** Updates trade_fees on pool_locks for given contractId */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _addToLockTradeFees(contractId: number, tradeFee: number, client: PoolClient) {
+  // TODO: Confirm this works
+  await client.query('LOCK TABLE pools IN ROW EXCLUSIVE MODE');
+  await client.query('LOCK TABLE pool_locks IN ROW EXCLUSIVE MODE');
   let feePromises = [];
   let lockPools = await _getLockedPoolsByContractId(contractId);
   let totalAssetAmount = await _getLockedAmountSumByContractId(contractId);
@@ -145,6 +148,8 @@ export async function _addToLockTradeFees(contractId: number, tradeFee: number, 
  */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _removePoolLockAssets(contractId: number, client: PoolClient) {
+  // TODO: Confirm this works
+  await client.query('LOCK TABLE pools IN ROW EXCLUSIVE MODE');
   let poolAssetPromises = [];
   let lockPools = await _getLockedPoolsByContractId(contractId);
   for (let pool of lockPools) {
@@ -355,6 +360,7 @@ export function _deletePoolLocksByContractId(contractId: number, client: PoolCli
   `, [contractId]);
 }
 
+// TODO: Create lock mode
 export async function withdrawPoolAssets(
   poolId: string | number,
   assetAmount: number,

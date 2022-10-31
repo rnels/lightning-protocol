@@ -30,6 +30,9 @@ async function _convertActivePutContractTypesNearStrike() {
       let client = await db.connect();
       try {
         await client.query('BEGIN');
+        // TODO: Confirm this works
+        await client.query('LOCK TABLE pools IN EXCLUSIVE MODE');
+        await client.query('LOCK TABLE pool_locks IN EXCLUSIVE MODE');
         for (let contract of contracts) {
           let lockPools = await _getLockedPoolsByContractId(contract.contractId);
           for (let pool of lockPools) {
@@ -154,7 +157,7 @@ export async function createContractType(
     assetId,
     direction,
     strikePrice,
-    expiresAt // TODO: Ensure that this is what we want to do going forward, converting epoch to TIMESTAMP with to_timestamp()
+    expiresAt
   ]);
   return res.rows[0];
 }
