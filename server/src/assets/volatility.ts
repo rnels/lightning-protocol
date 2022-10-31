@@ -21,9 +21,9 @@ import {
 // TODO: Average it out further by introducing weights for recency
 function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
   if (window > prices.length) { window = prices.length; } // Safety in case it's passed less than the groupedBy prices
+  let priceSum = prices.reduce((sum, a) => sum + a, 0);
+  let priceAvg = priceSum / prices.length;
   const getGroupVol = (priceGroup: number[]) => {
-    let priceSum = priceGroup.reduce((sum, a) => sum + a, 0);
-    let priceAvg = priceSum / priceGroup.length;
     let squaredArr: number[] = [];
     for (let price of priceGroup) {
       let dif = price - priceAvg;
@@ -33,6 +33,7 @@ function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
     let variance = squaredDif / priceGroup.length;
     let stdev = Math.sqrt(variance);
     let groupVolatility = stdev / priceAvg;
+    // console.log('groupVolatility', groupVolatility); // DEBUG
     return groupVolatility;
   }
   let groupsArray: number[] = [];
@@ -41,7 +42,6 @@ function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
   }
   let volatilitySum = groupsArray.reduce((sum, a) => sum + a, 0); // Get sum of group volatility
   let volatility = volatilitySum / groupsArray.length; // Get average volatility
-  // console.log('volatility', volatility); // DEBUG
   return volatility;
 }
 
