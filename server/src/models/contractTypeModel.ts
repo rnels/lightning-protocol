@@ -8,6 +8,7 @@ import { _getLockedPoolsByContractId } from './poolModel';
  * The first part simulates a stop loss / limit order.
  */
 // TODO: Have this called somewhere periodically, possibly whenever asset price is updated for an assetId? Would need to pass it an assetId in that case
+// TODO: Consider adding another property to the schema for put contractTypes which marks if they've already converted or not. Otherwise this could trigger repeatedly every price change beneath the 5% margin. It won't make any changes due to the checking, it'll just be expensive. If we have that flag, the initial list of contractTypes won't include converted ones, saving on all the rest. The only caveat is that if a contract was created for a type after it had already marked as converted, it wouldn't go through the process with the contract. I suppose it does have to be bound to the pool locks in that case. Not ideal, but I'll think on it more
 async function _convertActivePutContractTypesNearStrike() {
   const contractTypes = (await db.query(`
     SELECT
@@ -20,7 +21,7 @@ async function _convertActivePutContractTypesNearStrike() {
       WHERE direction=false
         AND expires_at > NOW()
   `)).rows as ContractType[];
-  for (let contractType of contractTypes) {
+  for (let contractType of contractTypes) { // TODO: Could group by strike price, since that's what is being evaluated
     let assetPrice = await getAssetPriceById(contractType.assetId);
     let priceDif = (assetPrice - contractType.strikePrice) / contractType.strikePrice; // Decimal representing difference between asset price and strike
     if (priceDif < 0.05) { // If difference is less than 5%, time to put into the reserves
@@ -57,9 +58,9 @@ async function _convertActivePutContractTypesNearStrike() {
         await Promise.all(typeReservePromises);
         await client.query('COMMIT');
       } catch {
-          await client.query('ROLLBACK');
+        await client.query('ROLLBACK');
       } finally {
-          client.release();
+        client.release();
       }
     }
   }

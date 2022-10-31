@@ -158,11 +158,8 @@ export async function _removePoolLockAssets(contractId: number, client: PoolClie
       `,[pool.poolId, pool.assetAmount])
     );
   }
-  await Promise.all(poolAssetPromises);
-  return client.query(`
-    DELETE FROM pool_locks
-      WHERE contract_id=$1
-  `, [contractId]);
+  await Promise.all(poolAssetPromises); // NOTE: Ensure this is resolved before _deletePoolLocksByContractId is invoked
+  return _deletePoolLocksByContractId(contractId, client);
 }
 
 export async function getUnlockedAmountByPoolId(id: string | number): Promise<number> {
@@ -349,6 +346,15 @@ export function _createPoolLock(
   ]);
 }
 
+/** Removes pool_locks with the given contract_id */
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+export function _deletePoolLocksByContractId(contractId: number, client: PoolClient) {
+  return client.query(`
+    DELETE FROM pool_locks
+      WHERE contract_id=$1
+  `, [contractId]);
+}
+
 export async function withdrawPoolAssets(
   poolId: string | number,
   assetAmount: number,
@@ -371,6 +377,8 @@ export async function withdrawPoolAssets(
   return res.rows[0];
 }
 
+// TODO: Create pool if it doesn't yet exist, change createPool to be internal
+// TODO: Hook this method with contract writer to attempt to write new contracts from the queue on the depositing of pool assets
 // NOTE: As of now there's no limit on depositing assets, you can just define a number of assets to deposit
 // This is for the paper model, for the bc model it will be wallet based
 export function depositPoolAssets(
@@ -420,6 +428,3 @@ export async function withdrawPoolFees(
     throw new Error('There was an error withdrawing pool fees');
   }
 }
-
-// TODO: Create delete
-// Pool delete should happen on assigned contract exercise or on user withdrawal

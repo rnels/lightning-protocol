@@ -8,12 +8,13 @@ const bs = require("black-scholes");
 import { getAccountInfoById } from '../models/accountModel';
 import { getAssetById, getAssetPriceById } from "../models/assetModel";
 import { createBid, getBidsByContractTypeAndAccountId, updateBidPrice } from '../models/bidModel';
-import { createContract, _writerGetContractsByTypeId, _writerUpdateAskPrice } from "../models/contractModel";
-import { getActiveContractTypesByAssetId, getContractTypeById } from "../models/contractTypeModel";
+import { createContract, getActiveContractsByTypeId, _writerGetContractsByTypeId, _writerUpdateAskPrice } from "../models/contractModel";
+import { createContractType, getActiveContractTypesByAssetId, getContractTypeById } from "../models/contractTypeModel";
 import { getUnlockedAmountByAssetId } from "../models/poolModel";
 import { getAssetPriceFromAPI } from "../assets/price";
 import { getAssetPriceVolatility, getAssetPriceVolatilityDebug } from '../assets/volatility';
 import { Asset } from '../types';
+import { getTradesWithin24HoursByTypeId } from '../models/tradeModel';
 
 // Goals:
 /**
@@ -44,12 +45,16 @@ import { Asset } from '../types';
   // NOTE: Technically, volatility will be constant across strikePrices so you could pass this as an argument instead since you'll be getting the same volatility across all strikes ... but it looks neater here
 // TODO: Consider whether I want to pass assetPrice as an arg instead, seeing as there are repeated calls for it when this is called in succession, but it will (should) be unchanging between calls
 // TODO: For future prices, use IV instead of HV based on activity (?)
-async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string, direction: boolean) {
-  let timeToExpiry = (new Date(expiresAt).getTime() - Date.now()) / 31556926000; // TODO: Make this not so ugly
+async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string, direction: boolean, assetPrice?: number) {
+  console.log('expiresAt:', expiresAt); // DEBUG
+  let timeToExpiry = _getTimeToExpiryFromExpiresAt(expiresAt);
+  console.log('timeToExpiry:', timeToExpiry); // DEBUG
   let window = Math.ceil(timeToExpiry * 365);
-  const assetPrice = await getAssetPriceById(asset.assetId);
-  // const volatility = await getAssetPriceVolatility(asset, assetPrice, 365, window); // TODO: Uncomment for production volatility results
-  const volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, window);  // DEBUG, TODO: Delete for production
+  console.log('window:', window); // DEBUG
+  if (!assetPrice) { assetPrice = await getAssetPriceById(asset.assetId); }
+  // let volatility = await getAssetPriceVolatility(asset, assetPrice, 365, window); // TODO: Uncomment for production volatility results
+  let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, window);  // DEBUG, TODO: Delete for production
+  console.log('volatility:', volatility); // DEBUG
   return Math.trunc(bs.blackScholes(
     assetPrice, // s - Current price of the underlying
     strikePrice, // k - Strike price
@@ -60,12 +65,92 @@ async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string,
   ) * 100) / 100;
 }
 
+function _getTimeToExpiryFromExpiresAt(expiresAt: string) {
+  return (new Date(expiresAt).getTime() - Date.now()) / 31556926000;
+}
+
+/** Represents how much a contract is being traded relative to the number of outstanding contracts. Should be used in the formula determining which contractTypes to be writing more of */
+async function _getVolumeOIRatio(typeId: number) {
+  const trades = await getTradesWithin24HoursByTypeId(typeId);
+  const contracts = await getActiveContractsByTypeId(typeId);
+  let volume = trades.length;
+  let openInterest = contracts.length;
+  if (openInterest === 0) return 0;
+  return volume / openInterest;
+}
+
+// Should be used for initial contractTypes of a new asset (will be called on creation of a new asset)
+// Should also be used for determining new types of contracts to write for an existing asset, such as when the strike price spread should be increased or decreased based on current price
+// TODO: Determine the fixed expiresAt time we want to use, because it will be fixed
+// Start with 1 month(?)
+export async function createContractTypeChain(assetId: number) {
+  const asset = await getAssetById(assetId);
+  const contractTypes = await getActiveContractTypesByAssetId(assetId);
+  // let assetPrice = 1; // DEBUG
+  let assetPrice = await getAssetPriceById(asset.assetId);
+  let assetPriceString = assetPrice.toString();
+  let wholePlaces = assetPriceString.slice(0, assetPriceString.indexOf('.')).length;
+  let roundMultiplier = 1;
+  if (assetPrice < 1) {
+    let decimalSlice = assetPriceString.slice(assetPriceString.indexOf('.') + 1);
+    for (let i = 0; i < decimalSlice.length; i++) {
+      if (['1','2','3','4','5','6','7','8','9'].includes(decimalSlice[i])) {
+        roundMultiplier = Math.pow(10, -(i+2));
+        break;
+      }
+    }
+  } else {
+    roundMultiplier = Math.pow(10, wholePlaces - 2);
+  }
+  // console.log('roundMultiplier', roundMultiplier); // DEBUG
+  // TODO: Will probably have to convert to Datetime
+  // ...But really I should just change the schema to accept a date instead of a timestamp
+  // and have the contracts expire at the same time every time
+  let expiresAt = new Date(Date.now());
+  expiresAt.setDate(expiresAt.getDate() + (4 * 7)); // Today + 4 weeks / 28 days
+  // console.log('expiresAt:', expiresAt); // DEBUG
+  if (contractTypes.length) { // If contractTypes exist
+    for (let contractType of contractTypes) {
+      let volOIRatio = await _getVolumeOIRatio(contractType.contractTypeId);
+      console.log(volOIRatio);
+      // ...
+    }
+  } else { // If contractTypes do not exist
+    // Get historical volatility, use to generate a standard deviation from current price
+    // Each standard deviation represents 1 strike price in either direction
+    // let volatility = 0.1; // DEBUG
+    let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, 28); // TODO: Use non-debug for production
+    // console.log('volatility:', volatility); // DEBUG
+    let assetPriceRounded = Math.trunc(assetPrice / roundMultiplier) * roundMultiplier;
+    let deviation = Math.trunc((assetPriceRounded * (volatility + 0.05)) / roundMultiplier) * roundMultiplier;
+    // console.log('deviation:', deviation); // DEBUG
+    let createContractTypePromises = [];
+    // Won't be more than +100% or -100% of current price
+    // Starts at an offset of 5%
+    // TODO: Really think about this system, may want to use an exponential distribution instead
+    for (let i = 1; i <= Math.floor(1/(volatility + 0.05)); i++) {
+      let strikePrices = {
+        call: assetPriceRounded + (deviation * i),
+        put: assetPriceRounded - (deviation * i)
+      };
+      // console.log('strikePrices.call:', strikePrices.call); // DEBUG
+      // console.log('strikePrices.put:', strikePrices.put); // DEBUG
+      createContractTypePromises.push(
+        createContractType(asset.assetId, true, strikePrices.call, expiresAt.getTime()),
+        createContractType(asset.assetId, false, strikePrices.put, expiresAt.getTime())
+      );
+    }
+    await Promise.all(createContractTypePromises);
+  }
+}
+
 export async function createContractsChain(assetId: number) {
   const asset = await getAssetById(assetId);
-  const unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
+  let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
     let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction);
+    console.log(askPrice); // DEBUG
     // console.log('Actual cost', askPrice * asset.assetAmount);
     // This will create as many contracts as possible with the unlocked pools
     // Does not account for any type of weights, just does a uniform distribution
@@ -111,6 +196,7 @@ export async function automaticAskUpdateTest(assetId: number) {
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
     let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction);
+    console.log(askPrice); // DEBUG
     // Updates ask price for each active contracts of the contractType
     let activeContracts = await _writerGetContractsByTypeId(contractType.contractTypeId);
     if (activeContracts.length > 0 && askPrice > 0) {
@@ -122,6 +208,7 @@ export async function automaticAskUpdateTest(assetId: number) {
 }
 
 // TEST
+// createContractTypeChain(1);
 // createContractsChain(1);
 // automaticBidTest(1);
-// automaticAskUpdateTest(1);
+automaticAskUpdateTest(1);

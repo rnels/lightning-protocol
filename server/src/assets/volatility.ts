@@ -45,7 +45,7 @@ function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
   return volatility;
 }
 
-function getCryptoPriceHistoricalDataFromApi(symbol: string, limit=365): Promise<any[]> {
+function getCryptoPriceHistoricalDataFromAPI(symbol: string, limit=365): Promise<any[]> {
   // NOTE: I know this is ugly but using params / header objects doesn't work with this API for some reason
   return axios.get(`${process.env.CC_API_URL}/data/v2/histoday?fsym=${symbol}&tsym=USD&limit=${limit}&api_key=${process.env.CC_API_KEY}`)
     .then((result) => {
@@ -57,7 +57,7 @@ function getCryptoPriceHistoricalDataFromApi(symbol: string, limit=365): Promise
 // Get a decimal representing a price volatility for the provided asset from the provided currentPrice
 export async function getAssetPriceVolatility(asset: Asset, currentPrice: number, lookback=365, window=14): Promise<number> {
   // TODO: create conditionals for the different AssetTypes
-  let priceData = await getCryptoPriceHistoricalDataFromApi(asset.symbol, lookback);
+  let priceData = await getCryptoPriceHistoricalDataFromAPI(asset.symbol, lookback);
   for (let entry of priceData) {
     await _createAssetPriceHistoryIfNotExists(asset.assetId, entry.close, entry.time); // TODO: Make this more efficient, use a pool client
   }

@@ -166,6 +166,7 @@ export async function getContractById(id: string | number): Promise<Contract> {
   return res.rows[0];
 }
 
+/** Number of contracts represents "Open Interest" */
 export async function getActiveContractsByTypeId(typeId: string | number): Promise<Contract[]> {
   const res = await db.query(`
     SELECT
