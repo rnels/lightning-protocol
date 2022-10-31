@@ -174,7 +174,7 @@ router.post('/contract/exercise', (req, res, next) => {
       res.status(201).send({ message: 'Contract exercised' });
     })
     .catch((error: any) => {
-      console.log('There was an error exercises the contract:', error);
+      console.log('There was an error exercising the contract:', error);
       res.status(400).send({ message: 'Error exercising the contract' });
     });
 });

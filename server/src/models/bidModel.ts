@@ -94,7 +94,6 @@ export async function getBidsByAccountId(accountId: string | number): Promise<Bi
   return res.rows;
 }
 
-// TODO: Change the arguments to accept typeId, accountId, bidPrice, rather than Bid object
 // Create bid object from result of query to pass to _getMatchingAsksByBid
 export async function createBid(typeId: number, accountId: number, bidPrice: number) {
   const client = await db.connect();

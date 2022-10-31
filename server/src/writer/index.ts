@@ -45,7 +45,7 @@ import { getTradesWithin24HoursByTypeId } from '../models/tradeModel';
   // NOTE: Technically, volatility will be constant across strikePrices so you could pass this as an argument instead since you'll be getting the same volatility across all strikes ... but it looks neater here
 // TODO: Consider whether I want to pass assetPrice as an arg instead, seeing as there are repeated calls for it when this is called in succession, but it will (should) be unchanging between calls
 // TODO: For future prices, use IV instead of HV based on activity (?)
-async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string, direction: boolean, assetPrice?: number) {
+async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: Date, direction: boolean, assetPrice?: number) {
   // console.log('expiresAt:', expiresAt); // DEBUG
   let timeToExpiry = _getTimeToExpiryFromExpiresAt(expiresAt);
   // console.log('timeToExpiry:', timeToExpiry); // DEBUG
@@ -66,8 +66,8 @@ async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string,
   ) * 100) / 100;
 }
 
-function _getTimeToExpiryFromExpiresAt(expiresAt: string) {
-  return (new Date(expiresAt).getTime() - Date.now()) / 31556926000;
+function _getTimeToExpiryFromExpiresAt(expiresAt: Date) {
+  return (expiresAt.getTime() - Date.now()) / 31556926000; // NOTE: Uses intersection between leap year and non-leap year time iirc
 }
 
 /** Represents how much a contract is being traded relative to the number of outstanding contracts. Should be used in the formula determining which contractTypes to be writing more of */
@@ -76,7 +76,7 @@ async function _getVolumeOIRatio(typeId: number) {
   const contracts = await getActiveContractsByTypeId(typeId);
   let volume = trades.length;
   let openInterest = contracts.length;
-  if (openInterest === 0) return 0;
+  if (openInterest === 0) return null;
   return volume / openInterest;
 }
 
@@ -104,22 +104,26 @@ export async function createContractTypeChain(assetId: number) {
     roundMultiplier = Math.pow(10, wholePlaces - 2);
   }
   // console.log('roundMultiplier', roundMultiplier); // DEBUG
-  // TODO: Will probably have to convert to Datetime
-  // ...But really I should just change the schema to accept a date instead of a timestamp
-  // and have the contracts expire at the same time every time
-  // TODO: Keep in mind that daysOut affects the the price volatility (and BS model pricing),
-  // So if I'm always creating the contracts at a fixed interval, it would be good to base everything around that interval
-  let daysOut = 8 * 7; // 8 weeks / 56 days
-  let expiresAt = new Date(Date.now());
-  expiresAt.setDate(expiresAt.getDate() + daysOut);
-  // console.log('expiresAt:', expiresAt); // DEBUG
   if (contractTypes.length) { // If contractTypes exist
+    // TODO: Flesh this part out, it should achieve the second goal of the function
+    let ratios = [];
     for (let contractType of contractTypes) {
-      let volOIRatio = await _getVolumeOIRatio(contractType.contractTypeId);
-      // console.log(volOIRatio); // DEBUG
-      // ...
+      let ratio = await _getVolumeOIRatio(contractType.contractTypeId);
+      ratio && ratios.push(ratio);
+      // TODO ...
     }
+    let ratioSum = ratios.reduce((sum, a) => sum + a, 0);
+    let ratioAvg = ratioSum / ratios.length;
+    // console.log(ratioAvg); // DEBUG
+    // TODO ...
   } else { // If contractTypes do not exist
+    // TODO: Have the contracts expire at the same time every time
+    // TODO: Keep in mind that daysOut affects the the price volatility (and BS model pricing),
+    // So if I'm always creating the contracts at a fixed interval, it would be good to base everything around that interval
+    let daysOut = 8 * 7; // 8 weeks / 56 days
+    let expiresAt = new Date(Date.now());
+    expiresAt.setDate(expiresAt.getDate() + daysOut);
+    // console.log('expiresAt:', expiresAt); // DEBUG
     // Get historical volatility, use to generate a standard deviation from current price
     // Each standard deviation represents 1 strike price in either direction
     let assetPriceRounded = Math.trunc(assetPrice / roundMultiplier) * roundMultiplier;
@@ -157,7 +161,6 @@ export async function createContractsChain(assetId: number) {
   for (let contractType of contractTypes) {
     let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction);
     // console.log('askPrice:', askPrice); // DEBUG
-    // console.log('Actual cost', askPrice * asset.assetAmount);
     // This will create as many contracts as possible with the unlocked pools
     // Does not account for any type of weights, just does a uniform distribution
     // Works best under the assumption asset.assetAmount will be consistent across contractTypes (which it should be)
@@ -199,7 +202,7 @@ export async function automaticBidTest(assetId: number) {
   }
 }
 
-export async function automaticAskUpdateTest(assetId: number) {
+export async function writerAskUpdate(assetId: number) {
   const asset = await getAssetById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
@@ -221,5 +224,5 @@ export async function automaticAskUpdateTest(assetId: number) {
   // await createContractTypeChain(assetId);
   // await createContractsChain(assetId);
   // await automaticBidTest(assetId);
-  // await automaticAskUpdateTest(assetId);
+  await writerAskUpdate(assetId);
 })();

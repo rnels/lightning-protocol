@@ -30,7 +30,7 @@ export type PoolLock = {
 	contractId: number,
 	assetAmount: number,
 	reserveAmount: number,
-	expiresAt: number,
+	expiresAt: Date,
 	tradeFees: number
 };
 
@@ -39,7 +39,7 @@ export type ContractType = {
 	assetId: number,
 	direction: boolean,
 	strikePrice: number,
-	expiresAt: string // TODO: Parse incoming expiresAt to DateTime
+	expiresAt: Date
 };
 
 export type Contract = {

@@ -15,7 +15,7 @@ export default function AssetContractsView() {
   const [poolLockAssetAmount, setPoolLockAssetAmount] = useState<number>();
   const [contractTypeList, setContractTypeList] = useState<ContractType[]>([]);
   const [directionFilter, setDirectionFilter] = useState<boolean>(true);
-  const [dateFilter, setDateFilter] = useState<string>();
+  const [dateFilter, setDateFilter] = useState<Date>();
   const [dateFilterList, setDateFilterList] = useState<string[]>([]);
 
   const { assetId } = useParams();
@@ -109,8 +109,8 @@ export default function AssetContractsView() {
           <label className='asset-contracts-filter-expiry'>
             Expiry
             <select
-              onChange={(e) => setDateFilter(e.target.value)}
-              value={dateFilter}
+              onChange={(e) => setDateFilter(new Date(e.target.value))}
+              value={dateFilter?.toString()}
             >
               {dateFilterList.map((filter) =>
                 <option

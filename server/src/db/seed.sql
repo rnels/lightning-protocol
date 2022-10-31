@@ -31,14 +31,12 @@ INSERT INTO assets (
 	asset_amount,
 	name,
 	symbol,
-	last_price,
 	price_api_id
 ) VALUES (
 	'crypto',
 	0.1,
 	'Bitcoin',
 	'BTC',
-	20250,
 	1
 );
 
