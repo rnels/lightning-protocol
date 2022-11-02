@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import axios from '../../../lib/axios';
+import * as api from '../../../lib/api';
 import { ContractType } from '../../../lib/types';
-import { serverURL } from '../../../config';
-
 import ContractTypeDetails from './ContractTypeDetails';
+
+import { useEffect, useState } from 'react';
 import { Link, Outlet, useParams } from 'react-router-dom';
 
 
@@ -17,22 +16,17 @@ export default function ContractTypeList() {
   const { assetId } = useParams();
 
   useEffect(() => {
-    axios.get(`${serverURL}/contract/type/list`, {
-      params: {
-        assetId
-      }
-    })
-    .then((response) => {
-      setContractTypeList(response.data.contractTypes);
-    })
-    .catch((errorRes) => {
-      console.log(errorRes);
-      if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
-        setError(errorRes.response.data.message);
-      } else {
-        setError(errorRes.message);
-      }
-    });
+    if (!assetId) return;
+    api.getContractTypesByAssetId(assetId)
+      .then((contractTypes) => setContractTypeList(contractTypes))
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   }, [assetId]);
 
     return (

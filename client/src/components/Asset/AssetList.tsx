@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
-import axios from '../../lib/axios';
+import * as api from '../../lib/api';
 import { Asset } from '../../lib/types';
-import { serverURL } from '../../config';
-
 // import AssetDetails from './AssetDetails';
 
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function AssetList(props: any) {
@@ -13,18 +11,16 @@ export default function AssetList(props: any) {
   const [assetList, setAssetList] = useState<Asset[]>([]);
 
   useEffect(() => {
-    axios.get(`${serverURL}/asset/list`)
-    .then((response) => {
-      setAssetList(response.data.assets);
-    })
-    .catch((errorRes) => {
-      console.log(errorRes);
-      if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
-        setError(errorRes.response.data.message);
-      } else {
-        setError(errorRes.message);
-      }
-    });
+    api.getAssetList()
+      .then((assets) => setAssetList(assets))
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   }, []);
 
   const renderAssets = assetList.map((asset) => {

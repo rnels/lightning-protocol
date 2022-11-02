@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import axios from '../../lib/axios';
+import * as api from '../../lib/api';
 import { Contract } from '../../lib/types';
-import { serverURL } from '../../config';
-
 import ContractDetails from './ContractDetails';
+
+import { useEffect, useState } from 'react';
 
 /** Renders a list of contracts for the logged in user */
 export default function UserContractList(props: any) {
@@ -12,18 +11,16 @@ export default function UserContractList(props: any) {
   const [contractList, setContractList] = useState<Contract[]>([]);
 
   useEffect(() => {
-    axios.get(`${serverURL}/contract/owned`)
-    .then((response) => {
-      setContractList(response.data.contracts);
-    })
-    .catch((errorRes) => {
-      console.log(errorRes);
-      if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
-        setError(errorRes.response.data.message);
-      } else {
-        setError(errorRes.message);
-      }
-    });
+    api.getUserContracts()
+      .then((contracts) => setContractList(contracts))
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   }, [])
 
     return (

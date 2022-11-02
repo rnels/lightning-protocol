@@ -1,8 +1,8 @@
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
-import Modal from '@mui/material/Modal';
 import { FormEvent, useState } from 'react';
+import Modal from '@mui/material/Modal';
 
 const minAmount = 0.001;
 

@@ -1,27 +1,26 @@
+import * as api from './lib/api';
+import './App.css';
+import LoginForm from './components/User/LoginForm';
+import RegisterForm from './components/User/RegisterForm';
+import AssetList from './components/Asset/AssetList';
+import NavBar from './components/NavBar';
+import AssetContractsView from './components/Views/AssetContractsView';
+import UserPoolList from './components/Pool/UserPoolList';
+import PoolLockList from './components/Pool/PoolLock/PoolLockList';
+
+// import UserContractList from './components/Contract/UserContractList';
+// import AssetDetails from './components/Asset/AssetDetails';
+// import AssetPoolList from './components/Pool/AssetPoolList';
+// import ContractTypeList from './components/Contract/ContractType/ContractTypeList';
+// import ContractList from './components/Contract/ContractList';
+// import PlaceBidModal from './components/Views/PlaceBidModal';
+
 import React from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
   Link,
 } from "react-router-dom";
-
-import './App.css';
-import axios from './lib/axios';
-import { serverURL } from './config';
-
-import LoginForm from './components/User/LoginForm';
-import RegisterForm from './components/User/RegisterForm';
-import AssetList from './components/Asset/AssetList';
-import NavBar from './components/NavBar';
-// import UserContractList from './components/Contract/UserContractList';
-import AssetDetails from './components/Asset/AssetDetails';
-import AssetPoolList from './components/Pool/AssetPoolList';
-import ContractTypeList from './components/Contract/ContractType/ContractTypeList';
-import ContractList from './components/Contract/ContractList';
-import AssetContractsView from './components/Views/AssetContractsView';
-import PlaceBidModal from './components/Views/PlaceBidModal';
-import UserPoolList from './components/Pool/UserPoolList';
-import PoolLockList from './components/Pool/PoolLock/PoolLockList';
 
 type Props = {}
 
@@ -154,14 +153,14 @@ export default class App extends React.Component<Props, State> {
   }
 
   getAccountInfo(): void {
-    axios.get(`${serverURL}/account`)
-      .then((result) => {
+    api.getAccount()
+      .then((account) => {
         this.setState({
           logged: true,
-          email: result.data.account.email,
-          firstName: result.data.account.firstName,
-          lastName: result.data.account.lastName,
-          paper: result.data.account.paper,
+          email: account.email,
+          firstName: account.firstName,
+          lastName: account.lastName,
+          paper: account.paper,
           error: ''
         });
     })

@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import axios from '../../lib/axios';
+import * as api from '../../lib/api';
 import { Contract } from '../../lib/types';
-import { serverURL } from '../../config';
-
 import ContractDetails from './ContractDetails';
+
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 /** Renders a list of contracts for the given typeId (useParams) */
@@ -15,14 +14,9 @@ export default function ContractList() {
   const { typeId } = useParams();
 
   useEffect(() => {
-    axios.get(`${serverURL}/contract/list`, {
-      params: {
-        typeId
-      }
-    })
-      .then((response) => {
-        setContractList(response.data.contracts);
-      })
+    if (!typeId) return;
+    api.getContractListByType(typeId)
+      .then((contracts) => setContractList(contracts))
       .catch((errorRes) => {
         console.log(errorRes);
         if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {

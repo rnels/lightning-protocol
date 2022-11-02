@@ -1,5 +1,4 @@
 import { Asset, ContractType } from '../../lib/types';
-
 import ContractTableRow from './ContractTableRow';
 
 /** Renders a table of contract types */

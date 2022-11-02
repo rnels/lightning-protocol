@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import axios from '../../../lib/axios';
+import * as api from '../../../lib/api';
 import { PoolLock } from '../../../lib/types';
-import { serverURL } from '../../../config';
-
 import PoolLockDetails from './PoolLockDetails';
+
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 /** Renders a list of pools locks for the provided poolId */
@@ -15,22 +14,17 @@ export default function PoolLockList() {
   const [poolLockList, setPoolLockList] = useState<PoolLock[]>([]);
 
   useEffect(() => {
-    axios.get(`${serverURL}/pool/lock`, {
-      params: {
-        id: poolId
-      }
-    })
-    .then((response) => {
-      setPoolLockList(response.data.poolLocks);
-    })
-    .catch((errorRes) => {
-      console.log(errorRes);
-      if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
-        setError(errorRes.response.data.message);
-      } else {
-        setError(errorRes.message);
-      }
-    });
+    if (!poolId) return;
+    api.getPoolLocksByPoolId(poolId)
+      .then((poolLocks) => setPoolLockList(poolLocks))
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   }, [poolId])
 
     return (

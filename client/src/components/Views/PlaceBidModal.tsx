@@ -1,8 +1,8 @@
 import * as api from '../../lib/api';
-import Modal from '@mui/material/Modal';
 import { Asset, ContractType } from '../../lib/types';
 
 import { FormEvent, useState } from 'react';
+import Modal from '@mui/material/Modal';
 
 export default function PlaceBidModal(props: {contractType: ContractType, asset: Asset, defaultBid: number | null, onClose: Function}) {
 

@@ -1,3 +1,4 @@
+// NOTE: Calls to the API also return an accountId, but it's not used in the client type
 export type Account = {
   email: string,
   firstName: string,

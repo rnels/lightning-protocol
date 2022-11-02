@@ -1,34 +1,65 @@
 import axios from './axios';
 import { serverURL } from '../config';
-import { Asset, Bid, Contract, ContractType, Pool, Trade } from './types';
+import { Account, Asset, Bid, Contract, ContractType, Pool, PoolLock, Trade } from './types';
+
+// ACCOUNTS //
+
+export function getAccount(): Promise<Account> {
+  return axios.get(`${serverURL}/account`)
+    .then((result) => result.data.account);
+}
+
+export function registerAccount(email: string, password: string, firstName: string, lastName: string) {
+  return axios.post(`${serverURL}/register`, {
+    firstName,
+    lastName,
+    email,
+    password
+  })
+    .then((response) => response.data);
+}
+
+export function loginAccount(email: string, password: string) {
+  return axios.post(`${serverURL}/login`, {
+    email,
+    password
+  })
+    .then((response) => response.data);
+}
 
 // CONTRACTS //
 
-export function getContractList(typeId: string | number): Promise<Contract[]> {
+export function getContractListByType(typeId: string | number): Promise<Contract[]> {
   return axios.get(`${serverURL}/contract/list`, {
-    params: {
-      typeId
-    }
+    params: { typeId }
   })
     .then((response) => response.data.contracts)
 }
 
+export function getUserContracts(): Promise<Contract[]> {
+  return axios.get(`${serverURL}/contract/owned`)
+    .then((response) => response.data.contracts);
+}
+
 export function getAsks(typeId: string | number): Promise<{askPrice: number, contractId: number}[]> {
   return axios.get(`${serverURL}/contract/type/asks`, {
-    params: {
-      typeId
-    }
+    params: { typeId }
   })
     .then((response) => response.data.asks)
 }
 
 // CONTRACT TYPES //
 
+export function getContractType(typeId: string | number): Promise<ContractType> {
+  return axios.get(`${serverURL}/contract/type`, {
+    params: { typeId }
+  })
+    .then((response) => response.data.contractType);
+}
+
 export function getContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
   return axios.get(`${serverURL}/contract/type/list`, {
-    params: {
-      assetId
-    }
+    params: { assetId }
   })
     .then((response) => response.data.contractTypes);
 }
@@ -37,9 +68,7 @@ export function getContractTypesByAssetId(assetId: string | number): Promise<Con
 
 export function getBids(typeId: string | number): Promise<Bid[]> {
   return axios.get(`${serverURL}/bid/type`, {
-    params: {
-      typeId
-    }
+    params: { typeId }
   })
     .then((response) => response.data.bids);
 }
@@ -56,27 +85,21 @@ export function createBid(typeId: number, bidPrice: number) {
 
 export function getLastTrade(typeId: string | number): Promise<Trade> {
   return axios.get(`${serverURL}/trade/last`, {
-    params: {
-      typeId
-    }
+    params: { typeId }
   })
     .then((response) => response.data.trade);
 }
 
 export function getDailyTrades(typeId: string | number): Promise<Trade[]> {
   return axios.get(`${serverURL}/trade/daily`, {
-    params: {
-      typeId
-    }
+    params: { typeId }
   })
     .then((response) => response.data.trades);
 }
 
 export function getDailyPriceChange(typeId: string | number): Promise<number> {
   return axios.get(`${serverURL}/trade/daily/change`, {
-    params: {
-      typeId
-    }
+    params: { typeId }
   })
     .then((response) => response.data.priceChange);
 }
@@ -85,18 +108,19 @@ export function getDailyPriceChange(typeId: string | number): Promise<number> {
 
 export function getAsset(assetId: string | number): Promise<Asset> {
   return axios.get(`${serverURL}/asset`, {
-    params: {
-      id: assetId
-    }
+    params: { id: assetId }
   })
     .then((response) => response.data.asset);
 }
 
+export function getAssetList(): Promise<Asset[]> {
+  return axios.get(`${serverURL}/asset/list`)
+    .then((response) => response.data.assets);
+}
+
 export function getAssetPrice(assetId: string | number): Promise<number> {
   return axios.get(`${serverURL}/asset/price`, {
-    params: {
-      id: assetId
-    }
+    params: { id: assetId }
   })
     .then((response) => response.data.price);
 }
@@ -105,9 +129,7 @@ export function getAssetPrice(assetId: string | number): Promise<number> {
 
 export function getPool(poolId: string | number): Promise<Pool> {
   return axios.get(`${serverURL}/pool`, {
-    params: {
-      id: poolId
-    }
+    params: { id: poolId }
   })
     .then((response) => response.data.pool);
 }
@@ -119,27 +141,28 @@ export function getUserPools(): Promise<Pool[]> {
 
 export function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
   return axios.get(`${serverURL}/pool/list`, {
-    params: {
-      assetId
-    }
+    params: { assetId }
   })
     .then((response) => response.data.pools);
 }
 
 export function getPoolAssetAmountByAssetId(assetId: string | number): Promise<number> {
   return axios.get(`${serverURL}/pool/asset`, {
-    params: {
-      assetId
-    }
+    params: { assetId }
   })
     .then((response) => response.data.assetAmount);
 }
 
+export function getPoolLocksByPoolId(poolId: string | number): Promise<PoolLock[]> {
+  return axios.get(`${serverURL}/pool/lock`, {
+    params: { id: poolId }
+  })
+    .then((response) => response.data.poolLocks);
+}
+
 export function getPoolLockAssetAmountByAssetId(assetId: string | number): Promise<number> {
   return axios.get(`${serverURL}/pool/lock/asset`, {
-    params: {
-      assetId
-    }
+    params: { assetId }
   })
     .then((response) => response.data.assetAmount);
 }

@@ -1,14 +1,12 @@
-import { useEffect, useState } from 'react';
-import axios from '../../lib/axios';
+import * as api from '../../lib/api';
 import { Asset } from '../../lib/types';
-import { serverURL } from '../../config';
-
 // import AssetPoolList from "../Pool/AssetPoolList";
 import AssetName from "./AssetName";
 import AssetPrice from "./AssetPrice";
 import AssetSymbol from "./AssetSymbol";
 import AssetAmount from "./AssetAmount";
 
+import { useEffect, useState } from 'react';
 import {
   Link,
   useParams,
@@ -24,14 +22,9 @@ export default function AssetDetails() {
   const { assetId } = useParams();
 
   useEffect(() => {
-    axios.get(`${serverURL}/asset`, {
-      params: {
-        id: assetId
-      }
-    })
-    .then((response) => {
-      setAsset(response.data.asset);
-    })
+    if (!assetId) return;
+    api.getAsset(assetId)
+    .then((asset) => setAsset(asset))
     .catch((errorRes) => {
       console.log(errorRes);
     });

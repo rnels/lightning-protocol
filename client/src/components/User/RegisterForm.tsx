@@ -1,6 +1,6 @@
+import * as api from '../../lib/api';
+
 import { FormEvent, useState } from 'react';
-import axios from '../../lib/axios';
-import { serverURL } from '../../config';
 import { Link } from "react-router-dom";
 
 export default function RegisterForm(props: {submitCallback: Function}) {
@@ -13,10 +13,8 @@ export default function RegisterForm(props: {submitCallback: Function}) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    axios.post(`${serverURL}/register`, {firstName, lastName, email, password})
-      .then(() => {
-        props.submitCallback();
-      })
+    api.registerAccount(email, password, firstName, lastName)
+      .then(() => props.submitCallback())
       .catch((errorRes) => {
         console.log(errorRes);
         if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {

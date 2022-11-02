@@ -11,7 +11,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
 
   const [contracts, setContracts] = useState<Contract[]>([]);
   function getContracts() {
-    api.getContractList(props.contractType.contractTypeId)
+    api.getContractListByType(props.contractType.contractTypeId)
       .then((contractList) => setContracts(contractList!))
       .catch((err) => console.log(err));
   }

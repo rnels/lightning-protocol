@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
-import axios from '../../lib/axios';
-import { serverURL } from '../../config';
-
+import * as api from '../../lib/api';
 import { Contract, ContractType } from "../../lib/types";
 import ContractAskPrice from "./ContractAskPrice";
 import ContractCreatedAt from "./ContractCreatedAt";
-import ContractExercise from "./ContractExercise";
-import ContractTypeDetails from "./ContractType/ContractTypeDetails";
+import ContractExercised from "./ContractExercised";
+// import ContractTypeDetails from "./ContractType/ContractTypeDetails";
+
+import { useState, useEffect } from 'react';
 
 export default function ContractDetails(props: {contract: Contract}) {
 
@@ -16,17 +15,11 @@ export default function ContractDetails(props: {contract: Contract}) {
 
   // Receives contractType information for the given contract
   useEffect(() => {
-    axios.get(`${serverURL}/contract/type`, {
-      params: {
-        typeId: props.contract.typeId
-      }
-    })
-    .then((response) => {
-      setContractType(response.data.contractType);
-    })
-    .catch((errorRes) => {
-      console.log(errorRes);
-    });
+    api.getContractType(props.contract.typeId)
+      .then((contractType) => setContractType(contractType))
+      .catch((errorRes) => {
+        console.log(errorRes);
+      });
   }, [props.contract]);
 
     return (
@@ -37,7 +30,7 @@ export default function ContractDetails(props: {contract: Contract}) {
         <ContractCreatedAt
           createdAt={props.contract.createdAt}
         />
-        <ContractExercise
+        <ContractExercised
           exercised={props.contract.exercised}
           exercisedAmount={props.contract.exercisedAmount}
         />
