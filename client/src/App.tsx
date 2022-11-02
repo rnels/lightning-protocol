@@ -21,6 +21,7 @@ import {
   RouterProvider,
   Link,
 } from "react-router-dom";
+import UserProfile from './components/User/UserProfile';
 
 type Props = {}
 
@@ -123,6 +124,11 @@ export default class App extends React.Component<Props, State> {
           <RegisterForm // TODO: Redirect to /app on registration
             submitCallback={this.getAccountInfo}
           />
+      },
+      {
+        path: 'profile',
+        element:
+          <UserProfile/>
       },
       {
         path: 'assets',

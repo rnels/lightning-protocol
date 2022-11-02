@@ -23,40 +23,39 @@ export default function LoginForm(props: {submitCallback: Function}) {
       });
   }
 
-    return (
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h2>
-          Login
-        </h2>
-        <label>
-          Email
-          <input
-            type='email'
-            name='email-input'
-            autoComplete='username'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type='password'
-            name='password-input'
-            autoComplete='current-password'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
+  return (
+    <form className="login-form" onSubmit={handleSubmit}>
+      <h2>
+        Login
+      </h2>
+      <label>
+        Email
         <input
-          type='submit'
-          value='Submit'
+          type='email'
+          name='email-input'
+          autoComplete='username'
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        {error && <div className='error-message'>{`Error: ${error}`}</div>}
-      <Link to='/register'>
-        <small>Don't have an account?</small>
-      </Link>
-      </form>
-
-    );
+      </label>
+      <label>
+        Password
+        <input
+          type='password'
+          name='password-input'
+          autoComplete='current-password'
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </label>
+      <input
+        type='submit'
+        value='Submit'
+      />
+      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+    <Link to='/register'>
+      <small>Don't have an account?</small>
+    </Link>
+    </form>
+  );
 };
