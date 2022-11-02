@@ -215,6 +215,21 @@ export async function getPoolById(id: string | number): Promise<Pool> {
   return res.rows[0];
 }
 
+export async function getPoolByAccountAssetIds(accountId: string | number, assetId: string | number): Promise<Pool> {
+  const res = await db.query(`
+    SELECT
+      pool_id as "poolId",
+      account_id as "accountId",
+      asset_id as "assetId",
+      asset_amount as "assetAmount",
+      trade_fees as "tradeFees"
+    FROM pools
+      WHERE account_id=$1
+        AND asset_id=$2
+  `, [accountId, assetId]);
+  return res.rows[0];
+}
+
 export async function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
   const res = await db.query(`
     SELECT

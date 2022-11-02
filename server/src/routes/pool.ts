@@ -70,6 +70,28 @@ router.get('/pool/owned', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool list' }));
 });
 
+// Retrieve a pool for the authenticated user account matching the provided assetId
+// Expects in req.query:
+//  assetId - asset_id to retrieve pools for
+// Successful response data:
+// pool: {
+//   poolId
+//   accountId
+//   assetId
+//   assetAmount
+//   tradeFees
+// }
+router.get('/pool/owned/asset', (req, res, next) => {
+  if (!req.query.assetId) {
+    return res.status(400).send({ message: 'Missing query parameter: assetId' });
+  }
+  pools.getPoolByAccountAssetIds(req.user!.id, req.query.assetId as string)
+    .then((pool) => {
+      res.status(200).send({pool});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool' }));
+});
+
 // Retrieve pools locks for the provided poolId
 // Successful response data:
 // poolLocks: PoolLock[]

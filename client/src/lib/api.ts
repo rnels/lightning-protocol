@@ -139,6 +139,13 @@ export function getUserPools(): Promise<Pool[]> {
     .then((response) => response.data.pools);;
 }
 
+export function getUserPoolByAssetId(assetId: string | number): Promise<Pool> {
+  return axios.get(`${serverURL}/pool/owned/asset`, {
+    params: { assetId }
+  })
+    .then((response) => response.data.pool);
+}
+
 export function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
   return axios.get(`${serverURL}/pool/list`, {
     params: { assetId }
