@@ -31,16 +31,6 @@ router.get('/asset', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset info' }));
 });
 
-// Successful response data:
-// assets: [asset]
-router.get('/asset/list', (req, res, next) => {
-  assets.getAllAssets()
-    .then((assets) => {
-      res.status(200).send({assets});
-    })
-    .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset list' }));
-});
-
 // Get asset price by asset ID
 // Expects in req.query:
 //  id - asset_id to retrieve price of
@@ -64,7 +54,18 @@ router.get('/asset/price', (req, res, next) => {
     });
 });
 
-// TODO: Create routes to add assets
+// Successful response data:
+// assets: Asset[]
+router.get('/asset/list', (req, res, next) => {
+  assets.getAllAssets()
+    .then((assets) => {
+      res.status(200).send({assets});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving asset list' }));
+});
+
+// POST REQUESTS //
+
 // TODO: Make this admin-only
 // Expects in req.body:
 //  assetType (String) - Must be one of 'crypto', 'stock', 'currency'

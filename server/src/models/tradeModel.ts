@@ -85,7 +85,7 @@ export async function getLastTradeByTypeId(typeId: string | number): Promise<Tra
   return res.rows[0];
 }
 
-/** Number of trades represents "Volume" */
+/** Trade[].length represents "Volume" */
 export async function getTradesWithin24HoursByTypeId(typeId: string | number): Promise<Trade[]> {
   const res = await db.query(`
     SELECT

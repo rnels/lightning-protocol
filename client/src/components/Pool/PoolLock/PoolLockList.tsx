@@ -4,9 +4,12 @@ import { PoolLock } from '../../../lib/types';
 import { serverURL } from '../../../config';
 
 import PoolLockDetails from './PoolLockDetails';
+import { useParams } from 'react-router-dom';
 
-/** Renders a list of pools locks provided poolId */
-export default function PoolLockList(props: {poolId: number}) {
+/** Renders a list of pools locks for the provided poolId */
+export default function PoolLockList() {
+
+  const { poolId } = useParams();
 
   const [error, setError] = useState('');
   const [poolLockList, setPoolLockList] = useState<PoolLock[]>([]);
@@ -14,7 +17,7 @@ export default function PoolLockList(props: {poolId: number}) {
   useEffect(() => {
     axios.get(`${serverURL}/pool/lock`, {
       params: {
-        id: props.poolId
+        id: poolId
       }
     })
     .then((response) => {
@@ -28,11 +31,11 @@ export default function PoolLockList(props: {poolId: number}) {
         setError(errorRes.message);
       }
     });
-  }, [props.poolId])
+  }, [poolId])
 
     return (
       <div className="pool-lock-list">
-        <h2>Locks</h2>
+        <h4>Locks</h4>
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
         {poolLockList.length > 0 ?
           poolLockList.map((poolLock) =>

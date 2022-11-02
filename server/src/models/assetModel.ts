@@ -21,7 +21,11 @@ async function _checkIfAssetPriceHistoryExists(
 };
 
 // TODO: Set this up with a listener that automatically updates it periodically, rather than attaching it to getAssetPriceById()
-async function _updateAssetPrice(assetId: number, assetType: AssetType, priceApiId: number): Promise<number> {
+async function _updateAssetPrice(
+  assetId: number,
+  assetType: AssetType,
+  priceApiId: number
+): Promise<number> {
   let lastPrice = await getAssetPriceFromAPI(priceApiId, assetType);
   await db.query(`
     UPDATE assets
@@ -142,7 +146,7 @@ export async function createAsset(
       $6,
       $7
     )
-    RETURNING asset_id as assetId
+    RETURNING asset_id as "assetId"
   `,
   [
     // NOTE: This structure of inserting undefined on optional properties DOES work
@@ -157,6 +161,7 @@ export async function createAsset(
   return res.rows[0];
 };
 
+// TODO: Cast price to numeric
 export async function _getAssetPriceHistoryByAssetId(assetId: number): Promise<{price: string, data_period: string}[]>{
   return (await db.query(`
     SELECT price, data_period
@@ -170,7 +175,11 @@ export async function _getAssetPriceHistoryByAssetId(assetId: number): Promise<{
 };
 
 /** Can be used to limit the query results for limited lookback in calculating greeks / volatility */
-export async function _getAssetPriceHistoryByAssetIdLimit(assetId: number, limit: number): Promise<{price: string, data_period: string}[]>{
+// TODO: Cast price to numeric
+export async function _getAssetPriceHistoryByAssetIdLimit(
+  assetId: number,
+  limit: number
+): Promise<{price: string, data_period: string}[]>{
   return (await db.query(`
     SELECT price, data_period
       FROM asset_prices

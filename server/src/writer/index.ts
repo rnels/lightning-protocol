@@ -84,7 +84,7 @@ async function _getVolumeOIRatio(typeId: number) {
 // Should also be used for determining new types of contracts to write for an existing asset, such as when the strike price spread should be increased or decreased based on current price
 // TODO: Determine the fixed expiresAt time we want to use, because it will be fixed
 // Start with 2 months(?)
-export async function createContractTypeChain(assetId: number) {
+export async function writeContractTypeChain(assetId: number) {
   const asset = await getAssetById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(assetId);
   // let assetPrice = 1; // DEBUG
@@ -154,7 +154,7 @@ export async function createContractTypeChain(assetId: number) {
   }
 }
 
-export async function createContractsChain(assetId: number) {
+export async function writeContractsChain(assetId: number) {
   const asset = await getAssetById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
@@ -221,8 +221,8 @@ export async function writerAskUpdate(assetId: number) {
 // TESTS
 (async () => {
   let assetId = 1;
-  // await createContractTypeChain(assetId);
-  // await createContractsChain(assetId);
+  // await writeContractTypeChain(assetId);
+  // await writeContractsChain(assetId);
   // await automaticBidTest(assetId);
   // await writerAskUpdate(assetId);
 })();

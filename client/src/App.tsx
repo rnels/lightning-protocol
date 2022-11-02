@@ -20,6 +20,8 @@ import ContractTypeList from './components/Contract/ContractType/ContractTypeLis
 import ContractList from './components/Contract/ContractList';
 import AssetContractsView from './components/Views/AssetContractsView';
 import PlaceBidModal from './components/Views/PlaceBidModal';
+import UserPoolList from './components/Pool/UserPoolList';
+import PoolLockList from './components/Pool/PoolLock/PoolLockList';
 
 type Props = {}
 
@@ -137,7 +139,17 @@ export default class App extends React.Component<Props, State> {
         //     element: <PlaceBidModal/>
         //   }
         // ]
-      }
+      },
+      {
+        path: 'pools',
+        element: <UserPoolList/>,
+        children: [
+          {
+            path: ':poolId/locks',
+            element: <PoolLockList/>
+          }
+        ]
+      },
     ]);
   }
 

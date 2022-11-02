@@ -10,7 +10,15 @@ const router = Router();
 //  id - Trade ID to retrieve details of
 // Successful response data:
 // trade: {
-// TODO: Fill out
+//  tradeId
+//  contractId
+//  typeId
+//  buyerId
+//  sellerId
+//  salePrice
+//  saleCost
+//  tradeFee
+//  createdAt
 // }
 router.get('/trade', (req, res, next) => {
   if (!req.query.id) {
@@ -26,6 +34,18 @@ router.get('/trade', (req, res, next) => {
 // Get last trade of a contract with a given typeId
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve last trade of
+// Successful response data:
+// trade: {
+//  tradeId
+//  contractId
+//  typeId
+//  buyerId
+//  sellerId
+//  salePrice
+//  saleCost
+//  tradeFee
+//  createdAt
+// }
 router.get('/trade/last', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
@@ -43,6 +63,8 @@ router.get('/trade/last', (req, res, next) => {
 // Get last 24 hours of trades for a given typeId
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve trades of
+// Successful response data:
+// trades: Trade[]
 router.get('/trade/daily', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });

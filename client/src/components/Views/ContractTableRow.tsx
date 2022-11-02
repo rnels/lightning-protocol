@@ -1,95 +1,65 @@
-import { useEffect, useState } from 'react';
-import axios from '../../lib/axios';
 import { Asset, Bid, Contract, ContractType, Trade } from '../../lib/types';
-import { serverURL } from '../../config';
-// import { Link, Outlet } from 'react-router-dom';
+import * as api from '../../lib/api';
 import PlaceBidModal from './PlaceBidModal';
+
+import { useEffect, useState } from 'react';
+// import { Link, Outlet } from 'react-router-dom';
 
 /** Renders a row of data for the given ContractType */
 // TODO: Actually integrate this in the file structure in a way that makes sense
 export default function ContractTableRow(props: {contractType: ContractType, asset: Asset}) {
 
   const [contracts, setContracts] = useState<Contract[]>([]);
+  function getContracts() {
+    api.getContractList(props.contractType.contractTypeId)
+      .then((contractList) => setContracts(contractList!))
+      .catch((err) => console.log(err));
+  }
+
   const [bids, setBids] = useState<Bid[]>([]);
+  function getBids() {
+    api.getBids(props.contractType.contractTypeId)
+      .then((bids) => setBids(bids))
+      .catch((err) => console.log(err));
+  }
+
   const [asks, setAsks] = useState<{askPrice: number, contractId: number}[]>([]);
+  function getAsks() {
+    api.getAsks(props.contractType.contractTypeId)
+      .then((asks) => setAsks(asks))
+      .catch((err) => console.log(err));
+  }
+
   const [lastTrade, setLastTrade] = useState<Trade>();
+  function getLastTrade() {
+    api.getLastTrade(props.contractType.contractTypeId)
+      .then((trade) => setLastTrade(trade))
+      .catch((err) => console.log(err));
+  }
+
   const [dailyTrades, setDailyTrades] = useState<Trade[]>([]);
+  function getDailyTrades() {
+    api.getDailyTrades(props.contractType.contractTypeId)
+      .then((trades) => setDailyTrades(trades))
+      .catch((err) => console.log(err));
+  }
+
   const [dailyPriceChange, setDailyPriceChange] = useState<number>();
+  function getDailyPriceChange() {
+    api.getDailyPriceChange(props.contractType.contractTypeId)
+      .then((priceChange) => setDailyPriceChange(priceChange))
+      .catch((err) => console.log(err));
+  }
 
   const [showModal, setShowModal] = useState<boolean>(false);
 
-  function getBids() {
-    axios.get(`${serverURL}/bid/type`, {
-      params: {
-        typeId: props.contractType.contractTypeId
-      }
-    })
-      .then((response) => {
-        setBids(response.data.bids);
-      })
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
-  }
-
   useEffect(() => {
-    axios.get(`${serverURL}/contract/list`, {
-      params: {
-        typeId: props.contractType.contractTypeId
-      }
-    })
-      .then((response) => {
-        setContracts(response.data.contracts);
-      })
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
+    getContracts();
     getBids();
-    axios.get(`${serverURL}/contract/type/asks`, {
-      params: {
-        typeId: props.contractType.contractTypeId
-      }
-    })
-      .then((response) => {
-        setAsks(response.data.asks);
-      })
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
-    axios.get(`${serverURL}/trade/last`, {
-      params: {
-        typeId: props.contractType.contractTypeId
-      }
-    })
-      .then((response) => {
-        setLastTrade(response.data.trade);
-      })
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
-    axios.get(`${serverURL}/trade/daily`, {
-      params: {
-        typeId: props.contractType.contractTypeId
-      }
-    })
-      .then((response) => {
-        setDailyTrades(response.data.trades);
-      })
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
-    axios.get(`${serverURL}/trade/daily/change`, {
-      params: {
-        typeId: props.contractType.contractTypeId
-      }
-    })
-      .then((response) => {
-        setDailyPriceChange(response.data.priceChange);
-      })
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
-
+    getAsks();
+    getLastTrade();
+    getDailyTrades();
+    getDailyPriceChange();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.contractType]);
 
@@ -102,9 +72,30 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
     <tr className="contract-table-row">
       <td>{`$${props.contractType.strikePrice}`}</td>
       <td>{`$${lastPrice}`}</td>
-      <td>{`$${dailyPriceChange}`}</td>
-      <td onClick={() => setShowModal(true)}>{highestBid === null ? 'N/A' : `$${highestBid}`}</td>
-      <td>{lowestAsk === null ? 'N/A' : `$${lowestAsk}`}</td>
+      <td>
+        {dailyPriceChange === 0 ? 'N/A' :
+        <>
+        {`$${dailyPriceChange}`}
+        <div>{`${((dailyPriceChange! / (lastPrice - dailyPriceChange!)) * 100).toFixed(1)}%`}</div>
+        </>
+        }
+      </td>
+      <td onClick={() => setShowModal(true)}>
+        {highestBid === null ? 'N/A' :
+        <>
+        {`$${highestBid}`}
+        <div>{`(x${bids.length})`}</div>
+        </>
+        }
+      </td>
+      <td>
+        {lowestAsk === null ? 'N/A' :
+        <>
+        {`$${lowestAsk}`}
+        <div>{`(x${asks.length})`}</div>
+        </>
+        }
+      </td>
       <td>{dailyTrades.length}</td>
       <td>{contracts.length}</td>
       {showModal && <PlaceBidModal
@@ -115,6 +106,10 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
         onClose={() => {
           setShowModal(false);
           getBids();
+          getAsks();
+          getLastTrade();
+          getDailyTrades();
+          getDailyPriceChange();
         }}
       />}
     </tr>

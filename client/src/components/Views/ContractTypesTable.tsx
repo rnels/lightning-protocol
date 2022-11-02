@@ -2,7 +2,6 @@ import { Asset, ContractType } from '../../lib/types';
 
 import ContractTableRow from './ContractTableRow';
 
-
 /** Renders a table of contract types */
 // TODO: Actually integrate this in the file structure in a way that makes sense
 export default function ContractTypesTable(props: {contractTypes: ContractType[], asset: Asset}) {

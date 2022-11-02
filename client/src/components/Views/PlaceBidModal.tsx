@@ -1,23 +1,18 @@
-import { FormEvent, useState } from 'react';
-import axios from '../../lib/axios';
-import { serverURL } from '../../config';
-
-import { useParams } from 'react-router-dom';
+import * as api from '../../lib/api';
 import Modal from '@mui/material/Modal';
 import { Asset, ContractType } from '../../lib/types';
+
+import { FormEvent, useState } from 'react';
 
 export default function PlaceBidModal(props: {contractType: ContractType, asset: Asset, defaultBid: number | null, onClose: Function}) {
 
   const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
   const [amount, setAmount] = useState<number>(1);
 
-  const submitBid = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     for (let i = 0; i < amount; i++) { // TODO: Create a route which allows submitting multiple bids
-      axios.post(`${serverURL}/bid`, {
-        typeId: props.contractType.contractTypeId,
-        bidPrice: price
-      })
+      api.createBid(props.contractType.contractTypeId, price)
         .then(() => props.onClose())
         .catch((error) => console.log(error));
     }
@@ -36,7 +31,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
         <h2 className='place-bid-modal-header'>Place Bid</h2>
         <form
           className='place-bid-form'
-          onSubmit={submitBid}
+          onSubmit={handleSubmit}
         >
           <label className='place-bid-price'>
             Price
@@ -64,6 +59,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
           </label>
           <input
             type='submit'
+            disabled={price < 0.01 || amount < 1}
             value='Submit'
           />
         </form>

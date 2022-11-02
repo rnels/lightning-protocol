@@ -87,7 +87,8 @@ export async function _writerUpdateAskPrice(
 ) {
   const client = await db.connect();
   try {
-    client.query('BEGIN');
+    await client.query('BEGIN');
+    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     const contract = (await client.query(`
       UPDATE contracts
       SET ask_price=$2
@@ -291,7 +292,7 @@ export async function createContract(
 export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
   const client = await db.connect();
   try {
-    client.query('BEGIN');
+    await client.query('BEGIN');
     await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     const contract = (await client.query(`
       UPDATE contracts
@@ -412,8 +413,7 @@ export async function exerciseContract(
   let client = await db.connect();
   try {
     await client.query('BEGIN');
-    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE NOWAIT'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
-    console.log('bid');
+    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     let saleProfits: number;
     let poolFee = contractType.strikePrice * asset.assetAmount;
     if (contractType.direction) { // If direction = call

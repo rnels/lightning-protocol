@@ -30,7 +30,7 @@ router.get('/bid', (req, res, next) => {
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve bids of
 // Successful response data:
-// bids: [bid]
+// bids: Bid[]
 router.get('/bid/type', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
@@ -44,7 +44,7 @@ router.get('/bid/type', (req, res, next) => {
 
 // Retrieve bids for the authenticated user account
 // Successful response data:
-// bids: [bid]
+// bids: Bid[]
 router.get('/bid/owned', (req, res, next) => {
   bids.getBidsByAccountId(req.user!.id)
     .then((bids) => {

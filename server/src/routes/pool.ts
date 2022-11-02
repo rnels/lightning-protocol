@@ -16,22 +16,22 @@ const router = Router();
 //   assetAmount
 //   tradeFees
 // }
-// router.get('/pool', (req, res, next) => {
-//   if (!req.query.id) {
-//     return res.status(400).send({ message: 'Missing query parameter: id' });
-//   }
-//   pools.getPoolById(req.query.id as string)
-//     .then((pool) => {
-//       res.status(200).send({pool});
-//     })
-//     .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
-// });
+router.get('/pool', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  pools.getPoolById(req.query.id as string)
+    .then((pool) => {
+      res.status(200).send({pool});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
+});
 
 // Retrieve pools for a given asset ID
 // Expects in req.query:
 //  assetId - asset_id to retrieve pools for
 // Successful response data:
-// pools: [pool]
+// pools: Pool[]
 router.get('/pool/list', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
@@ -61,7 +61,7 @@ router.get('/pool/asset', (req, res, next) => {
 
 // Retrieve pools for the authenticated user account
 // Successful response data:
-// pools: [pool]
+// pools: Pool[]
 router.get('/pool/owned', (req, res, next) => {
   pools.getPoolsByAccountId(req.user!.id)
     .then((pools) => {
@@ -72,7 +72,7 @@ router.get('/pool/owned', (req, res, next) => {
 
 // Retrieve pools locks for the provided poolId
 // Successful response data:
-// poolLocks: [poolLocks]
+// poolLocks: PoolLock[]
 router.get('/pool/lock', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
@@ -102,7 +102,7 @@ router.get('/pool/lock/asset', (req, res, next) => {
 
 // Retrieve pools locks for the authenticated user account
 // Successful response data:
-// poolLocks: [poolLocks]
+// poolLocks: PoolLock[]
 router.get('/pool/owned/lock', (req, res, next) => {
   pools.getPoolLocksByAccountId(req.user!.id)
     .then((poolLocks) => {

@@ -68,6 +68,7 @@ export function depositPaper(accountId: string | number, amount: number, client?
 export async function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
+  // TODO: Ensure this works
   await query('LOCK TABLE accounts IN ROW EXCLUSIVE MODE');
   return query(`
     UPDATE accounts

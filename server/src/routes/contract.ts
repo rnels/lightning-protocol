@@ -54,7 +54,7 @@ router.get('/contract/type', (req, res, next) => {
 // Expects in req.query:
 //  typeId - ID to retrieve contracts of
 // Successful response data:
-// contracts: [contract]
+// contracts: Contract[]
 router.get('/contract/list', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
@@ -68,7 +68,7 @@ router.get('/contract/list', (req, res, next) => {
 
 // Retrieve contracts for the authenticated user account
 // Successful response data:
-// contracts: [contract]
+// contracts: Contract[]
 router.get('/contract/owned', (req, res, next) => {
   contracts.getContractsByOwnerId(req.user!.id)
     .then((contracts) => {
@@ -81,7 +81,7 @@ router.get('/contract/owned', (req, res, next) => {
 // Expects in req.query:
 //  assetId - Asset to retrieve contract types of
 // Successful response data:
-// contractTypes: [contractType]
+// contractTypes: ContractType[]
 router.get('/contract/type/list', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
@@ -97,7 +97,7 @@ router.get('/contract/type/list', (req, res, next) => {
 // Expects in req.query:
 //  typeId - Contract type to retrieve asks for
 // Successful response data:
-// asks: [number]
+// asks: number[]
 router.get('/contract/type/asks', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });

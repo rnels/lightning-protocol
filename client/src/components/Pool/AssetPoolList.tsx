@@ -1,10 +1,8 @@
-import { useState } from 'react';
-import axios from '../../lib/axios';
+import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
-import { serverURL } from '../../config';
+// import UserPoolDetails from './UserPoolDetails';
 
-import PoolDetails from './PoolDetails';
-
+import { useEffect, useState } from 'react';
 import {
   useParams
 } from "react-router-dom";
@@ -17,37 +15,36 @@ export default function AssetPoolList() {
   const [poolList, setPoolList] = useState<Pool[]>([]);
   const { assetId } = useParams();
 
-  axios.get(`${serverURL}/pool/list`, {
-    params: {
-      assetId
-    }
-  })
-    .then((response) => {
-      setPoolList(response.data.pools);
-    })
-    .catch((errorRes) => {
-      console.log(errorRes);
-      if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
-        setError(errorRes.response.data.message);
-      } else {
-        setError(errorRes.message);
-      }
-    });
+  useEffect(() => {
+    if (!assetId) return;
+    api.getPoolsByAssetId(assetId)
+      .then((pools) => {
+        setPoolList(pools);
+      })
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
+  }, [assetId]);
 
     return (
       <div className="pool-list">
         <h2>Pools</h2>
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {poolList.length > 0 ?
+        {/* {poolList.length > 0 ?
           poolList.map((pool) =>
-            <PoolDetails
+            <UserPoolDetails
               pool={pool}
               key={pool.poolId}
             />
           )
           :
           <p>There are no pools for this asset</p>
-        }
+        } */}
       </div>
 
     );
