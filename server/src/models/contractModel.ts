@@ -39,28 +39,32 @@ async function _getMatchingBidsByAsk(
         WHERE type_id=$1
           AND bid_price>=$2
       ORDER BY bid_price DESC
+      FOR UPDATE
     `, [contract.typeId, contract.askPrice])
   ).rows as Bid[];
   return bids;
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-function _setExercised(
+async function _setExercised(
   contract: Contract,
   exercisedAmount: number,
   client: PoolClient
 ) {
-  return client.query(`
+  let contractId = (await client.query(`
     UPDATE contracts
     SET
       exercised=true,
       exercised_amount=$2
     WHERE contract_id=$1
+    RETURNING contract_id as "contractId"
   `,
   [
     contract.contractId,
     exercisedAmount
-  ]);
+  ])).rows[0].contractId;
+  if (!contractId) throw new Error('No unexercised contract exists with this contractId');
+  return;
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
@@ -88,7 +92,6 @@ export async function _writerUpdateAskPrice(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     const contract = (await client.query(`
       UPDATE contracts
       SET ask_price=$2
@@ -233,7 +236,6 @@ export async function createContract(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     const contract = (await client.query(`
       INSERT INTO contracts (
         type_id,
@@ -293,7 +295,6 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     const contract = (await client.query(`
       UPDATE contracts
       SET ask_price=$2
@@ -385,6 +386,7 @@ export async function _tradeContract(
 // NOTES on put options:
 // They work differently from calls because there needs to be the liquidity to trade when the contract is exercised ITM, meaning the asset needs to be sold beforehand at or above the strike price. Instead of selling the underlying asset as soon as the put is assigned to a pool, it would be better to put on a stop-limit order with the limit set at a margin above the strike, i.e. stop-limit for 31 - 30 for a strike of 30. Could also back it up with a stop-loss order if the limit order fails, and have some way to back the difference if there is any. The stop limit/loss would expire after the contract expiry date (or it could just be represented by the pool lock). This is a riskier method than just selling the asset at market price when a position is opened on the pool and forwarding the strike price * asset amount to the exerciser when it's exercised, but it means that the pool owner would have their assets sold at a potentially lower price than they would be at if the option is not exercised, missing out on unrealized gains.
 // If I go with the first method, I better have a loss prevention fund to round out potentially failed limit orders
+// TODO: Test to ensure you can't exercise the same contract multiple times using concurrent operations or anything else
 export async function exerciseContract(
   contractId: number,
   ownerId: number
@@ -413,7 +415,6 @@ export async function exerciseContract(
   let client = await db.connect();
   try {
     await client.query('BEGIN');
-    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // TODO: Bandaid solution for restricting concurrent access, but research better ways
     let saleProfits: number;
     let poolFee = contractType.strikePrice * asset.assetAmount;
     if (contractType.direction) { // If direction = call

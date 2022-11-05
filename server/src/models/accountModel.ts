@@ -5,6 +5,8 @@ import { Account } from '../types';
 // TODO: Get rid of any route response that exposes account_id
 // Bids, contracts, pools, etc should be anonymous
 
+// TODO: Be aware of how / when to cast numeric types, since it appears as if decimals return as strings on query
+// Currently conflicts with Account type specifying paper as a string, for example
 export async function getAccountInfoById(id: string | number): Promise<Account> {
   const res = await db.query(`
     SELECT
@@ -64,12 +66,9 @@ export function depositPaper(accountId: string | number, amount: number, client?
   ]);
 };
 
-// TODO: Create lock mode
 export async function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
   let query = db.query.bind(db);
   if (client) { query = client.query.bind(client); }
-  // TODO: Ensure this works
-  await query('LOCK TABLE accounts IN ROW EXCLUSIVE MODE');
   return query(`
     UPDATE accounts
     SET paper=paper-$2

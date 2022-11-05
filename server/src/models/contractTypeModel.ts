@@ -30,9 +30,6 @@ async function _convertActivePutContractTypesNearStrike() {
       let client = await db.connect();
       try {
         await client.query('BEGIN');
-        // TODO: Confirm this works
-        await client.query('LOCK TABLE pools IN EXCLUSIVE MODE');
-        await client.query('LOCK TABLE pool_locks IN EXCLUSIVE MODE');
         for (let contract of contracts) {
           let lockPools = await _getLockedPoolsByContractId(contract.contractId);
           for (let pool of lockPools) {
