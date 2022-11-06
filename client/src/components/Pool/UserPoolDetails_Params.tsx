@@ -7,22 +7,24 @@ import PoolAssetModal from "./PoolAssetModal";
 import PoolFeesWithdrawModal from "./PoolFeesWithdrawModal";
 
 import { useEffect, useState } from 'react';
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 
 
 // TODO: Determine if I want to use routing for this instead
 // Could extend an asset ID instead of being passed the pool as a prop from UserPoolList
 // But I would need to make a route to get a pool for a user by asset ID and user ID
-export default function UserPoolDetails(props: {pool: Pool}) {
+export default function UserPoolDetails(props: any) {
 
-  const [asset, setAsset] = useState<Asset>();
-  const [pool, setPool] = useState<Pool>(props.pool);
+  const [pool, setPool] = useState<Pool>();
   const [showAssetModal, setShowAssetModal] = useState<boolean>(false);
   const [assetModalType, setModalType] = useState<boolean>(false);
   const [showFeesModal, setShowFeesModal] = useState<boolean>(false);
 
+  const { assetId } = useParams();
+
   function getPool() {
-    api.getPool(pool.poolId)
+    if (!assetId) return;
+    api.getUserPoolByAssetId(assetId)
       .then((pool) => setPool(pool))
       .catch((errorRes) => {
         console.log(errorRes);
@@ -31,23 +33,15 @@ export default function UserPoolDetails(props: {pool: Pool}) {
 
   useEffect(() => {
     getPool();
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  useEffect(() => {
-    if (asset || !pool) return;
-    api.getAsset(pool.assetId)
-      .then((asset) => setAsset(asset))
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
+  if (!assetId || !pool) return null;
 
-  }, [asset, pool]);
-
-  if (!asset || !pool) return null;
+  console.log(pool);
 
     return (
       <div className="pool-details">
-        <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
         <PoolAssetAmount
           assetAmount={pool.assetAmount}
         />
@@ -70,7 +64,7 @@ export default function UserPoolDetails(props: {pool: Pool}) {
           Withdraw
         </button>
         <div>
-          <Link to={`${pool.poolId}/locks`}>
+          <Link to={`/pools/${pool.poolId}/locks`}>
             Locks
           </Link>
         </div>

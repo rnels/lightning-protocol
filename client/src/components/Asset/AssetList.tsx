@@ -25,7 +25,7 @@ export default function AssetList(props: any) {
 
   const renderAssets = assetList.map((asset) => {
     return (
-      <Link to={asset.assetId.toString()} key={asset.assetId}>
+      <Link to={asset.assetId.toString()} key={`asset-name-${asset.assetId}`}>
         {asset.name}
       </Link>
     );

@@ -37,7 +37,6 @@ export default function PoolAssetDepositModal(props: {pool: Pool, onClose: Funct
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
             />
-          <small>{`Total: ${amount}`}</small>
           </label>
           <input
             type='submit'

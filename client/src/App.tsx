@@ -7,6 +7,9 @@ import NavBar from './components/NavBar';
 import AssetContractsView from './components/Views/AssetContractsView';
 import UserPoolList from './components/Pool/UserPoolList';
 import PoolLockList from './components/Pool/PoolLock/PoolLockList';
+import UserProfile from './components/User/UserProfile';
+import UserContractsView from './components/Views/UserContractsView';
+import UserPoolDetails from './components/Pool/UserPoolDetails_Params';
 
 // import UserContractList from './components/Contract/UserContractList';
 // import AssetDetails from './components/Asset/AssetDetails';
@@ -21,7 +24,6 @@ import {
   RouterProvider,
   Link,
 } from "react-router-dom";
-import UserProfile from './components/User/UserProfile';
 
 type Props = {}
 
@@ -131,6 +133,11 @@ export default class App extends React.Component<Props, State> {
           <UserProfile/>
       },
       {
+        path: 'contracts',
+        element:
+          <UserContractsView/>
+      },
+      {
         path: 'assets',
         element: <AssetList/>
       },
@@ -155,6 +162,10 @@ export default class App extends React.Component<Props, State> {
           }
         ]
       },
+      {
+        path: 'pools/:assetId',
+        element: <UserPoolDetails/>
+      }
     ]);
   }
 
@@ -166,7 +177,7 @@ export default class App extends React.Component<Props, State> {
           email: account.email,
           firstName: account.firstName,
           lastName: account.lastName,
-          paper: account.paper,
+          paper: Math.trunc(account.paper * 100) / 100,
           error: ''
         });
     })

@@ -17,10 +17,10 @@ export default function UserProfile(props: any) {
 
   return (
     <div className="user-profile">
-      <h2>Info</h2>
+      <h2>Profile</h2>
       <p>{`Email: ${account.email}`}</p>
       <p>{`Name: ${account.firstName} ${account.lastName}`}</p>
-      <p>{`Paper: ${account.paper}`}</p>
+      <p>{`Paper: ${Math.trunc(account.paper * 100) / 100}`}</p>
     </div>
 
   );

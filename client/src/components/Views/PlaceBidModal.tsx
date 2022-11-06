@@ -35,13 +35,13 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
         >
           <label className='place-bid-price'>
             Price
-            <input // TODO: There are some problems with entering a value here due to the onChange handler, Ex: 0.29 acts weird. Figure that out
+            <input
               type='number'
               max={1000}
               min={0}
               step={0.01}
               value={price}
-              onChange={(e) => setPrice(Math.min(Math.max(0, Math.trunc(Number(e.target.value) * 100) / 100), 1000))}
+              onChange={(e) => setPrice(Math.trunc(Number(e.target.value) * 100) / 100)}
             />
           <small>{`Cost: $${(props.asset.assetAmount * price).toFixed(2)} ($${price} x ${props.asset.assetAmount})`}</small>
           </label>

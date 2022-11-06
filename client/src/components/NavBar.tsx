@@ -6,9 +6,10 @@ export default function NavBar(props: {logged: boolean, paper: number}) {
       {props.logged ?
       <>
       <div className='nav-bar-left'>
-        <a href='/profile'>Profile</a>
         <a href='/assets'>Assets</a>
         <a href='/pools'>Pools</a>
+        <a href='/contracts'>Contracts</a>
+        <a href='/profile'>Profile</a>
       </div>
       {`${props.paper} 💵`}
       </>

@@ -3,6 +3,7 @@ import { Pool } from '../../lib/types';
 
 import { FormEvent, useState } from 'react';
 import Modal from '@mui/material/Modal';
+import PoolTradeFees from './PoolTradeFees';
 
 const minAmount = 0.01;
 
@@ -37,9 +38,9 @@ export default function PoolFeesWithdrawModal(props: {pool: Pool, onClose: Funct
               max={props.pool.tradeFees}
               step={minAmount}
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(Math.min(props.pool.tradeFees, Number(e.target.value)))}
             />
-          <small>{`Fee Amount: ${props.pool.tradeFees}`}</small>
+          <small>{`Fee Amount: ${Math.trunc(Number(props.pool.tradeFees) * 100) / 100}`}</small>
           </label>
           <input
             type='submit'

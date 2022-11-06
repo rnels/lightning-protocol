@@ -36,7 +36,7 @@ export default function PoolAssetWithdrawModal(props: {pool: Pool, onClose: Func
               max={props.pool.assetAmount}
               step={minAmount}
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(Math.min(props.pool.assetAmount, Number(e.target.value)))}
             />
           <small>{`Asset Amount: ${props.pool.assetAmount}`}</small>
           </label>

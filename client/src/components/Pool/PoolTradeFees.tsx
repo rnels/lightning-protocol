@@ -2,7 +2,7 @@ export default function PoolTradeFees(props: {tradeFees: number}) {
 
     return (
       <div className="pool-trade-fees">
-        {`Fees: ${props.tradeFees}`}
+        {`Fees: ${Math.trunc(props.tradeFees * 100) / 100}`}
       </div>
 
     );

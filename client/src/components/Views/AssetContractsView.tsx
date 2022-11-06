@@ -5,7 +5,7 @@ import ContractTypesTable from './ContractTypesTable';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-/** Renders a list of contracts for the given contracttypeId */
+/** Renders a list of contracts for the given assetId */
 export default function AssetContractsView() {
 
   const [asset, setAsset] = useState<Asset>();
