@@ -126,7 +126,7 @@ h3 {
   margin: 10px 0px;
 }
 
-.place-bid-modal, .pool-asset-deposit-modal, .pool-asset-withdraw-modal, .pool-fees-withdraw-modal, .update-ask-modal, .exercise-contract-modal {
+.place-bid-modal, .pool-asset-deposit-modal, .pool-asset-withdraw-modal, .pool-fees-withdraw-modal, .update-ask-modal, .exercise-contract-modal, .update-bid-modal {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -139,7 +139,7 @@ h3 {
   text-align: center;
 }
 
-.place-bid-modal-header, .pool-asset-deposit-modal-header, .pool-asset-withdraw-modal-header, .pool-fees-withdraw-modal-header, .update-ask-modal-header, .exercise-contract-modal-header {
+.place-bid-modal-header, .pool-asset-deposit-modal-header, .pool-asset-withdraw-modal-header, .pool-fees-withdraw-modal-header, .update-ask-modal-header, .exercise-contract-modal-header, .update-bid-modal-header {
   margin-top: 0px;
   margin-bottom: 20px;
 }

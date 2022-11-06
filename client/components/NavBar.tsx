@@ -7,6 +7,7 @@ export default function NavBar(props: {logged: boolean, paper: number}) {
       <div className='nav-bar-left'>
         <a href='/assets'>Assets</a>
         <a href='/pools'>Pools</a>
+        <a href='/bids'>Bids</a>
         <a href='/contracts'>Contracts</a>
         <a href='/profile'>Profile</a>
       </div>

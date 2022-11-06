@@ -87,7 +87,19 @@ export function getContractTypesByAssetId(assetId: string | number): Promise<Con
 
 // BIDS //
 
-export function getBids(typeId: string | number): Promise<Bid[]> {
+export function getBid(bidId: string | number): Promise<Bid> {
+  return axios.get(`${serverURL}/bid`, {
+     params: { id: bidId }
+  })
+    .then((response) => response.data.bid);
+}
+
+export function getUserBids(): Promise<Bid[]> {
+  return axios.get(`${serverURL}/bid/owned`)
+    .then((response) => response.data.bids);
+}
+
+export function getBidsByType(typeId: string | number): Promise<Bid[]> {
   return axios.get(`${serverURL}/bid/type`, {
     params: { typeId }
   })
@@ -97,6 +109,14 @@ export function getBids(typeId: string | number): Promise<Bid[]> {
 export function createBid(typeId: number, bidPrice: number) {
   return axios.post(`${serverURL}/bid`, {
     typeId,
+    bidPrice
+  })
+    .then((response) => response.data);
+}
+
+export function updateBidPrice(bidId: number, bidPrice: number) {
+  return axios.put(`${serverURL}/bid/price`, {
+    bidId,
     bidPrice
   })
     .then((response) => response.data);

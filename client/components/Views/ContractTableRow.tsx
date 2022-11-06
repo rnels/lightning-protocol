@@ -17,8 +17,8 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
   }
 
   const [bids, setBids] = useState<Bid[]>([]);
-  function getBids() {
-    api.getBids(props.contractType.contractTypeId)
+  function getBidsByType() {
+    api.getBidsByType(props.contractType.contractTypeId)
       .then((bids) => setBids(bids))
       .catch((err) => console.log(err));
   }
@@ -55,7 +55,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
 
   useEffect(() => {
     getContracts();
-    getBids();
+    getBidsByType();
     getAsks();
     getLastTrade();
     getDailyTrades();
@@ -106,7 +106,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
         defaultBid={lowestAsk}
         onClose={() => {
           setShowModal(false);
-          getBids();
+          getBidsByType();
           getAsks();
           getLastTrade();
           getDailyTrades();
