@@ -1,6 +1,7 @@
 import db from '../db/db';
 import { getAssetPriceFromAPI } from '../assets/price';
 import { Asset, AssetType } from '../types';
+import { PoolClient } from 'pg';
 
 async function _checkIfAssetPriceHistoryExists(
   assetId: number,
@@ -59,8 +60,9 @@ export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
   return res.rows;
 };
 
-export async function getAssetById(id: string | number): Promise<Asset> {
-  const res = await db.query(`
+export async function getAssetById(id: string | number, client?: PoolClient): Promise<Asset> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       asset_id as "assetId",
       asset_type as "assetType",
@@ -78,8 +80,9 @@ export async function getAssetById(id: string | number): Promise<Asset> {
 };
 
 /** Calling this gives us the chance to update the asset price, done on an hourly maximum */
-export async function getAssetPriceById(id: string | number): Promise<number> {
-  const res = (await db.query(`
+export async function getAssetPriceById(id: string | number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = (await query(`
     SELECT
       asset_id as "assetId",
       asset_type as "assetType",
@@ -101,8 +104,9 @@ export async function getAssetPriceById(id: string | number): Promise<number> {
   return Number(lastPrice);
 };
 
-export async function getAssetsByAssetType(assetType: string): Promise<Asset[]> {
-  const res = await db.query(`
+export async function getAssetsByAssetType(assetType: string, client?: PoolClient): Promise<Asset[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       asset_id as "assetId",
       asset_type as "assetType",

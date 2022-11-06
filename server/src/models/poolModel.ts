@@ -39,8 +39,9 @@ async function _removeExpiredPoolLocks() {
 }
 
 // TODO: It's possible that if I set an incremented period from expires_at when comparing to NOW(), I can create a buffer where the lock has expired, but new contract creation still considers it locked since there's that incremental period between expiry and NOW(). For example, saying AND expires_at + (PERIOD) > NOW() means they will be left out of the "locked amount". If I allow users to claim locked_pools which have gone past their expiry but remain within this period, this also gives us a manual way to clear out pool locks, by having users "claim" the locked amounts to add them back to their pool (given the option to either return the assets to their pool or withdraw them completely), deleting the lock in the process. In order to clear out pools that have gone past the cooldown however, this still requires some kind of automated cleaning process. Since the locks are being reviewed at the time of contract creation, perhaps ones that are past expiry + interval can just be deleted. This can piggyback the creation contracts. In fact, it basically just means calling _deleteExpiredLocks right before a contract is to be created. I just need to add that period / interval buffer once I decide on it, so it works properly (and anywhere else which compares expires_at to NOW())
-async function _getLockedAmountByPoolId(id: string | number): Promise<number> {
-  const res = await db.query(`
+async function _getLockedAmountByPoolId(id: string | number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT SUM(asset_amount)
       FROM pool_locks
         WHERE pool_id=$1
@@ -49,8 +50,9 @@ async function _getLockedAmountByPoolId(id: string | number): Promise<number> {
   return Number(res.rows[0].sum);
 }
 
-async function _getLockedAmountSumByContractId(contractId: number): Promise<number> {
-  const res = await db.query(`
+async function _getLockedAmountSumByContractId(contractId: number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT SUM(asset_amount)
       FROM pool_locks
         WHERE contract_id=$1
@@ -59,8 +61,9 @@ async function _getLockedAmountSumByContractId(contractId: number): Promise<numb
   return Number(res.rows[0].sum);
 }
 
-async function _getLockedAmountSumByAssetId(assetId: string | number): Promise<number> {
-  const res = await db.query(`
+async function _getLockedAmountSumByAssetId(assetId: string | number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT SUM(pool_locks.asset_amount)
       FROM pools, pool_locks
         WHERE pools.asset_id=$1
@@ -70,8 +73,9 @@ async function _getLockedAmountSumByAssetId(assetId: string | number): Promise<n
   return Number(res.rows[0].sum);
 }
 
-async function _getTotalAmountSumByAssetId(assetId: string | number): Promise<number> {
-  const res = await db.query(`
+async function _getTotalAmountSumByAssetId(assetId: string | number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT SUM(asset_amount)
       FROM pools
         WHERE asset_id=$1
@@ -79,8 +83,9 @@ async function _getTotalAmountSumByAssetId(assetId: string | number): Promise<nu
   return Number(res.rows[0].sum);
 }
 
-async function _doesPoolExist(accountId: number, assetId: number): Promise<boolean> {
-  const res = await db.query(`
+async function _doesPoolExist(accountId: number, assetId: number, client?: PoolClient): Promise<boolean> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT EXISTS(
       SELECT pool_id
         FROM pools
@@ -91,8 +96,9 @@ async function _doesPoolExist(accountId: number, assetId: number): Promise<boole
   return res.rows[0].exists;
 }
 
-async function _getTradeFeesByPoolId(poolId: number): Promise<number> {
-  const res = await db.query(`
+async function _getTradeFeesByPoolId(poolId: number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT trade_fees as "tradeFees"
       FROM pools
         WHERE pool_id=$1
@@ -100,8 +106,9 @@ async function _getTradeFeesByPoolId(poolId: number): Promise<number> {
   return Number(res.rows[0].tradeFees);
 }
 
-export async function _getLockedPoolsByContractId(contractId: number): Promise<PoolLock[]> {
-  const res = await db.query(`
+export async function _getLockedPoolsByContractId(contractId: number, client?: PoolClient): Promise<PoolLock[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       pool_lock_id as "poolLockId",
       pool_id as "poolId",
@@ -120,8 +127,8 @@ export async function _getLockedPoolsByContractId(contractId: number): Promise<P
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _addToLockTradeFees(contractId: number, tradeFee: number, client: PoolClient) {
   let feePromises = [];
-  let lockPools = await _getLockedPoolsByContractId(contractId);
-  let totalAssetAmount = await _getLockedAmountSumByContractId(contractId);
+  let lockPools = await _getLockedPoolsByContractId(contractId, client);
+  let totalAssetAmount = await _getLockedAmountSumByContractId(contractId, client);
   for (let pool of lockPools) {
     let fee = tradeFee * (pool.assetAmount / totalAssetAmount);
     feePromises.push(
@@ -162,28 +169,29 @@ export async function _removePoolLockAssets(contractId: number, client: PoolClie
   return _deletePoolLocksByContractId(contractId, client);
 }
 
-export async function getUnlockedAmountByPoolId(id: string | number): Promise<number> {
+export async function getUnlockedAmountByPoolId(id: string | number, client?: PoolClient): Promise<number> {
   let results = await Promise.all([
-    _getLockedAmountByPoolId(id),
-    getPoolById(id)
+    _getLockedAmountByPoolId(id, client),
+    getPoolById(id, client)
   ]);
   let lockedAmount = results[0];
   let totalAmount = results[1].assetAmount;
   return totalAmount - lockedAmount;
 }
 
-export async function getUnlockedAmountByAssetId(assetId: string | number): Promise<number> {
+export async function getUnlockedAmountByAssetId(assetId: string | number, client?: PoolClient): Promise<number> {
   let results = await Promise.all([
-    _getLockedAmountSumByAssetId(assetId),
-    _getTotalAmountSumByAssetId(assetId)
+    _getLockedAmountSumByAssetId(assetId, client),
+    _getTotalAmountSumByAssetId(assetId, client)
   ]);
   let lockedAmount = results[0];
   let totalAmount = results[1];
   return totalAmount - lockedAmount;
 }
 
-export async function getAllPools(sort='pool_id ASC'): Promise<Pool[]> {
-  const res = await db.query(`
+export async function getAllPools(sort='pool_id ASC', client?: PoolClient): Promise<Pool[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       pool_id as "poolId",
       account_id as "accountId",
@@ -196,8 +204,9 @@ export async function getAllPools(sort='pool_id ASC'): Promise<Pool[]> {
   return res.rows;
 }
 
-export async function getPoolById(id: string | number): Promise<Pool> {
-  const res = await db.query(`
+export async function getPoolById(id: string | number, client?: PoolClient): Promise<Pool> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       pool_id as "poolId",
       account_id as "accountId",
@@ -210,8 +219,9 @@ export async function getPoolById(id: string | number): Promise<Pool> {
   return res.rows[0];
 }
 
-export async function getPoolByAccountAssetIds(accountId: string | number, assetId: string | number): Promise<Pool> {
-  const res = await db.query(`
+export async function getPoolByAccountAssetIds(accountId: string | number, assetId: string | number, client?: PoolClient): Promise<Pool> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       pool_id as "poolId",
       account_id as "accountId",
@@ -225,8 +235,9 @@ export async function getPoolByAccountAssetIds(accountId: string | number, asset
   return res.rows[0];
 }
 
-export async function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
-  const res = await db.query(`
+export async function getPoolsByAssetId(assetId: string | number, client?: PoolClient): Promise<Pool[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       pool_id as "poolId",
       account_id as "accountId",
@@ -239,8 +250,9 @@ export async function getPoolsByAssetId(assetId: string | number): Promise<Pool[
   return res.rows;
 }
 
-export async function getPoolAssetsByAssetId(assetId: string | number): Promise<number> {
-  const res = await db.query(`
+export async function getPoolAssetsByAssetId(assetId: string | number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       SUM(asset_amount)
     FROM pools
@@ -249,7 +261,7 @@ export async function getPoolAssetsByAssetId(assetId: string | number): Promise<
   return res.rows[0].sum;
 }
 
-export async function getPoolsByAccountId(accountId: string | number): Promise<Pool[]> {
+export async function getPoolsByAccountId(accountId: string | number, client?: PoolClient): Promise<Pool[]> {
   const res = await db.query(`
     SELECT
       pool_id as "poolId",
@@ -264,8 +276,9 @@ export async function getPoolsByAccountId(accountId: string | number): Promise<P
 }
 
 // Only gets active pool locks
-export async function getPoolLocksByPoolId(id: string | number): Promise<PoolLock[]> {
-  const res = await db.query(`
+export async function getPoolLocksByPoolId(id: string | number, client?: PoolClient): Promise<PoolLock[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       pool_lock_id as "poolLockId",
       pool_id as "poolId",
@@ -281,8 +294,9 @@ export async function getPoolLocksByPoolId(id: string | number): Promise<PoolLoc
 }
 
 // Only gets active pool locks
-export async function getPoolLocksByAccountId(accountId: string | number): Promise<PoolLock[]> {
-  const res = await db.query(`
+export async function getPoolLocksByAccountId(accountId: string | number, client?: PoolClient): Promise<PoolLock[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       pool_locks.pool_lock_id as "poolLockId",
       pool_locks.pool_id as "poolId",
@@ -299,8 +313,9 @@ export async function getPoolLocksByAccountId(accountId: string | number): Promi
   return res.rows;
 }
 
-export async function getPoolLockAssetsByAssetId(assetId: string | number): Promise<number> {
-  const res = await db.query(`
+export async function getPoolLockAssetsByAssetId(assetId: string | number, client?: PoolClient): Promise<number> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       SUM(pool_locks.asset_amount)
     FROM pools, pool_locks
@@ -370,7 +385,6 @@ export function _deletePoolLocksByContractId(contractId: number, client: PoolCli
   `, [contractId]);
 }
 
-// TODO: Create lock mode
 export async function withdrawPoolAssets(
   poolId: string | number,
   assetAmount: number,

@@ -7,8 +7,9 @@ import { Account } from '../types';
 
 // TODO: Be aware of how / when to cast numeric types, since it appears as if decimals return as strings on query
 // Currently conflicts with Account type specifying paper as a string, for example
-export async function getAccountInfoById(id: string | number): Promise<Account> {
-  const res = await db.query(`
+export async function getAccountInfoById(id: string | number, client?: PoolClient): Promise<Account> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       account_id as "accountId",
       email,
@@ -53,8 +54,7 @@ export async function createAccount(email: string, passwordHash: string, firstNa
 };
 
 export function depositPaper(accountId: string | number, amount: number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
+  let query = client ? client.query.bind(client) : db.query.bind(db);
   return query(`
     UPDATE accounts
     SET paper=paper+$2
@@ -67,8 +67,7 @@ export function depositPaper(accountId: string | number, amount: number, client?
 };
 
 export async function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
-  let query = db.query.bind(db);
-  if (client) { query = client.query.bind(client); }
+  let query = client ? client.query.bind(client) : db.query.bind(db);
   return query(`
     UPDATE accounts
     SET paper=paper-$2

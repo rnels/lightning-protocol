@@ -139,8 +139,9 @@ function _removeAskPrice(
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-async function _getContractById(id: string | number): Promise<Contract> {
-  const res = await db.query(`
+async function _getContractById(id: string | number, client?: PoolClient): Promise<Contract> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_id as "contractId",
       type_id as "typeId",
@@ -155,8 +156,9 @@ async function _getContractById(id: string | number): Promise<Contract> {
   return res.rows[0];
 }
 
-export async function getContractById(id: string | number): Promise<Contract> {
-  const res = await db.query(`
+export async function getContractById(id: string | number, client?: PoolClient): Promise<Contract> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_id as "contractId",
       type_id as "typeId",
@@ -171,8 +173,9 @@ export async function getContractById(id: string | number): Promise<Contract> {
 }
 
 /** Number of contracts represents "Open Interest" */
-export async function getActiveContractsByTypeId(typeId: string | number): Promise<Contract[]> {
-  const res = await db.query(`
+export async function getActiveContractsByTypeId(typeId: string | number, client?: PoolClient): Promise<Contract[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_id as "contractId",
       type_id as "typeId",
@@ -188,8 +191,9 @@ export async function getActiveContractsByTypeId(typeId: string | number): Promi
   return res.rows;
 }
 
-export async function getActiveContractsByTypeIdAndOwnerId(typeId: string | number, ownerId: string | number): Promise<Contract[]> {
-  const res = await db.query(`
+export async function getActiveContractsByTypeIdAndOwnerId(typeId: string | number, ownerId: string | number, client?: PoolClient): Promise<Contract[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_id as "contractId",
       type_id as "typeId",
@@ -206,8 +210,9 @@ export async function getActiveContractsByTypeIdAndOwnerId(typeId: string | numb
   return res.rows;
 }
 
-export async function getContractsByOwnerId(ownerId: string | number): Promise<Contract[]> {
-  const res = await db.query(`
+export async function getContractsByOwnerId(ownerId: string | number, client?: PoolClient): Promise<Contract[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_id as "contractId",
       type_id as "typeId",
@@ -229,13 +234,13 @@ export async function createContract(
   typeId: number,
   askPrice: number
 ): Promise<Contract> {
-  let contractType = await getActiveContractTypeById(typeId);
-  let asset = await getAssetById(contractType.assetId);
-  let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(asset.assetId);
-  if (unlockedPoolAssetTotal < asset.assetAmount) throw new Error('Not enough unlocked assets to create contract');
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+    let contractType = await getActiveContractTypeById(typeId, client);
+    let asset = await getAssetById(contractType.assetId, client);
+    let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(asset.assetId, client);
+    if (unlockedPoolAssetTotal < asset.assetAmount) throw new Error('Not enough unlocked assets to create contract');
     const contract = (await client.query(`
       INSERT INTO contracts (
         type_id,
@@ -254,13 +259,13 @@ export async function createContract(
       typeId,
       askPrice
     ])).rows[0] as Contract;
-    let pools = await getPoolsByAssetId(asset.assetId);
+    let pools = await getPoolsByAssetId(asset.assetId, client);
     let poolLockPromises = [];
     let unallocatedAmount = asset.assetAmount;
     // Okay, so this should create a pool lock for all pools with
     // Unlocked assets, cascading down until the contract is spent on locks
     for (let pool of pools) {
-      let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId); // TODO: Could technically get locked amounts and do the sum here
+      let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId, client); // TODO: Could technically get locked amounts and do the sum here
       if (unlockedAmount > 0) {
         let allocatedAmount = unallocatedAmount >= unlockedAmount ? unlockedAmount : unallocatedAmount;
         poolLockPromises.push(
@@ -328,7 +333,6 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
   }
 }
 
-// For use where a contract is either sold or the listing is removed
 export function removeAskPrice(
   contractId: string | number,
   accountId: string | number
@@ -353,8 +357,8 @@ export async function _tradeContract(
   client: PoolClient
 ) {
   if (!contract.askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
-  let contractType = await getActiveContractTypeById(contract.typeId);
-  let asset = await getAssetById(contractType.assetId);
+  let contractType = await getActiveContractTypeById(contract.typeId, client);
+  let asset = await getAssetById(contractType.assetId, client);
   let saleCost = contract.askPrice * asset.assetAmount;
   let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
     saleCost * poolFee : saleCost;
@@ -391,30 +395,31 @@ export async function exerciseContract(
   contractId: number,
   ownerId: number
 ) {
-  let contract = await _getContractById(contractId);
-  if (contract.ownerId !== ownerId) {
-    throw new Error('Provided ownerId does not match contract.ownerId');
-  }
-  if (contract.exercised) {
-    throw new Error('Contract has already been exercised');
-  }
-  let contractType = await getActiveContractTypeById(contract.typeId);
-  if (!contractType) {
-    throw new Error('Active contractType could not be found');
-  }
-  let asset = await getAssetById(contractType.assetId);
-  // TODO: Consider if we want to be calling to this directly, or call to assetModel to update and use assets.last_price here
-  // Maybe have a stricter requirement when exercising that the asset price must have been updated within the last 10 seconds or something
-  // For the real implementation on the blockchain this won't really matter (nor will getting price from an API at all)
-  let assetPrice = await getAssetPriceFromAPI(asset.priceApiId, asset.assetType); // Not catching potential error on getAssetPriceFromAPI on purpose
-  if (contractType.direction && assetPrice < contractType.strikePrice) {
-    throw new Error('Call option with asset market price under strike price can not be exercised');
-  } else if (!contractType.direction && assetPrice > contractType.strikePrice) {
-    throw new Error('Put option with asset market price above strike price can not be exercised');
-  }
   let client = await db.connect();
   try {
     await client.query('BEGIN');
+    let contract = await _getContractById(contractId, client);
+    if (contract.ownerId !== ownerId) {
+      throw new Error('Provided ownerId does not match contract.ownerId');
+    }
+    if (contract.exercised) {
+      throw new Error('Contract has already been exercised');
+    }
+    let contractType = await getActiveContractTypeById(contract.typeId, client);
+    if (!contractType) {
+      throw new Error('Active contractType could not be found');
+    }
+    let asset = await getAssetById(contractType.assetId, client);
+    // TODO: Consider if we want to be calling to this directly, or call to assetModel to update and use assets.last_price here
+    // Maybe have a stricter requirement when exercising that the asset price must have been updated within the last 10 seconds or something
+    // For the real implementation on the blockchain this won't really matter (nor will getting price from an API at all)
+    let assetPrice = await getAssetPriceFromAPI(asset.priceApiId, asset.assetType); // Not catching potential error on getAssetPriceFromAPI on purpose
+    if (contractType.direction && assetPrice < contractType.strikePrice) {
+      throw new Error('Call option with asset market price under strike price can not be exercised');
+    } else if (!contractType.direction && assetPrice > contractType.strikePrice) {
+      throw new Error('Put option with asset market price above strike price can not be exercised');
+    }
+
     let saleProfits: number;
     let poolFee = contractType.strikePrice * asset.assetAmount;
     if (contractType.direction) { // If direction = call

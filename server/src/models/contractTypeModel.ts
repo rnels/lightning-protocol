@@ -1,3 +1,4 @@
+import { PoolClient } from 'pg';
 import db from '../db/db';
 import { ContractType } from '../types';
 import { getAssetPriceById } from './assetModel';
@@ -10,28 +11,28 @@ import { _getLockedPoolsByContractId } from './poolModel';
 // TODO: Have this called somewhere periodically, possibly whenever asset price is updated for an assetId? Would need to pass it an assetId in that case
 // TODO: Consider adding another property to the schema for put contractTypes which marks if they've already converted or not. Otherwise this could trigger repeatedly every price change beneath the 5% margin. It won't make any changes due to the checking, it'll just be expensive. If we have that flag, the initial list of contractTypes won't include converted ones, saving on all the rest. The only caveat is that if a contract was created for a type after it had already marked as converted, it wouldn't go through the process with the contract. I suppose it does have to be bound to the pool locks in that case. Not ideal, but I'll think on it more
 async function _convertActivePutContractTypesNearStrike() {
-  const contractTypes = (await db.query(`
-    SELECT
-      contract_type_id as "contractTypeId",
-      asset_id as "assetId",
-      direction,
-      strike_price as "strikePrice",
-      expires_at as "expiresAt"
-    FROM contract_types
-      WHERE direction=false
-        AND expires_at > NOW()
-  `)).rows as ContractType[];
-  for (let contractType of contractTypes) { // TODO: Could group by strike price, since that's what is being evaluated
-    let assetPrice = await getAssetPriceById(contractType.assetId);
-    let priceDif = (assetPrice - contractType.strikePrice) / contractType.strikePrice; // Decimal representing difference between asset price and strike
-    if (priceDif < 0.05) { // If difference is less than 5%, time to put into the reserves
-      let contracts = await getActiveContractsByTypeId(contractType.contractTypeId);
-      let typeReservePromises = [];
-      let client = await db.connect();
-      try {
-        await client.query('BEGIN');
+  let client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    const contractTypes = (await client.query(`
+      SELECT
+        contract_type_id as "contractTypeId",
+        asset_id as "assetId",
+        direction,
+        strike_price as "strikePrice",
+        expires_at as "expiresAt"
+      FROM contract_types
+        WHERE direction=false
+          AND expires_at > NOW()
+    `)).rows as ContractType[];
+    let typeReservePromises = [];
+    for (let contractType of contractTypes) { // TODO: Could group by strike price, since that's what is being evaluated
+      let assetPrice = await getAssetPriceById(contractType.assetId, client);
+      let priceDif = (assetPrice - contractType.strikePrice) / contractType.strikePrice; // Decimal representing difference between asset price and strike
+      if (priceDif < 0.05) { // If difference is less than 5%, time to put into the reserves
+        let contracts = await getActiveContractsByTypeId(contractType.contractTypeId, client);
         for (let contract of contracts) {
-          let lockPools = await _getLockedPoolsByContractId(contract.contractId);
+          let lockPools = await _getLockedPoolsByContractId(contract.contractId, client);
           for (let pool of lockPools) {
             // Represents selling at the strike price, implied that there's a limit order
             // Don't worry about the fact that there would be a margin between limit price and actual sale value
@@ -55,20 +56,22 @@ async function _convertActivePutContractTypesNearStrike() {
             }
           }
         }
-        await Promise.all(typeReservePromises);
-        await client.query('COMMIT');
-      } catch {
-        await client.query('ROLLBACK');
-      } finally {
-        client.release();
       }
     }
+    await Promise.all(typeReservePromises);
+    await client.query('COMMIT');
+  }
+  catch {
+    await client.query('ROLLBACK');
+  } finally {
+    client.release();
   }
 }
 
 // NOTE: Should not be used by anything that creates a new contract or references existing contracts
-export async function getContractTypeById(id: string | number): Promise<ContractType> {
-  const res = await db.query(`
+export async function getContractTypeById(id: string | number, client?: PoolClient): Promise<ContractType> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_type_id as "contractTypeId",
       asset_id as "assetId",
@@ -82,8 +85,9 @@ export async function getContractTypeById(id: string | number): Promise<Contract
 }
 
 // Get contract type by type ID (if exists and non-expired)
-export async function getActiveContractTypeById(id: string | number): Promise<ContractType> {
-  const res = await db.query(`
+export async function getActiveContractTypeById(id: string | number, client?: PoolClient): Promise<ContractType> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_type_id as "contractTypeId",
       asset_id as "assetId",
@@ -98,8 +102,9 @@ export async function getActiveContractTypeById(id: string | number): Promise<Co
 }
 
 // Get a list of contract asks by contract type ID (if exists and non-expired)
-export async function getAskPricesByTypeId(id: string | number): Promise<{askPrice: number, contractId: number}[]> {
-  const res = await db.query(`
+export async function getAskPricesByTypeId(id: string | number, client?: PoolClient): Promise<{askPrice: number, contractId: number}[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contracts.contract_id as "contractId",
       contracts.ask_price as "askPrice"
@@ -114,8 +119,9 @@ export async function getAskPricesByTypeId(id: string | number): Promise<{askPri
 }
 
 // Get active (non-expired) contract types by assetID
-export async function getActiveContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
-  const res = await db.query(`
+export async function getActiveContractTypesByAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
     SELECT
       contract_type_id as "contractTypeId",
       asset_id as "assetId",
