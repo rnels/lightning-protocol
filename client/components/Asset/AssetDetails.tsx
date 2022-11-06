@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import React from 'react';
+
 import * as api from '../../lib/api';
 import { Asset } from '../../lib/types';
 // import AssetPoolList from "../Pool/AssetPoolList";
@@ -6,42 +9,24 @@ import AssetPrice from "./AssetPrice";
 import AssetSymbol from "./AssetSymbol";
 import AssetAmount from "./AssetAmount";
 
-import { useEffect, useState } from 'react';
-import {
-  Link,
-  useParams,
-  Outlet
-} from "react-router-dom";
 // import ContractTypeStrikePrice from '../Contract/ContractType/ContractTypeStrikePrice';
 // import ContractTypeDetails from '../Contract/ContractType/ContractTypeDetails';
 // import ContractTypeList from '../Contract/ContractType/ContractTypeList';
 
-export default function AssetDetails() {
+export default function AssetDetails(props: {assetId: string | number}) {
 
   const [asset, setAsset] = useState<Asset>();
-  const { assetId } = useParams();
 
   useEffect(() => {
-    if (!assetId) return;
-    api.getAsset(assetId)
+    if (!props.assetId) return;
+    api.getAsset(props.assetId)
     .then((asset) => setAsset(asset))
     .catch((errorRes) => {
       console.log(errorRes);
     });
-  }, [assetId]);
+  }, [props.assetId]);
 
   if (!asset) return null;
-
-  // createRoutesFromElements(
-  //   <Route
-  //     path='pools'
-  //     element={
-  //       <AssetPoolList
-  //         assetId={props.asset.assetId}
-  //       />
-  //     }
-  //   />
-  // );
 
   return (
     <div className='asset-details'>
@@ -65,13 +50,12 @@ export default function AssetDetails() {
       <AssetPrice
         assetId={asset.assetId}
       />
-      <Link to={`/assets/${assetId}/pools`}>
+      <a href={`/assets/${asset.assetId}/pools`}>
         Pools
-      </Link>
-      <Link to={`/assets/${assetId}/contracts`}>
+      </a>
+      <a href={`/assets/${asset.assetId}/contracts`}>
         Contract Types
-      </Link>
-      <Outlet />
+      </a>
     </div>
 
   );

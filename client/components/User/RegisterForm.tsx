@@ -1,17 +1,18 @@
 import * as api from '../../lib/api';
 
-import { FormEvent, useState } from 'react';
-import { Link } from "react-router-dom";
+import React, { FormEvent, useState } from 'react';
 
-export default function LoginForm(props: {submitCallback: Function}) {
+export default function RegisterForm(props: {submitCallback: Function}) {
 
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    api.loginAccount(email, password)
+    api.registerAccount(email, password, firstName, lastName)
       .then(() => props.submitCallback())
       .catch((errorRes) => {
         console.log(errorRes);
@@ -24,10 +25,30 @@ export default function LoginForm(props: {submitCallback: Function}) {
   }
 
   return (
-    <form className="login-form" onSubmit={handleSubmit}>
+    <form className="register-form" onSubmit={handleSubmit}>
       <h2>
-        Login
+        Register
       </h2>
+      <label>
+        First name
+        <input
+          type='text'
+          name='first-name-input'
+          autoComplete='given-name'
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+        />
+      </label>
+      <label>
+        Last name
+        <input
+          type='text'
+          name='last-name-input'
+          autoComplete='family-name'
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+        />
+      </label>
       <label>
         Email
         <input
@@ -43,7 +64,7 @@ export default function LoginForm(props: {submitCallback: Function}) {
         <input
           type='password'
           name='password-input'
-          autoComplete='current-password'
+          autoComplete='new-password'
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -53,9 +74,7 @@ export default function LoginForm(props: {submitCallback: Function}) {
         value='Submit'
       />
       {error && <div className='error-message'>{`Error: ${error}`}</div>}
-    <Link to='/register'>
-      <small>Don't have an account?</small>
-    </Link>
+    <a href='/login'>Already have an account?</a>
     </form>
   );
 };

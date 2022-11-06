@@ -3,7 +3,7 @@ import { Asset } from '../../lib/types';
 // import AssetDetails from './AssetDetails';
 
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 
 export default function AssetList(props: any) {
 
@@ -25,9 +25,9 @@ export default function AssetList(props: any) {
 
   const renderAssets = assetList.map((asset) => {
     return (
-      <Link to={asset.assetId.toString()} key={`asset-name-${asset.assetId}`}>
+      <a href={`assets/${asset.assetId}`} key={`asset-name-${asset.assetId}`}>
         {asset.name}
-      </Link>
+      </a>
     );
   });
 

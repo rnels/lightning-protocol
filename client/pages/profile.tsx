@@ -1,7 +1,8 @@
-import * as api from '../../lib/api';
-import { Account } from '../../lib/types';
+import * as api from '../lib/api';
+import { Account } from '../lib/types';
 
 import { useEffect, useState } from 'react';
+import React from 'react';
 
 export default function UserProfile(props: any) {
 

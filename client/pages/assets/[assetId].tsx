@@ -1,12 +1,15 @@
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router'
+import React from 'react';
+
 import { ContractType, Asset } from '../../lib/types';
 import * as api from '../../lib/api';
-import ContractTypesTable from './ContractTypesTable';
+import ContractTypesTable from '../../components/Views/ContractTypesTable';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+export default function AssetContracts() {
 
-/** Renders a list of contracts for the given assetId */
-export default function AssetContractsView() {
+  const router = useRouter();
+  const { assetId } = router.query;
 
   const [asset, setAsset] = useState<Asset>();
   const [assetPrice, setAssetPrice] = useState<number>();
@@ -17,23 +20,21 @@ export default function AssetContractsView() {
   const [dateFilter, setDateFilter] = useState<Date>();
   const [dateFilterList, setDateFilterList] = useState<string[]>([]);
 
-  const { assetId } = useParams();
-
   useEffect(() => {
     if (!assetId) return;
-    api.getAsset(assetId)
+    api.getAsset(assetId as string)
       .then((asset) => setAsset(asset))
       .catch((err) => console.log(err));
-    api.getAssetPrice(assetId)
+    api.getAssetPrice(assetId as string)
       .then((price) => setAssetPrice(price))
       .catch((err) => console.log(err));
-    api.getPoolAssetAmountByAssetId(assetId)
+    api.getPoolAssetAmountByAssetId(assetId as string)
       .then((assetAmount) => setPoolAssetAmount(assetAmount))
       .catch((err) => console.log(err));
-    api.getPoolLockAssetAmountByAssetId(assetId)
+    api.getPoolLockAssetAmountByAssetId(assetId as string)
       .then((assetAmount) => setPoolLockAssetAmount(assetAmount))
       .catch((err) => console.log(err));
-    api.getContractTypesByAssetId(assetId)
+    api.getContractTypesByAssetId(assetId as string)
       .then((contractTypes) => {
         setContractTypeList(contractTypes);
         setDateFilter(contractTypes[0].expiresAt);

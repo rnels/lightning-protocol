@@ -1,3 +1,4 @@
+import React from "react";
 
 /** Renders a list of contracts for the authenticated user */
 export default function UserContractsView() {

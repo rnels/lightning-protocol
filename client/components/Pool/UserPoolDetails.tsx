@@ -7,7 +7,7 @@ import PoolAssetModal from "./PoolAssetModal";
 import PoolFeesWithdrawModal from "./PoolFeesWithdrawModal";
 
 import { useEffect, useState } from 'react';
-import { Link, Outlet } from "react-router-dom";
+import React from 'react';
 
 
 // TODO: Determine if I want to use routing for this instead
@@ -70,9 +70,9 @@ export default function UserPoolDetails(props: {pool: Pool}) {
           Withdraw
         </button>
         <div>
-          <Link to={`${pool.poolId}/locks`}>
+          <a href={`${pool.poolId}/locks`}>
             Locks
-          </Link>
+          </a>
         </div>
         {showAssetModal && <PoolAssetModal
         key={pool.poolId}
@@ -91,7 +91,6 @@ export default function UserPoolDetails(props: {pool: Pool}) {
           getPool();
         }}
         />}
-        <Outlet/>
       </div>
 
     );

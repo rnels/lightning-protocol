@@ -3,6 +3,7 @@ import { Pool } from '../../lib/types';
 import UserPoolDetails from './UserPoolDetails';
 
 import { useEffect, useState } from 'react';
+import React from 'react';
 
 /** Renders a list of pools for the logged in user */
 export default function UserPoolList(props: any) {
