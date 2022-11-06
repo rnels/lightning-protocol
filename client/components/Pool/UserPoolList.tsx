@@ -23,19 +23,19 @@ export default function UserPoolList(props: any) {
       });
   }, []);
 
-    return (
-      <div className='user-pool-list'>
-        <h2>My Pools</h2>
-        {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {poolList.length > 0 &&
-          poolList.map((pool) =>
-            <UserPoolDetails
-              pool={pool}
-              key={pool.poolId}
-            />
-          )
-        }
-      </div>
+  return (
+    <div className='user-pool-list'>
+      <h2>My Pools</h2>
+      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      {poolList.length > 0 &&
+        poolList.map((pool) =>
+          <UserPoolDetails
+            pool={pool}
+            key={pool.poolId}
+          />
+        )
+      }
+    </div>
+  );
 
-    );
 };

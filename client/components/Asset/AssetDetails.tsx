@@ -57,6 +57,6 @@ export default function AssetDetails(props: {assetId: string | number}) {
         Contract Types
       </a>
     </div>
-
   );
+
 };

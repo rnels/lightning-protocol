@@ -27,13 +27,13 @@ export default function App({ Component, pageProps }){
   });
 
   return (
-  <div className='App'>
-    <NavBar
-      logged={logged}
-      paper={paper}
-    />
-    <Component {...pageProps} />
-  </div>
+    <div className='App'>
+      <NavBar
+        logged={logged}
+        paper={paper}
+      />
+      <Component {...pageProps} />
+    </div>
   );
 
 }

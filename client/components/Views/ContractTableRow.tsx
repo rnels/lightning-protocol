@@ -115,4 +115,5 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       />}
     </tr>
   );
+
 };

@@ -22,51 +22,52 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
     return null; // TODO: Change this to render some info
   }
 
-    return (
-      <Modal
-        open={true}
-        onClose={(e) => props.onClose()}
+  return (
+    <Modal
+      open={true}
+      onClose={(e) => props.onClose()}
+    >
+    <div className='place-bid-modal'>
+      <h2 className='place-bid-modal-header'>Place Bid</h2>
+      <form
+        className='place-bid-form'
+        onSubmit={handleSubmit}
       >
-      <div className='place-bid-modal'>
-        <h2 className='place-bid-modal-header'>Place Bid</h2>
-        <form
-          className='place-bid-form'
-          onSubmit={handleSubmit}
-        >
-          <label className='place-bid-price'>
-            Price
-            <input
-              type='number'
-              max={1000}
-              min={0}
-              step={0.01}
-              value={price}
-              onChange={(e) => setPrice(Math.trunc(Number(e.target.value) * 100) / 100)}
-            />
-          <small>{`Cost: $${(props.asset.assetAmount * price).toFixed(2)} ($${price} x ${props.asset.assetAmount})`}</small>
-          </label>
-
-          <label className='place-bid-amount'>
-            Contracts
-            <input
-              type='number'
-              min={1}
-              step={1}
-              value={amount}
-              onChange={(e) => setAmount(Math.max(1, Math.floor(Number(e.target.value))))}
-            />
-          <small>{`Total: $${(props.asset.assetAmount * price * amount).toFixed(2)} ($${props.asset.assetAmount * price} x ${amount})`}</small>
-          </label>
+        <label className='place-bid-price'>
+          Price
           <input
-            type='submit'
-            disabled={price < 0.01 || amount < 1}
-            value='Submit'
+            type='number'
+            max={1000}
+            min={0}
+            step={0.01}
+            value={price}
+            onChange={(e) => setPrice(Math.trunc(Number(e.target.value) * 100) / 100)}
           />
-        </form>
-        {/* <button
-          onClick={(e) => props.onClose()}
-        >Close</button> */}
-      </div>
-      </Modal>
-    );
+        <small>{`Cost: $${(props.asset.assetAmount * price).toFixed(2)} ($${price} x ${props.asset.assetAmount})`}</small>
+        </label>
+
+        <label className='place-bid-amount'>
+          Contracts
+          <input
+            type='number'
+            min={1}
+            step={1}
+            value={amount}
+            onChange={(e) => setAmount(Math.max(1, Math.floor(Number(e.target.value))))}
+          />
+        <small>{`Total: $${(props.asset.assetAmount * price * amount).toFixed(2)} ($${props.asset.assetAmount * price} x ${amount})`}</small>
+        </label>
+        <input
+          type='submit'
+          disabled={price < 0.01 || amount < 1}
+          value='Submit'
+        />
+      </form>
+      {/* <button
+        onClick={(e) => props.onClose()}
+      >Close</button> */}
+    </div>
+    </Modal>
+  );
+
 };

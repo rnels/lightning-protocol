@@ -9,19 +9,19 @@ import { GetServerSideProps } from 'next';
 /** Renders a list of pools for the logged in user */
 export default function UserPools(props: { poolList: Pool[] }) {
 
-    return (
-      <div className='user-pools-page'>
-        <h2>My Pools</h2>
-        {props.poolList.length > 0 &&
-          props.poolList.map((pool) =>
-            <UserPoolDetails
-              pool={pool}
-              key={pool.poolId}
-            />
-          )
-        }
-      </div>
-    );
+  return (
+    <div className='user-pools-page'>
+      <h2>My Pools</h2>
+      {props.poolList.length > 0 &&
+        props.poolList.map((pool) =>
+          <UserPoolDetails
+            pool={pool}
+            key={pool.poolId}
+          />
+        )
+      }
+    </div>
+  );
 
 };
 

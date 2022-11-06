@@ -31,21 +31,21 @@ export default function AssetPoolList() {
       });
   }, [assetId]);
 
-    return (
-      <div className='asset-pool-list'>
-        <h2>Pools</h2>
-        {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {/* {poolList.length > 0 ?
-          poolList.map((pool) =>
-            <UserPoolDetails
-              pool={pool}
-              key={pool.poolId}
-            />
-          )
-          :
-          <p>There are no pools for this asset</p>
-        } */}
-      </div>
+  return (
+    <div className='asset-pool-list'>
+      <h2>Pools</h2>
+      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      {/* {poolList.length > 0 ?
+        poolList.map((pool) =>
+          <UserPoolDetails
+            pool={pool}
+            key={pool.poolId}
+          />
+        )
+        :
+        <p>There are no pools for this asset</p>
+      } */}
+    </div>
+  );
 
-    );
 };

@@ -29,29 +29,29 @@ export default function ContractTypeList() {
       });
   }, [assetId]);
 
-    return (
-      <div className='contract-type-list'>
-        <h2>Contract Types</h2>
-        {error && <div className='error-message'>{error}</div>}
-        {contractTypeList.length > 0 ?
+  return (
+    <div className='contract-type-list'>
+      <h2>Contract Types</h2>
+      {error && <div className='error-message'>{error}</div>}
+      {contractTypeList.length > 0 ?
+        <>
+        {contractTypeList.map((contractType) =>
           <>
-          {contractTypeList.map((contractType) =>
-            <>
-            <ContractTypeDetails
-              contractType={contractType}
-              key={contractType.contractTypeId}
-            />
-            <Link to={contractType.contractTypeId.toString()}>
-              Contracts
-            </Link>
-            </>
-          )}
-          <Outlet />
+          <ContractTypeDetails
+            contractType={contractType}
+            key={contractType.contractTypeId}
+          />
+          <Link to={contractType.contractTypeId.toString()}>
+            Contracts
+          </Link>
           </>
-          :
-          <p>There are no contract types for this asset</p>
-        }
-      </div>
+        )}
+        <Outlet />
+        </>
+        :
+        <p>There are no contract types for this asset</p>
+      }
+    </div>
+  );
 
-    );
 };

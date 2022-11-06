@@ -20,5 +20,6 @@ export default function NavBar(props: {logged: boolean, paper: number}) {
       </>
       }
     </div>
-  )
+  );
+
 };

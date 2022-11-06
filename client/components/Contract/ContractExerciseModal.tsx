@@ -22,30 +22,31 @@ export default function ContractExerciseModal(props: {contract: Contract, onClos
       });
   };
 
-    return (
-      <Modal
-        open={true}
-        onClose={(e) => props.onClose()}
+  return (
+    <Modal
+      open={true}
+      onClose={(e) => props.onClose()}
+    >
+    <div className='exercise-contract-modal'>
+      <h2 className='exercise-contract-modal-header'>Exercise</h2>
+      <form
+        className='exercise-contract-form'
+        onSubmit={handleSubmit}
       >
-      <div className='exercise-contract-modal'>
-        <h2 className='exercise-contract-modal-header'>Exercise</h2>
-        <form
-          className='exercise-contract-form'
-          onSubmit={handleSubmit}
-        >
-          <label className='exercise-contract-confirm'>
-            Are you sure?
-            <input
-              type='submit'
-              value='Confirm'
-            />
-          </label>
-        </form>
-        {error && <label className='error-message'>{error}</label>}
-        {/* <button
-          onClick={(e) => props.onClose()}
-        >Close</button> */}
-      </div>
-      </Modal>
-    );
+        <label className='exercise-contract-confirm'>
+          Are you sure?
+          <input
+            type='submit'
+            value='Confirm'
+          />
+        </label>
+      </form>
+      {error && <label className='error-message'>{error}</label>}
+      {/* <button
+        onClick={(e) => props.onClose()}
+      >Close</button> */}
+    </div>
+    </Modal>
+  );
+
 };

@@ -16,10 +16,10 @@ export default function AssetPrice(props: {assetId: number}) {
       });
   }, [props.assetId]);
 
-    return (
-      <div className='asset-price'>
-        {assetPrice}
-      </div>
+  return (
+    <div className='asset-price'>
+      {assetPrice}
+    </div>
+  );
 
-    );
 };

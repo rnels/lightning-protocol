@@ -1,9 +1,9 @@
 export default function AssetSymbol(props: {symbol: string}) {
 
-    return (
-      <div className='asset-symbol'>
-        {props.symbol}
-      </div>
+  return (
+    <div className='asset-symbol'>
+      {props.symbol}
+    </div>
+  );
 
-    );
 };

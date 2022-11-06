@@ -19,36 +19,37 @@ export default function PoolFeesWithdrawModal(props: {pool: Pool, onClose: Funct
       .catch((error) => console.log(error));
   };
 
-    return (
-      <Modal
-        open={true}
-        onClose={(e) => props.onClose()}
+  return (
+    <Modal
+      open={true}
+      onClose={(e) => props.onClose()}
+    >
+    <div className='pool-fees-withdraw-modal'>
+      <h2 className='pool-fees-withdraw-modal-header'>Withdraw Fees</h2>
+      <form
+        className='pool-fees-withdraw-form'
+        onSubmit={handleSubmit}
       >
-      <div className='pool-fees-withdraw-modal'>
-        <h2 className='pool-fees-withdraw-modal-header'>Withdraw Fees</h2>
-        <form
-          className='pool-fees-withdraw-form'
-          onSubmit={handleSubmit}
-        >
-          <label className='pool-fees-withdraw-amount'>
-            Amount
-            <input
-              type='number'
-              min={minAmount}
-              max={props.pool.tradeFees}
-              step={minAmount}
-              value={amount}
-              onChange={(e) => setAmount(Math.min(props.pool.tradeFees, Number(e.target.value)))}
-            />
-          <small>{`Fee Amount: ${Math.trunc(Number(props.pool.tradeFees) * 100) / 100}`}</small>
-          </label>
+        <label className='pool-fees-withdraw-amount'>
+          Amount
           <input
-            type='submit'
-            disabled={amount < minAmount}
-            value='Submit'
+            type='number'
+            min={minAmount}
+            max={props.pool.tradeFees}
+            step={minAmount}
+            value={amount}
+            onChange={(e) => setAmount(Math.min(props.pool.tradeFees, Number(e.target.value)))}
           />
-        </form>
-      </div>
-      </Modal>
-    );
+        <small>{`Fee Amount: ${Math.trunc(Number(props.pool.tradeFees) * 100) / 100}`}</small>
+        </label>
+        <input
+          type='submit'
+          disabled={amount < minAmount}
+          value='Submit'
+        />
+      </form>
+    </div>
+    </Modal>
+  );
+
 };

@@ -13,8 +13,8 @@ export default function UserProfile(props: {account: Account}) {
       <p>{`Name: ${props.account.firstName} ${props.account.lastName}`}</p>
       <p>{`Paper: ${Math.trunc(props.account.paper * 100) / 100}`}</p>
     </div>
-
   );
+
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {

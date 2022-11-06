@@ -16,25 +16,25 @@ export default function BidDetails(props: { bid: Bid }) {
       .catch((error) => console.log(error));
   }
 
-    return (
-      <div className='bid-details'>
-        <button onClick={() => setShowBidModal(true)}>
-          Update
-        </button>
-        <BidPrice
-          bidPrice={bid.bidPrice}
-        />
-        {showBidModal && <UpdateBidPriceModal
-        bid={bid}
-        onClose={() => {
-          setShowBidModal(false);
-          getBidDetails();
-        }}
-        />}
-        {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
-          contractType={contractType}
-        />} */}
-      </div>
+  return (
+    <div className='bid-details'>
+      <button onClick={() => setShowBidModal(true)}>
+        Update
+      </button>
+      <BidPrice
+        bidPrice={bid.bidPrice}
+      />
+      {showBidModal && <UpdateBidPriceModal
+      bid={bid}
+      onClose={() => {
+        setShowBidModal(false);
+        getBidDetails();
+      }}
+      />}
+      {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
+        contractType={contractType}
+      />} */}
+    </div>
+  );
 
-    );
 };

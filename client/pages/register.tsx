@@ -14,7 +14,6 @@ export default function Register() {
 
 };
 
-
 function RegisterForm(props: {submitCallback: Function}) {
 
   const [firstName, setFirstName] = useState('');
@@ -36,7 +35,7 @@ function RegisterForm(props: {submitCallback: Function}) {
           setError(errorRes.message);
         }
       });
-  }
+  };
 
   return (
     <form className='register-form' onSubmit={handleSubmit}>
@@ -91,4 +90,5 @@ function RegisterForm(props: {submitCallback: Function}) {
       <a href='/login'>Already have an account?</a>
     </form>
   );
+
 };

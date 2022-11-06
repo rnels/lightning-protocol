@@ -17,36 +17,37 @@ export default function PoolAssetWithdrawModal(props: {pool: Pool, onClose: Func
       .catch((error) => console.log(error));
   };
 
-    return (
-      <Modal
-        open={true}
-        onClose={(e) => props.onClose()}
+  return (
+    <Modal
+      open={true}
+      onClose={(e) => props.onClose()}
+    >
+    <div className='pool-asset-withdraw-modal'>
+      <h2 className='pool-asset-withdraw-modal-header'>Withdraw Assets</h2>
+      <form
+        className='pool-asset-withdraw-form'
+        onSubmit={handleSubmit}
       >
-      <div className='pool-asset-withdraw-modal'>
-        <h2 className='pool-asset-withdraw-modal-header'>Withdraw Assets</h2>
-        <form
-          className='pool-asset-withdraw-form'
-          onSubmit={handleSubmit}
-        >
-          <label className='pool-asset-withdraw-amount'>
-            Amount
-            <input
-              type='number'
-              min={minAmount} // TODO: May need to adjust for different types of assets
-              max={props.pool.assetAmount}
-              step={minAmount}
-              value={amount}
-              onChange={(e) => setAmount(Math.min(props.pool.assetAmount, Number(e.target.value)))}
-            />
-          <small>{`Asset Amount: ${props.pool.assetAmount}`}</small>
-          </label>
+        <label className='pool-asset-withdraw-amount'>
+          Amount
           <input
-            type='submit'
-            disabled={amount < minAmount}
-            value='Submit'
+            type='number'
+            min={minAmount} // TODO: May need to adjust for different types of assets
+            max={props.pool.assetAmount}
+            step={minAmount}
+            value={amount}
+            onChange={(e) => setAmount(Math.min(props.pool.assetAmount, Number(e.target.value)))}
           />
-        </form>
-      </div>
-      </Modal>
-    );
+        <small>{`Asset Amount: ${props.pool.assetAmount}`}</small>
+        </label>
+        <input
+          type='submit'
+          disabled={amount < minAmount}
+          value='Submit'
+        />
+      </form>
+    </div>
+    </Modal>
+  );
+
 };

@@ -34,42 +34,42 @@ export default function ContractDetails(props: { contract: Contract }) {
   //     });
   // }, [props.contract]);
 
-    return (
-      <div className='contract-details'>
-        <ContractAskPrice
-          askPrice={contract.askPrice}
-        />
-        <button onClick={() => setShowAskModal(true)}>
-          Update
-        </button>
-        {showAskModal && <ContractUpdateAskPriceModal
-        contract={contract}
-        onClose={() => {
-          setShowAskModal(false);
-          getContractDetails();
-        }}
-        />}
-        <ContractCreatedAt
-          createdAt={contract.createdAt}
-        />
-        <ContractExercised
-          exercised={contract.exercised}
-          exercisedAmount={contract.exercisedAmount}
-        />
-        <button onClick={() => setShowExerciseModal(true)}>
-          Exercise
-        </button>
-        {showExerciseModal && <ContractExerciseModal
-        contract={contract}
-        onClose={() => {
-          setShowExerciseModal(false);
-          getContractDetails();
-        }}
-        />}
-        {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
-          contractType={contractType}
-        />} */}
-      </div>
+  return (
+    <div className='contract-details'>
+      <ContractAskPrice
+        askPrice={contract.askPrice}
+      />
+      <button onClick={() => setShowAskModal(true)}>
+        Update
+      </button>
+      {showAskModal && <ContractUpdateAskPriceModal
+      contract={contract}
+      onClose={() => {
+        setShowAskModal(false);
+        getContractDetails();
+      }}
+      />}
+      <ContractCreatedAt
+        createdAt={contract.createdAt}
+      />
+      <ContractExercised
+        exercised={contract.exercised}
+        exercisedAmount={contract.exercisedAmount}
+      />
+      <button onClick={() => setShowExerciseModal(true)}>
+        Exercise
+      </button>
+      {showExerciseModal && <ContractExerciseModal
+      contract={contract}
+      onClose={() => {
+        setShowExerciseModal(false);
+        getContractDetails();
+      }}
+      />}
+      {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
+        contractType={contractType}
+      />} */}
+    </div>
+  );
 
-    );
 };

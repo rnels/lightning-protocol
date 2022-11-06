@@ -33,7 +33,7 @@ function LoginForm(props: {submitCallback: Function}) {
           setError(errorRes.message);
         }
       });
-  }
+  };
 
   return (
     <form className='login-form' onSubmit={handleSubmit}>
@@ -68,4 +68,5 @@ function LoginForm(props: {submitCallback: Function}) {
       <a href='/register'>Don't have an account?</a>
     </form>
   );
+
 };

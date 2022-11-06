@@ -15,38 +15,39 @@ export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}
       .catch((error) => console.log(error));
   };
 
-    return (
-      <Modal
-        open={true}
-        onClose={(e) => props.onClose()}
+  return (
+    <Modal
+      open={true}
+      onClose={(e) => props.onClose()}
+    >
+    <div className='update-bid-modal'>
+      <h2 className='update-bid-modal-header'>Update bid</h2>
+      <form
+        className='update-bid-form'
+        onSubmit={handleSubmit}
       >
-      <div className='update-bid-modal'>
-        <h2 className='update-bid-modal-header'>Update bid</h2>
-        <form
-          className='update-bid-form'
-          onSubmit={handleSubmit}
-        >
-          <label className='update-bid-price'>
-            Price
-            <input
-              type='number'
-              max={1000}
-              min={0}
-              step={0.01}
-              value={price}
-              onChange={(e) => setPrice(Math.trunc(Number(e.target.value) * 100) / 100)}
-            />
-          </label>
+        <label className='update-bid-price'>
+          Price
           <input
-            type='submit'
-            disabled={price < 0.01}
-            value='Submit'
+            type='number'
+            max={1000}
+            min={0}
+            step={0.01}
+            value={price}
+            onChange={(e) => setPrice(Math.trunc(Number(e.target.value) * 100) / 100)}
           />
-        </form>
-        {/* <button
-          onClick={(e) => props.onClose()}
-        >Close</button> */}
-      </div>
-      </Modal>
-    );
+        </label>
+        <input
+          type='submit'
+          disabled={price < 0.01}
+          value='Submit'
+        />
+      </form>
+      {/* <button
+        onClick={(e) => props.onClose()}
+      >Close</button> */}
+    </div>
+    </Modal>
+  );
+
 };

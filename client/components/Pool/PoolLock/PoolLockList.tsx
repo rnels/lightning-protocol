@@ -27,21 +27,21 @@ export default function PoolLockList() {
       });
   }, [poolId])
 
-    return (
-      <div className="pool-lock-list">
-        <h4>Locks</h4>
-        {error && <div className='error-message'>{`Error: ${error}`}</div>}
-        {poolLockList.length > 0 ?
-          poolLockList.map((poolLock) =>
-            <PoolLockDetails
-              poolLock={poolLock}
-              key={poolLock.poolLockId}
-            />
-          )
-          :
-          <p>There are no pool locks for this asset</p>
-        }
-      </div>
+  return (
+    <div className="pool-lock-list">
+      <h4>Locks</h4>
+      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      {poolLockList.length > 0 ?
+        poolLockList.map((poolLock) =>
+          <PoolLockDetails
+            poolLock={poolLock}
+            key={poolLock.poolLockId}
+          />
+        )
+        :
+        <p>There are no pool locks for this asset</p>
+      }
+    </div>
+  );
 
-    );
 };

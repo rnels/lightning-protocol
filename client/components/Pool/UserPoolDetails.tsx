@@ -45,53 +45,53 @@ export default function UserPoolDetails(props: { pool: Pool }) {
 
   if (!asset || !pool) return null;
 
-    return (
-      <div className='user-pool-details'>
-        <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
-        <PoolAssetAmount
-          assetAmount={pool.assetAmount}
-        />
-        <button onClick={() => {
-          setShowAssetModal(true);
-          setModalType(true);
-        }}>
-          Deposit
-        </button>
-        <button onClick={() => {
-          setShowAssetModal(true);
-          setModalType(false);
-        }}>
-          Withdraw
-        </button>
-        <PoolTradeFees
-          tradeFees={pool.tradeFees}
-        />
-        <button onClick={() => setShowFeesModal(true)}>
-          Withdraw
-        </button>
-        <div>
-          <a href={`${pool.poolId}/locks`}>
-            Locks
-          </a>
-        </div>
-        {showAssetModal && <PoolAssetModal
-        key={pool.poolId}
-        pool={pool}
-        modalType={assetModalType}
-        onClose={() => {
-          setShowAssetModal(false);
-          getPool();
-        }}
-        />}
-        {showFeesModal && <PoolFeesWithdrawModal
-        key={pool.poolId}
-        pool={pool}
-        onClose={() => {
-          setShowFeesModal(false);
-          getPool();
-        }}
-        />}
+  return (
+    <div className='user-pool-details'>
+      <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
+      <PoolAssetAmount
+        assetAmount={pool.assetAmount}
+      />
+      <button onClick={() => {
+        setShowAssetModal(true);
+        setModalType(true);
+      }}>
+        Deposit
+      </button>
+      <button onClick={() => {
+        setShowAssetModal(true);
+        setModalType(false);
+      }}>
+        Withdraw
+      </button>
+      <PoolTradeFees
+        tradeFees={pool.tradeFees}
+      />
+      <button onClick={() => setShowFeesModal(true)}>
+        Withdraw
+      </button>
+      <div>
+        <a href={`${pool.poolId}/locks`}>
+          Locks
+        </a>
       </div>
+      {showAssetModal && <PoolAssetModal
+      key={pool.poolId}
+      pool={pool}
+      modalType={assetModalType}
+      onClose={() => {
+        setShowAssetModal(false);
+        getPool();
+      }}
+      />}
+      {showFeesModal && <PoolFeesWithdrawModal
+      key={pool.poolId}
+      pool={pool}
+      onClose={() => {
+        setShowFeesModal(false);
+        getPool();
+      }}
+      />}
+    </div>
+  );
 
-    );
 };

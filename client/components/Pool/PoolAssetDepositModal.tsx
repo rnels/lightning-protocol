@@ -17,34 +17,35 @@ export default function PoolAssetDepositModal(props: {pool: Pool, onClose: Funct
       .catch((error) => console.log(error));
   };
 
-    return (
-      <Modal
-        open={true}
-        onClose={(e) => props.onClose()}
+  return (
+    <Modal
+      open={true}
+      onClose={(e) => props.onClose()}
+    >
+    <div className='pool-asset-deposit-modal'>
+      <h2 className='pool-asset-deposit-modal-header'>Deposit Assets</h2>
+      <form
+        className='pool-asset-deposit-form'
+        onSubmit={handleSubmit}
       >
-      <div className='pool-asset-deposit-modal'>
-        <h2 className='pool-asset-deposit-modal-header'>Deposit Assets</h2>
-        <form
-          className='pool-asset-deposit-form'
-          onSubmit={handleSubmit}
-        >
-          <label className='pool-asset-deposit-amount'>
-            Amount
-            <input
-              type='number'
-              min={minAmount} // TODO: May need to adjust for different types of assets
-              step={minAmount}
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
-            />
-          </label>
+        <label className='pool-asset-deposit-amount'>
+          Amount
           <input
-            type='submit'
-            disabled={amount < minAmount}
-            value='Submit'
+            type='number'
+            min={minAmount} // TODO: May need to adjust for different types of assets
+            step={minAmount}
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
           />
-        </form>
-      </div>
-      </Modal>
-    );
+        </label>
+        <input
+          type='submit'
+          disabled={amount < minAmount}
+          value='Submit'
+        />
+      </form>
+    </div>
+    </Modal>
+  );
+
 };

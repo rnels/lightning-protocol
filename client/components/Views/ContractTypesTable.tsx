@@ -13,22 +13,23 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
     />
   );
 
-    return (
-      <table className='contract-types-table'>
-        <thead className='contract-table-header'>
-          <tr>
-            <th>Strike</th>
-            <th>Last</th>
-            <th>Change</th>
-            <th>Bid</th>
-            <th>Ask</th>
-            <th>Volume</th>
-            <th>OI</th>
-          </tr>
-        </thead>
-        <tbody>
-          {renderCells}
-        </tbody>
-      </table>
-    );
+  return (
+    <table className='contract-types-table'>
+      <thead className='contract-table-header'>
+        <tr>
+          <th>Strike</th>
+          <th>Last</th>
+          <th>Change</th>
+          <th>Bid</th>
+          <th>Ask</th>
+          <th>Volume</th>
+          <th>OI</th>
+        </tr>
+      </thead>
+      <tbody>
+        {renderCells}
+      </tbody>
+    </table>
+  );
+
 };

@@ -5,4 +5,5 @@ export default function BidPrice(props: {bidPrice: number}) {
       {`Bid Price: ${props.bidPrice}`}
     </div>
   );
+
 };
