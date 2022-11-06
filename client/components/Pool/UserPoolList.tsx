@@ -24,7 +24,7 @@ export default function UserPoolList(props: any) {
   }, []);
 
     return (
-      <div className="pool-list">
+      <div className='user-pool-list'>
         <h2>My Pools</h2>
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
         {poolList.length > 0 &&

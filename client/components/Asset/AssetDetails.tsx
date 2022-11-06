@@ -39,13 +39,13 @@ export default function AssetDetails(props: {assetId: string | number}) {
         />
       }
       <AssetName
-        assetName={asset.name}
+        name={asset.name}
       />
       <AssetSymbol
-        assetSymbol={asset.symbol}
+        symbol={asset.symbol}
       />
       <AssetAmount
-        assetAmount={asset.assetAmount}
+        amount={asset.assetAmount}
       />
       <AssetPrice
         assetId={asset.assetId}

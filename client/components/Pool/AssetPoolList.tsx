@@ -32,7 +32,7 @@ export default function AssetPoolList() {
   }, [assetId]);
 
     return (
-      <div className="pool-list">
+      <div className='asset-pool-list'>
         <h2>Pools</h2>
         {error && <div className='error-message'>{`Error: ${error}`}</div>}
         {/* {poolList.length > 0 ?

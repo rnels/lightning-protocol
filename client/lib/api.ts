@@ -29,6 +29,14 @@ export function loginAccount(email: string, password: string) {
 
 // CONTRACTS //
 
+export function getContract(contractId: string | number): Promise<Contract> {
+  return axios.get(`${serverURL}/contract`, {
+    params: { id: contractId }
+  })
+    .then((response) => response.data.contract)
+}
+
+
 export function getContractListByType(typeId: string | number): Promise<Contract[]> {
   return axios.get(`${serverURL}/contract/list`, {
     params: { typeId }
@@ -46,6 +54,19 @@ export function getAsks(typeId: string | number): Promise<{askPrice: number, con
     params: { typeId }
   })
     .then((response) => response.data.asks)
+}
+
+export function exerciseContract(contractId: string | number) {
+  return axios.post(`${serverURL}/contract/exercise`, { contractId })
+    .then((response) => response.data);
+}
+
+export function updateAskPrice(contractId: string | number, askPrice: number) {
+  return axios.put(`${serverURL}/contract/ask`, {
+    contractId,
+    askPrice
+  })
+    .then((response) => response.data);
 }
 
 // CONTRACT TYPES //

@@ -438,11 +438,11 @@ export async function exerciseContract(
     await _setExercised(contract, saleProfits, client);
     await client.query('COMMIT');
     client.release();
-  } catch(e) {
+  } catch (e: any) {
     console.log(e); // DEBUG
     await client.query('ROLLBACK');
     client.release();
-    throw new Error('There was an error exercising the contract');
+    throw new Error(e);
   }
 }
 

@@ -1,9 +1,8 @@
-export default function AssetAmount(props: {assetAmount: number}) {
+export default function AssetAmount(props: {amount: number}) {
 
     return (
-      <div className="asset-asset-amount">
-        {props.assetAmount}
+      <div className='asset-amount'>
+        {props.amount}
       </div>
-
     );
 };

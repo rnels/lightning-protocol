@@ -6,7 +6,7 @@ import ContractTypeExpiresAt from "./ContractTypeExpiresAt";
 // TODO: Display contract type information
 export default function ContractTypeDetails(props: {contractType: ContractType}) {
     return (
-      <div className="contract-type-details">
+      <div className='contract-type-details'>
         <ContractTypeDirection
           direction={props.contractType.direction}
         />

@@ -68,8 +68,9 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
   let bidPrices = bids.map((bid) => bid.bidPrice);
   const highestBid = bidPrices.length > 0 ? Math.max(...bidPrices) : null;
   const lastPrice = lastTrade ? lastTrade.salePrice : 0;
+
   return (
-    <tr className="contract-table-row">
+    <tr className='contract-table-row'>
       <td>{`$${props.contractType.strikePrice}`}</td>
       <td>{`$${lastPrice}`}</td>
       <td>

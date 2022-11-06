@@ -3,8 +3,9 @@ export default function ContractExercised(props: {exercised: boolean, exercisedA
   if (!props.exercised) return null;
 
     return (
-      <div className="contract-exercised">
-        {`Exercised Amount: ${props.exercisedAmount}`}
+      <div className='contract-exercised'>
+        {`Exercised? ${props.exercised ? 'Yes' : 'No'}`}
+        {props.exercised && `Exercised Amount: ${props.exercisedAmount}`}
       </div>
 
     );

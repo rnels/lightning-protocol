@@ -1,8 +1,8 @@
-export default function AssetSymbol(props: {assetSymbol: string}) {
+export default function AssetSymbol(props: {symbol: string}) {
 
     return (
-      <div className="asset-asset-symbol">
-        {props.assetSymbol}
+      <div className='asset-symbol'>
+        {props.symbol}
       </div>
 
     );

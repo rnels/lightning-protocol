@@ -1,6 +1,5 @@
 export default function NavBar(props: {logged: boolean, paper: number}) {
 
-  // TODO: Change this to use react router once I have a better understanding of it
   return (
     <div className='nav-bar'>
       {props.logged ?
@@ -11,7 +10,7 @@ export default function NavBar(props: {logged: boolean, paper: number}) {
         <a href='/contracts'>Contracts</a>
         <a href='/profile'>Profile</a>
       </div>
-      {`${props.paper} 💵`}
+      {`${Math.trunc(props.paper * 100) / 100} 💵`}
       </>
       :
       <>

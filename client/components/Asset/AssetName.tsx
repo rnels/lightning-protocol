@@ -1,8 +1,8 @@
-export default function AssetName(props: {assetName: string}) {
+export default function AssetName(props: {name: string}) {
 
     return (
-      <div className="asset-asset-name">
-        {props.assetName}
+      <div className='asset-name'>
+        {props.name}
       </div>
 
     );

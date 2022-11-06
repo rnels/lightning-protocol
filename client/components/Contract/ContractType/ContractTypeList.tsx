@@ -30,9 +30,9 @@ export default function ContractTypeList() {
   }, [assetId]);
 
     return (
-      <div className="contract-type-list">
+      <div className='contract-type-list'>
         <h2>Contract Types</h2>
-        {error && <div className='error-message'>{`Error: ${error}`}</div>}
+        {error && <div className='error-message'>{error}</div>}
         {contractTypeList.length > 0 ?
           <>
           {contractTypeList.map((contractType) =>

@@ -13,7 +13,7 @@ import React from 'react';
 // TODO: Determine if I want to use routing for this instead
 // Could extend an asset ID instead of being passed the pool as a prop from UserPoolList
 // But I would need to make a route to get a pool for a user by asset ID and user ID
-export default function UserPoolDetails(props: {pool: Pool}) {
+export default function UserPoolDetails(props: { pool: Pool }) {
 
   const [asset, setAsset] = useState<Asset>();
   const [pool, setPool] = useState<Pool>(props.pool);
@@ -46,7 +46,7 @@ export default function UserPoolDetails(props: {pool: Pool}) {
   if (!asset || !pool) return null;
 
     return (
-      <div className="pool-details">
+      <div className='user-pool-details'>
         <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
         <PoolAssetAmount
           assetAmount={pool.assetAmount}

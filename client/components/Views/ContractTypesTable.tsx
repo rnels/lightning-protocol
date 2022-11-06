@@ -14,8 +14,8 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
   );
 
     return (
-      <table className="contract-types-table">
-        <thead className="contract-table-header">
+      <table className='contract-types-table'>
+        <thead className='contract-table-header'>
           <tr>
             <th>Strike</th>
             <th>Last</th>
