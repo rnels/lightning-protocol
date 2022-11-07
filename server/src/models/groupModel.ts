@@ -1,6 +1,6 @@
 import db from '../db/db';
 import { Asset, Contract, ContractType, Pool } from '../types';
-import { getAllAssets } from './assetModel';
+import { getAllAssets, getAssetById } from './assetModel';
 import { getBidsByContractTypeId } from './bidModel';
 import { getContractsByTypeId, getContractsByTypeIdOwnerId } from './contractModel';
 import { getContractTypesByAssetId } from './contractTypeModel';
@@ -16,6 +16,13 @@ export async function getAssetGroup(): Promise<Asset[]> {
   return assets;
 }
 
+export async function getAssetGroupById(assetId: string | number): Promise<Asset> {
+  let asset = await getAssetById(assetId);
+  asset.pools = await getPoolGroup(asset.assetId);
+  asset.contractTypes = await getContractTypeGroup(asset.assetId);
+  return asset;
+}
+
 export async function getAssetGroupOwned(accountId: string | number): Promise<Asset[]> {
   let assets = await getAllAssets();
   for (let asset of assets) {
@@ -23,6 +30,13 @@ export async function getAssetGroupOwned(accountId: string | number): Promise<As
     asset.contractTypes = await getContractTypeGroupOwned(asset.assetId, accountId);
   }
   return assets;
+}
+
+export async function getAssetGroupOwnedById(assetId: string | number, accountId: string | number): Promise<Asset> {
+  let asset = await getAssetById(assetId);
+  asset.pools = [await getPoolGroupOwned(asset.assetId,  accountId)];
+  asset.contractTypes = await getContractTypeGroupOwned(asset.assetId, accountId);
+  return asset;
 }
 
 // NOTE: Does NOT include expired pool locks

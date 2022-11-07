@@ -20,8 +20,36 @@ router.get('/group/asset', (req, res, next) => {
 // Get nested info at the provided level
 // Successful response data:
 // Includes contractTypes, pools
+router.get('/group/asset/id', (req, res, next) => {
+  if (!req.query.assetId) {
+    return res.status(400).send({ message: 'Missing query parameter: assetId' });
+  }
+  groups.getAssetGroupById(req.query.assetId as string)
+    .then((assets) => {
+      res.status(200).send({assets});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving info' }));
+});
+
+// Get nested info at the provided level
+// Successful response data:
+// Includes contractTypes, pools
 router.get('/group/asset/owned', (req, res, next) => {
   groups.getAssetGroupOwned(req.user!.id)
+    .then((assets) => {
+      res.status(200).send({assets});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving info' }));
+});
+
+// Get nested info at the provided level
+// Successful response data:
+// Includes contractTypes, pools
+router.get('/group/asset/id/owned', (req, res, next) => {
+  if (!req.query.assetId) {
+    return res.status(400).send({ message: 'Missing query parameter: assetId' });
+  }
+  groups.getAssetGroupOwnedById(req.query.assetId as string, req.user!.id)
     .then((assets) => {
       res.status(200).send({assets});
     })
