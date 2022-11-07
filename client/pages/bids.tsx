@@ -9,45 +9,42 @@ import ContractTypeDetails from '../components/Contract/ContractType/ContractTyp
 /** Renders a list of bids for the logged in user */
 export default function UserBids(props: { assets: Asset[] }) {
 
-  return (
-    // <div className='user-bids-page'>
-    //   <h2>My Bids</h2>
-    //   {props.bids.length > 0 &&
-    //     props.bids.map((bid) =>
-    //       <BidDetails
-    //         key={bid.bidId}
-    //         bid={bid}
-    //       />
-    //     )
-    //   }
-    // </div>
-    <div className='user-bids-page'>
-    <h2>My Bids</h2>
-    {props.assets.length > 0 &&
-      props.assets.map((asset) =>
-      <div key={asset.assetId}>
-        <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
-        {asset.contractTypes!.map((contractType) =>
-          <>
-            {contractType.bids!.length > 0 &&
-            <div key={contractType.contractTypeId}>
-              <ContractTypeDetails
-                contractType={contractType}
+  // Stops us from rendering any assets that don't contain contractTypes with bids
+  let renderAssets: any = {};
+  props.assets.forEach((asset) => {
+    renderAssets[asset.assetId] = [];
+    asset.contractTypes!.forEach((contractType) => {
+      if (contractType.bids!.length > 0) {
+        renderAssets[asset.assetId].push(
+          <div key={contractType.contractTypeId}>
+            <ContractTypeDetails
+              contractType={contractType}
+            />
+            {contractType.bids!.map((bid) =>
+              <BidDetails
+                key={bid.bidId}
+                bid={bid}
               />
-              {contractType.bids!.map((bid) =>
-                <BidDetails
-                  key={bid.bidId}
-                  bid={bid}
-                />
-              )}
-            </div>
-            }
-          </>
-        )}
-      </div>
-      )
-    }
-  </div>
+            )}
+          </div>
+        );
+      }
+    });
+  });
+
+  return (
+    <div className='user-bids-page'>
+      <h2>My Bids</h2>
+      {props.assets.length > 0 &&
+        props.assets.map((asset) =>
+          renderAssets[asset.assetId].length > 0 &&
+          <div key={asset.assetId}>
+            <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
+            {renderAssets[asset.assetId]}
+          </div>
+        )
+      }
+    </div>
   );
 
 };

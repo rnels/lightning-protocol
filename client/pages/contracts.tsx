@@ -9,33 +9,44 @@ import ContractTypeDetails from '../components/Contract/ContractType/ContractTyp
 /** Renders a list of contracts for the logged in user */
 export default function UserContracts(props: { assets: Asset[] }) {
 
+  // TODO: Group contracts by ask price
+  // TODO: Allow people to exercise and change ask of multiple contracts of the same type
+
+  // Stops us from rendering any assets that don't contain contractTypes with contracts
+  let renderAssets: any = {};
+  props.assets.forEach((asset) => {
+    renderAssets[asset.assetId] = [];
+    asset.contractTypes!.forEach((contractType) => {
+      if (contractType.contracts!.length > 0) {
+        renderAssets[asset.assetId].push(
+          <div key={contractType.contractTypeId}>
+            <ContractTypeDetails
+              contractType={contractType}
+            />
+            {contractType.contracts!.map((contract) =>
+              <ContractDetails
+                key={contract.contractId}
+                contract={contract}
+              />
+            )}
+          </div>
+        );
+      }
+    });
+  });
+
   return (
     <div className='user-contracts-page'>
       <h2>My Contracts</h2>
       {props.assets.length > 0 &&
         props.assets.map((asset) =>
-        <div key={asset.assetId}>
-          <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
-          {asset.contractTypes!.map((contractType) =>
-            <>
-              {contractType.bids!.length > 0 &&
-              <div key={contractType.contractTypeId}>
-                <ContractTypeDetails
-                  contractType={contractType}
-                />
-                {contractType.contracts!.map((contract) =>
-                  <ContractDetails
-                    key={contract.contractId}
-                    contract={contract}
-                  />
-                )}
-              </div>
-              }
-            </>
-          )}
-        </div>
+          renderAssets[asset.assetId].length > 0 &&
+          <div key={asset.assetId}>
+            <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
+            {renderAssets[asset.assetId]}
+          </div>
         )
-    }
+      }
     </div>
   );
 
