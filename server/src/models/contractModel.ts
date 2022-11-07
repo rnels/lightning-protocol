@@ -172,6 +172,39 @@ export async function getContractById(id: string | number, client?: PoolClient):
   return res.rows[0];
 }
 
+export async function getContractsByTypeId(typeId: string | number): Promise<Contract[]> {
+  const res = await db.query(`
+    SELECT
+      contract_id as "contractId",
+      type_id as "typeId",
+      owner_id as "ownerId",
+      ask_price as "askPrice",
+      created_at as "createdAt",
+      exercised,
+      exercised_amount as "exercisedAmount"
+    FROM contracts
+      WHERE type_id=$1
+  `, [typeId]);
+  return res.rows;
+}
+
+export async function getContractsByTypeIdOwnerId(typeId: string | number, ownerId: string | number): Promise<Contract[]> {
+  const res = await db.query(`
+    SELECT
+      contract_id as "contractId",
+      type_id as "typeId",
+      owner_id as "ownerId",
+      ask_price as "askPrice",
+      created_at as "createdAt",
+      exercised,
+      exercised_amount as "exercisedAmount"
+    FROM contracts
+      WHERE type_id=$1
+        AND owner_id=$2
+  `, [typeId, ownerId]);
+  return res.rows;
+}
+
 /** Number of contracts represents "Open Interest" */
 export async function getActiveContractsByTypeId(typeId: string | number, client?: PoolClient): Promise<Contract[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);

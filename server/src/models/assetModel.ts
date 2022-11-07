@@ -55,7 +55,7 @@ export async function getAllAssets(sort='asset_id ASC'): Promise<Asset[]> {
       price_api_id as "priceApiId",
       icon_url as "iconUrl"
     FROM assets
-    ORDER BY $1
+      ORDER BY $1
   `, [sort]);
   return res.rows;
 };

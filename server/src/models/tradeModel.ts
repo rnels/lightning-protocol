@@ -65,6 +65,22 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
   return res.rows;
 }
 
+export async function getTradesByContractId(contractId: string | number): Promise<Trade[]> {
+  const res = await db.query(`
+    SELECT
+      trade_id as "tradeId",
+      contract_id as "contractId",
+      type_id as "typeId",
+      sale_price as "salePrice",
+      sale_cost as "saleCost",
+      trade_fee as "tradeFee",
+      created_at as "createdAt"
+    FROM trades
+      WHERE contract_id=$1
+  `, [contractId]);
+  return res.rows;
+}
+
 /** Represents "Last" */
 export async function getLastTradeByTypeId(typeId: string | number): Promise<Trade> {
   const res = await db.query(`

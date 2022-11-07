@@ -136,6 +136,20 @@ export async function getActiveContractTypesByAssetId(assetId: string | number, 
   return res.rows;
 }
 
+export async function getContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
+  const res = await db.query(`
+    SELECT
+      contract_type_id as "contractTypeId",
+      asset_id as "assetId",
+      direction,
+      strike_price as "strikePrice",
+      expires_at as "expiresAt"
+    FROM contract_types
+      WHERE asset_id=$1
+  `, [assetId]);
+  return res.rows;
+}
+
 export async function createContractType(
   assetId: number,
   direction: boolean,

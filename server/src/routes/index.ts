@@ -5,6 +5,7 @@ import contract from './contract';
 import pool from './pool';
 import bid from './bid';
 import trade from './trade';
+import group from './group';
 
 export default {
   auth, // Auth must always come first
@@ -13,5 +14,6 @@ export default {
   contract,
   pool,
   bid,
-  trade
+  trade,
+  group
 };

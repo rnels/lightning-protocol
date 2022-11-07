@@ -22,7 +22,9 @@ export type Asset = {
 	priceApiId: number,
 	lastPrice: number,
 	lastUpdated: string,
-	iconUrl?: string
+	iconUrl?: string,
+	contractTypes?: ContractType[],
+	pools?: Pool[]
 };
 
 export type Pool = {
@@ -30,7 +32,8 @@ export type Pool = {
 	accountId: number,
 	assetId: number,
 	assetAmount: number,
-	tradeFees: number
+	tradeFees: number,
+	poolLocks?: PoolLock[]
 };
 
 export type PoolLock = {
@@ -48,17 +51,20 @@ export type ContractType = {
 	assetId: number,
 	direction: boolean,
 	strikePrice: number,
-	expiresAt: Date
+	expiresAt: Date,
+	contracts?: Contract[],
+	bids?: Bid[]
 };
 
 export type Contract = {
 	contractId: number,
 	typeId: number,
-	ownerId?: number,
-	askPrice?: number,
 	createdAt: string,
 	exercised: boolean,
-	exercisedAmount?: number
+	exercisedAmount?: number,
+	ownerId?: number,
+	askPrice?: number,
+	trades?: Trade[]
 };
 
 export type Bid = {
