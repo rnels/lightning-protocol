@@ -44,8 +44,24 @@ export function getContractListByType(typeId: string | number): Promise<Contract
     .then((response) => response.data.contracts)
 }
 
+// Extended nested info using groups route
+export function getContractListByTypeExt(typeId: string | number): Promise<Contract[]> {
+  return axios.get(`${serverURL}/group/contract/owned`, {
+    params: { typeId }
+  })
+    .then((response) => response.data.contracts);
+}
+
 export function getUserContracts(): Promise<Contract[]> {
   return axios.get(`${serverURL}/contract/owned`)
+    .then((response) => response.data.contracts);
+}
+
+// Extended nested info using groups route, requires a typeId
+export function getUserContractsExt(typeId: string | number): Promise<Contract[]> {
+  return axios.get(`${serverURL}/group/contract/owned`, {
+    params: { typeId }
+  })
     .then((response) => response.data.contracts);
 }
 
@@ -80,6 +96,20 @@ export function getContractType(typeId: string | number): Promise<ContractType> 
 
 export function getContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
   return axios.get(`${serverURL}/contract/type/list`, {
+    params: { assetId }
+  })
+    .then((response) => response.data.contractTypes);
+}
+
+export function getContractTypesByAssetIdExt(assetId: string | number): Promise<ContractType[]> {
+  return axios.get(`${serverURL}/group/contract/type`, {
+    params: { assetId }
+  })
+    .then((response) => response.data.contractTypes);
+}
+
+export function getOwnedContractTypesByAssetIdExt(assetId: string | number): Promise<ContractType[]> {
+  return axios.get(`${serverURL}/group/contract/type/owned`, {
     params: { assetId }
   })
     .then((response) => response.data.contractTypes);
@@ -122,6 +152,13 @@ export function updateBidPrice(bidId: number, bidPrice: number) {
     .then((response) => response.data);
 }
 
+export function removeBid(bidId: number) {
+  return axios.delete(`${serverURL}/bid`, {
+    params: { bidId }
+  })
+    .then((response) => response.data);
+}
+
 // TRADES //
 
 export function getLastTrade(typeId: string | number): Promise<Trade> {
@@ -159,6 +196,30 @@ export function getAssetList(): Promise<Asset[]> {
     .then((response) => response.data.assets);
 }
 
+export function getAssetListExt(): Promise<Asset[]> {
+  return axios.get(`${serverURL}/group/asset`)
+    .then((response) => response.data.assets);
+}
+
+export function getAssetListOwnedExt(): Promise<Asset[]> {
+  return axios.get(`${serverURL}/group/asset/owned`)
+    .then((response) => response.data.assets);
+}
+
+export function getAssetByIdExt(assetId: string | number): Promise<Asset[]> {
+  return axios.get(`${serverURL}/group/asset/id`, {
+    params: { assetId }
+  })
+    .then((response) => response.data.assets);
+}
+
+export function getAssetByIdOwnedExt(assetId: string | number): Promise<Asset[]> {
+  return axios.get(`${serverURL}/group/asset/id/owned`, {
+    params: { assetId }
+  })
+    .then((response) => response.data.assets);
+}
+
 export function getAssetPrice(assetId: string | number): Promise<number> {
   return axios.get(`${serverURL}/asset/price`, {
     params: { id: assetId }
@@ -187,8 +248,22 @@ export function getUserPoolByAssetId(assetId: string | number): Promise<Pool> {
     .then((response) => response.data.pool);
 }
 
+export function getUserPoolByAssetIdExt(assetId: string | number): Promise<Pool> {
+  return axios.get(`${serverURL}/group/pool/owned`, {
+    params: { assetId }
+  })
+    .then((response) => response.data.pool);
+}
+
 export function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
   return axios.get(`${serverURL}/pool/list`, {
+    params: { assetId }
+  })
+    .then((response) => response.data.pools);
+}
+
+export function getPoolsByAssetIdExt(assetId: string | number): Promise<Pool[]> {
+  return axios.get(`${serverURL}/group/pool`, {
     params: { assetId }
   })
     .then((response) => response.data.pools);

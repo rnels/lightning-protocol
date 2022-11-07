@@ -15,7 +15,6 @@ import React from 'react';
 // But I would need to make a route to get a pool for a user by asset ID and user ID
 export default function UserPoolDetails(props: { pool: Pool }) {
 
-  const [asset, setAsset] = useState<Asset>();
   const [pool, setPool] = useState<Pool>(props.pool);
   const [showAssetModal, setShowAssetModal] = useState<boolean>(false);
   const [assetModalType, setModalType] = useState<boolean>(false);
@@ -29,25 +28,17 @@ export default function UserPoolDetails(props: { pool: Pool }) {
       });
   }
 
-  useEffect(() => {
-    getPool();
-  });
+  const lockedAmount = pool.poolLocks?.map(
+    (poolLock) => Number(poolLock.assetAmount))
+    .reduce((sum, a=0) => sum + a);
 
-  useEffect(() => {
-    if (asset || !pool) return;
-    api.getAsset(pool.assetId)
-      .then((asset) => setAsset(asset))
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
+  const lockedFees = pool.poolLocks?.map(
+    (poolLock) => Number(poolLock.tradeFees))
+    .reduce((sum, a=0) => sum + a);
 
-  }, [asset, pool]);
-
-  if (!asset || !pool) return null;
 
   return (
     <div className='user-pool-details'>
-      <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
       <PoolAssetAmount
         assetAmount={pool.assetAmount}
       />
@@ -70,12 +61,12 @@ export default function UserPoolDetails(props: { pool: Pool }) {
         Withdraw
       </button>
       <div>
-        <a href={`${pool.poolId}/locks`}>
-          Locks
-        </a>
+        {`Locked: ${lockedAmount ? `${lockedAmount.toFixed(2)} (${(lockedAmount / pool.assetAmount).toFixed(2)}%)` : 0} `}
+      </div>
+      <div>
+        {`Lock Fees: ${lockedFees ? `$${lockedFees.toFixed(2)}` : '$0'} `}
       </div>
       {showAssetModal && <PoolAssetModal
-      key={pool.poolId}
       pool={pool}
       modalType={assetModalType}
       onClose={() => {
@@ -84,7 +75,6 @@ export default function UserPoolDetails(props: { pool: Pool }) {
       }}
       />}
       {showFeesModal && <PoolFeesWithdrawModal
-      key={pool.poolId}
       pool={pool}
       onClose={() => {
         setShowFeesModal(false);

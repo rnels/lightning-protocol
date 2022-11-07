@@ -9,6 +9,8 @@ export default function BidDetails(props: { bid: Bid }) {
 
   const [bid, setBid] = useState<Bid>(props.bid);
   const [showBidModal, setShowBidModal] = useState<boolean>(false);
+  const [removed, setRemoved] = useState<boolean>(false);
+
 
   function getBidDetails() {
     api.getBid(bid.bidId)
@@ -16,10 +18,21 @@ export default function BidDetails(props: { bid: Bid }) {
       .catch((error) => console.log(error));
   }
 
+  function deleteBid() {
+    api.removeBid(bid.bidId)
+      .then(() => setRemoved(true))
+      .catch((error) => console.log(error));
+  }
+
+  if (removed) return null;
+
   return (
     <div className='bid-details'>
       <button onClick={() => setShowBidModal(true)}>
         Update
+      </button>
+      <button onClick={deleteBid}>
+        Delete
       </button>
       <BidPrice
         bidPrice={bid.bidPrice}

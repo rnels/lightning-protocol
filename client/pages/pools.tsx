@@ -1,5 +1,5 @@
 import * as api from '../lib/api';
-import { Pool } from '../lib/types';
+import { Asset, Pool } from '../lib/types';
 import UserPoolDetails from '../components/Pool/UserPoolDetails';
 
 import { useEffect, useState } from 'react';
@@ -7,17 +7,20 @@ import React from 'react';
 import { GetServerSideProps } from 'next';
 
 /** Renders a list of pools for the logged in user */
-export default function UserPools(props: { poolList: Pool[] }) {
+export default function UserPools(props: { assets: Asset[] }) {
 
   return (
     <div className='user-pools-page'>
       <h2>My Pools</h2>
-      {props.poolList.length > 0 &&
-        props.poolList.map((pool) =>
+      {props.assets.length > 0 &&
+        props.assets.map((asset) =>
+        <div key={asset.assetId}>
+          <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
           <UserPoolDetails
-            pool={pool}
-            key={pool.poolId}
+            key={asset.assetId}
+            pool={asset.pools![0]}
           />
+        </div>
         )
       }
     </div>
@@ -27,11 +30,11 @@ export default function UserPools(props: { poolList: Pool[] }) {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 
-  let poolList = await api.getUserPools();
+  let assets = await api.getAssetListOwnedExt();
 
   return {
     props: {
-      poolList
+      assets
     }
   }
 

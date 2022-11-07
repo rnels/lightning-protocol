@@ -1,7 +1,7 @@
 import db from '../db/db';
 import { Asset, Contract, ContractType, Pool } from '../types';
 import { getAllAssets, getAssetById } from './assetModel';
-import { getBidsByContractTypeId } from './bidModel';
+import { getBidsByContractTypeAndAccountId, getBidsByContractTypeId } from './bidModel';
 import { getContractsByTypeId, getContractsByTypeIdOwnerId } from './contractModel';
 import { getContractTypesByAssetId } from './contractTypeModel';
 import { getPoolByAccountAssetIds, getPoolLocksByPoolId, getPoolsByAssetId } from './poolModel';
@@ -70,7 +70,7 @@ export async function getContractTypeGroupOwned(assetId: string | number, accoun
   let contractTypes = await getContractTypesByAssetId(assetId);
   for (let contractType of contractTypes) {
     contractType.contracts = await getContractGroupOwned(contractType.contractTypeId, accountId);
-    contractType.bids = await getBidsByContractTypeId(contractType.contractTypeId);
+    contractType.bids = await getBidsByContractTypeAndAccountId(contractType.contractTypeId, accountId);
   }
   return contractTypes;
 }

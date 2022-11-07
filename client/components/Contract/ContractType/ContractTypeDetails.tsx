@@ -3,7 +3,6 @@ import ContractTypeDirection from "./ContractTypeDirection";
 import ContractTypeStrikePrice from "./ContractTypeStrikePrice";
 import ContractTypeExpiresAt from "./ContractTypeExpiresAt";
 
-// TODO: Display contract type information
 export default function ContractTypeDetails(props: {contractType: ContractType}) {
 
   return (

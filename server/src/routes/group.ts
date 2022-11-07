@@ -93,7 +93,7 @@ router.get('/group/pool/owned', (req, res, next) => {
 //  assetId - assetId to retrieve contractTypes (and nested) of
 // Successful response data:
 // Includes contracts, bids
-router.get('/group/contracttype', (req, res, next) => {
+router.get('/group/contract/type', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
@@ -109,7 +109,7 @@ router.get('/group/contracttype', (req, res, next) => {
 //  assetId - assetId to retrieve contractTypes (and nested) of
 // Successful response data:
 // Includes contracts, bids
-router.get('/group/contracttype/owned', (req, res, next) => {
+router.get('/group/contract/type/owned', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
