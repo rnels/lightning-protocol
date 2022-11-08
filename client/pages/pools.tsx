@@ -37,6 +37,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     assets = await api.getAssetListOwnedExt(cookie);
     return { props: { assets } };
   } catch (e) {
+    console.log(e);
     return {
       props: {
         assets: []
