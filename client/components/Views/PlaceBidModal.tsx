@@ -1,21 +1,29 @@
 import * as api from '../../lib/api';
 import { Asset, ContractType } from '../../lib/types';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useContext } from 'react';
 import Modal from '@mui/material/Modal';
+import { AccountContext } from '../AccountContext';
 
 export default function PlaceBidModal(props: {contractType: ContractType, asset: Asset, defaultBid: number | null, onClose: Function}) {
 
   const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
   const [amount, setAmount] = useState<number>(1);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const { getAccountInfo }: any = useContext(AccountContext);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    let createBidPromises = [];
     for (let i = 0; i < amount; i++) { // TODO: Create a route which allows submitting multiple bids
-      api.createBid(props.contractType.contractTypeId, price)
-        .then(() => props.onClose())
-        .catch((error) => console.log(error));
+      createBidPromises.push(
+        api.createBid(props.contractType.contractTypeId, price)
+        .catch((error) => console.log(error))
+      );
     }
+    await Promise.all(createBidPromises);
+    getAccountInfo();
+    props.onClose();
   };
 
   if (!props.contractType.contractTypeId) {
@@ -55,7 +63,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
             value={amount}
             onChange={(e) => setAmount(Math.max(1, Math.floor(Number(e.target.value))))}
           />
-        <small>{`Total: $${(props.asset.assetAmount * price * amount).toFixed(2)} ($${props.asset.assetAmount * price} x ${amount})`}</small>
+        <small>{`Total: $${(props.asset.assetAmount * price * amount).toFixed(2)} ($${(props.asset.assetAmount * price).toFixed(2)} x ${amount})`}</small>
         </label>
         <input
           type='submit'

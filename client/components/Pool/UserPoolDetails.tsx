@@ -6,9 +6,8 @@ import PoolTradeFees from "./PoolTradeFees";
 import PoolAssetModal from "./PoolAssetModal";
 import PoolFeesWithdrawModal from "./PoolFeesWithdrawModal";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import React from 'react';
-
 
 // TODO: Determine if I want to use routing for this instead
 // Could extend an asset ID instead of being passed the pool as a prop from UserPoolList
@@ -59,13 +58,13 @@ export default function UserPoolDetails(props: { pool: Pool }) {
       <PoolTradeFees
         tradeFees={pool.tradeFees}
       />
-      {pool.tradeFees > 0 &&
+      {pool.tradeFees > 0.01 &&
         <button onClick={() => setShowFeesModal(true)}>
           Withdraw
         </button>
       }
       <div>
-        {`Locked: ${lockedAmount ? `${lockedAmount.toFixed(2)} (${(lockedAmount / pool.assetAmount).toFixed(2)}%)` : 0} `}
+        {`Locked: ${lockedAmount ? `${lockedAmount.toFixed(2)} (${(lockedAmount / pool.assetAmount * 100).toFixed(2)}%)` : 0} `}
       </div>
       <div>
         {`Lock Fees: ${lockedFees ? `$${lockedFees.toFixed(2)}` : '$0'} `}

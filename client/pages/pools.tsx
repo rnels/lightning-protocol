@@ -2,7 +2,6 @@ import * as api from '../lib/api';
 import { Asset, Pool } from '../lib/types';
 import UserPoolDetails from '../components/Pool/UserPoolDetails';
 
-import { useEffect, useState } from 'react';
 import React from 'react';
 import { GetServerSideProps } from 'next';
 import Link from 'next/link';

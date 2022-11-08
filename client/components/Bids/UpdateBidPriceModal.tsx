@@ -1,17 +1,23 @@
 import * as api from '../../lib/api';
 import { Bid, Contract } from '../../lib/types';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 import Modal from '@mui/material/Modal';
+import { AccountContext } from '../AccountContext';
 
 export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}) {
 
   const [price, setPrice] = useState<number>(props.bid.bidPrice || 0);
 
+  const { getAccountInfo }: any = useContext(AccountContext);
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.updateBidPrice(props.bid.bidId, price)
-      .then(() => props.onClose())
+      .then(() => {
+        getAccountInfo();
+        props.onClose();
+      })
       .catch((error) => console.log(error));
   };
 

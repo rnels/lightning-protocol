@@ -17,7 +17,7 @@ export default function Register() {
 
 function RegisterForm() {
 
-  const { setAccount }: any = useContext(AccountContext);
+  const { getAccountInfo }: any = useContext(AccountContext);
   const router = useRouter();
 
   const [firstName, setFirstName] = useState('');
@@ -30,14 +30,8 @@ function RegisterForm() {
     e.preventDefault();
     api.registerAccount(email, password, firstName, lastName)
       .then(() => {
-        return api.getAccount()
-          .then((account) => {
-            setAccount(account);
-            router.push('/profile');
-          })
-          .catch((errorRes) => {
-            console.log(errorRes);
-          });
+        getAccountInfo()
+        router.push('/profile');
       })
       .catch((errorRes) => {
         console.log(errorRes);

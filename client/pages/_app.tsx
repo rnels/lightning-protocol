@@ -29,7 +29,7 @@ export default function App({ Component, pageProps }: AppProps){
       <Head>
         <title>Lightning Protocol</title>
       </Head>
-      <AccountContext.Provider value={{account, setAccount}}>
+      <AccountContext.Provider value={{account, getAccountInfo}}>
         <NavBar/>
         <Component {...pageProps} />
       </AccountContext.Provider>

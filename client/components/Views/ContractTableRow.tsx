@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 
 /** Renders a row of data for the given ContractType */
 // TODO: Actually integrate this in the file structure in a way that makes sense
-export default function ContractTableRow(props: {contractType: ContractType, asset: Asset}) {
+export default function ContractTableRow(props: {contractType: ContractType, asset: Asset, amountFilter: boolean}) {
 
   const [contracts, setContracts] = useState<Contract[]>([]);
   function getContracts() {
@@ -84,7 +84,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td onClick={() => setShowModal(true)}>
         {highestBid === null ? 'N/A' :
         <>
-        {`$${highestBid}`}
+        {`$${props.amountFilter ? Math.trunc(highestBid * props.asset.assetAmount * 1000) / 1000 : highestBid}`}
         <div>{`(x${bids.length})`}</div>
         </>
         }
@@ -92,7 +92,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td>
         {lowestAsk === null ? 'N/A' :
         <>
-        {`$${lowestAsk}`}
+        {`$${props.amountFilter ? Math.trunc(lowestAsk * props.asset.assetAmount * 1000) / 1000 : lowestAsk}`}
         <div>{`(x${asks.length})`}</div>
         </>
         }
@@ -103,7 +103,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
         key={props.contractType.contractTypeId}
         asset={props.asset}
         contractType={props.contractType}
-        defaultBid={lowestAsk}
+        defaultBid={lowestAsk || highestBid}
         onClose={() => {
           setShowModal(false);
           getBidsByType();

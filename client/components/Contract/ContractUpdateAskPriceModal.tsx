@@ -42,6 +42,7 @@ export default function ContractUpdateAskPriceModal(props: {contract: Contract, 
           disabled={price < 0.01}
           value='Submit'
         />
+        <small>Note: Pool provider fee accounts for 1% of sale cost</small>
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

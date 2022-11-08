@@ -21,22 +21,16 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const { setAccount }: any = useContext(AccountContext);
+  const { getAccountInfo }: any = useContext(AccountContext);
   const router = useRouter();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.loginAccount(email, password)
       .then(() => {
-        return api.getAccount()
-          .then((account) => {
-            setAccount(account);
-            router.push('/profile');
-          })
-          .catch((errorRes) => {
-            console.log(errorRes);
-          });
-       })
+        getAccountInfo()
+        router.push('/profile');
+      })
       .catch((errorRes) => {
         console.log(errorRes);
         if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {

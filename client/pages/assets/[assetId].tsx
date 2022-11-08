@@ -27,6 +27,8 @@ export default function AssetContracts(
     .filter((contractType => contractType.expiresAt === dateFilter && contractType.direction === directionFilter))
     .sort((a, b) => a.strikePrice - b.strikePrice);
 
+  const [amountFilter, setAmountFilter] = useState<boolean>(false);
+
     return (
       <div className='asset-contracts-view'>
         <h2 className='asset-contracts-view-header'>{`${props.asset.name} ($${props.asset.symbol})`}</h2>
@@ -57,6 +59,9 @@ export default function AssetContracts(
               )}
             </select>
           </label>
+          <button
+              onClick={() => setAmountFilter(!amountFilter)}
+          >{amountFilter ? 'Show Price' : 'Show Cost'}</button>
           <div className='asset-contracts-filter-direction'>
             <button
               onClick={() => setDirectionFilter(true)}
@@ -69,6 +74,7 @@ export default function AssetContracts(
         <ContractTypesTable
           contractTypes={filteredTypeList}
           asset={props.asset}
+          amountFilter={amountFilter}
         />
       </div>
     );

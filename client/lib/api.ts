@@ -29,6 +29,16 @@ export function loginAccount(email: string, password: string) {
     .then((response) => response.data);
 }
 
+export function logoutAccount() {
+  return axios.post(`${serverURL}/logout`)
+    .then((response) => response.data);
+}
+
+export function depositPaper(amount: number) {
+  return axios.post(`${serverURL}/account/paper`, { amount })
+    .then((response) => response.data);
+}
+
 // CONTRACTS //
 
 export function getContract(contractId: string | number, cookie?: string): Promise<Contract> {
