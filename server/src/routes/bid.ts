@@ -59,6 +59,7 @@ router.get('/bid/owned', (req, res, next) => {
 // Expects in req.body:
 //  typeId (Integer)
 //  bidPrice (Decimal)
+// TODO: Respond with detailed error message
 router.post('/bid', (req, res, next) => {
   if (!req.body.typeId || !req.body.bidPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });
@@ -79,6 +80,7 @@ router.post('/bid', (req, res, next) => {
 // Expects in req.body:
 //  bidId (Integer)
 //  bidPrice (Decimal)
+// TODO: Respond with detailed error message
 router.put('/bid/price', (req, res, next) => {
   if (!req.body.bidId || !req.body.bidPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });

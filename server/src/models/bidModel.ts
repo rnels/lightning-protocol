@@ -1,4 +1,4 @@
-import { PoolClient } from 'pg';
+import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
 import { Bid, Contract } from '../types';
 import { _tradeContract } from './contractModel';
@@ -43,14 +43,20 @@ export function _removeBid(bidId: number | string, client: PoolClient) {
 
 export async function getBidById(id: string | number, client?: PoolClient): Promise<Bid> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT
-      bid_id as "bidId",
-      type_id as "typeId",
-      bid_price as "bidPrice"
-    FROM bids
-      WHERE bid_id=$1
-  `, [id]);
+  let res: QueryResult;
+  try {
+    res = await query(`
+      SELECT
+        bid_id as "bidId",
+        type_id as "typeId",
+        bid_price as "bidPrice"
+      FROM bids
+        WHERE bid_id=$1
+    `, [id]);
+  } catch {
+    throw new Error('There was an error retrieving the bid');
+  }
+  if (res.rows.length === 0) throw new Error(`Bid with bidId ${id} does not exist`);
   return res.rows[0];
 }
 

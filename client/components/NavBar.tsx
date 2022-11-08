@@ -1,22 +1,29 @@
-export default function NavBar(props: {logged: boolean, paper: number}) {
+import { useContext } from "react";
+import { AccountContext } from "./AccountContext";
+
+import Link from 'next/link';
+
+export default function NavBar() {
+
+  const { account }: any = useContext(AccountContext);
 
   return (
     <div className='nav-bar'>
-      {props.logged ?
+      {account ?
       <>
       <div className='nav-bar-left'>
-        <a href='/assets'>Assets</a>
-        <a href='/pools'>Pools</a>
-        <a href='/bids'>Bids</a>
-        <a href='/contracts'>Contracts</a>
-        <a href='/profile'>Profile</a>
+        <Link href="/assets">Assets</Link>
+        <Link href="/pools">Pools</Link>
+        <Link href="/bids">Bids</Link>
+        <Link href="/contracts">Contracts</Link>
+        <Link href="/profile">Profile</Link>
       </div>
-      {`${Math.trunc(props.paper * 100) / 100} 💵`}
+      {`${Math.trunc(account.paper * 100) / 100} 💵`}
       </>
       :
       <>
-        <a href='/login'>Login</a>
-        <a href='/register'>Register</a>
+        <Link href="/login">Login</Link>
+        <Link href="/register">Register</Link>
       </>
       }
     </div>

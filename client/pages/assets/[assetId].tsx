@@ -76,18 +76,34 @@ export default function AssetContracts(
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { assetId } = context.query;
-  let asset = await api.getAsset(assetId as string);
-  let assetPrice = await api.getAssetPrice(assetId as string);
-  let poolAssetAmount = await api.getPoolAssetAmountByAssetId(assetId as string);
-  let poolLockAssetAmount = await api.getPoolLockAssetAmountByAssetId(assetId as string);
-  let contractTypeList = await api.getContractTypesByAssetId(assetId as string);
-  return {
-    props: {
-      asset,
-      assetPrice,
-      poolAssetAmount,
-      poolLockAssetAmount,
-      contractTypeList
+
+  let cookie = context.req.cookies['lightning-app-cookie'];
+
+  let asset: Asset;
+  let assetPrice: number;
+  let poolAssetAmount: number;
+  let poolLockAssetAmount: number;
+  let contractTypeList: ContractType[];
+
+  try {
+    asset = await api.getAsset(assetId as string, cookie);
+    assetPrice = await api.getAssetPrice(assetId as string, cookie);
+    poolAssetAmount = await api.getPoolAssetAmountByAssetId(assetId as string, cookie);
+    poolLockAssetAmount = await api.getPoolLockAssetAmountByAssetId(assetId as string, cookie);
+    contractTypeList = await api.getContractTypesByAssetId(assetId as string, cookie);
+    return {
+      props: {
+        asset,
+        assetPrice,
+        poolAssetAmount,
+        poolLockAssetAmount,
+        contractTypeList
+      }
     }
+  } catch (e) {
+    return {
+      props: {}
+    };
   }
+
 };

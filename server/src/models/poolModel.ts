@@ -1,4 +1,4 @@
-import { PoolClient } from 'pg';
+import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 import { depositPaper } from './accountModel';
@@ -204,37 +204,52 @@ export async function getAllPools(sort='pool_id ASC', client?: PoolClient): Prom
   return res.rows;
 }
 
-// NOTE: Change to return pool locks as well
+// NOTE: Changed to return pool locks as well
 export async function getPoolById(id: string | number, client?: PoolClient): Promise<Pool> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
-  let pool = (await query(`
-    SELECT
-      pool_id as "poolId",
-      account_id as "accountId",
-      asset_id as "assetId",
-      asset_amount as "assetAmount",
-      trade_fees as "tradeFees"
-    FROM pools
-    WHERE pool_id=$1
-  `, [id])).rows[0];
+  let res: QueryResult;
+  try {
+    res = await query(`
+      SELECT
+        pool_id as "poolId",
+        account_id as "accountId",
+        asset_id as "assetId",
+        asset_amount as "assetAmount",
+        trade_fees as "tradeFees"
+      FROM pools
+      WHERE pool_id=$1
+    `, [id]);
+  } catch {
+    throw new Error('There was an error retrieving the pool');
+  }
+  if (res.rows.length === 0) throw new Error(`Pool with poolId ${id} does not exist`);
+  let pool: Pool = res.rows[0];
   pool.poolLocks = await getPoolLocksByPoolId(pool.poolId);
   return pool;
 }
 
 export async function getPoolByAccountAssetIds(accountId: string | number, assetId: string | number, client?: PoolClient): Promise<Pool> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT
-      pool_id as "poolId",
-      account_id as "accountId",
-      asset_id as "assetId",
-      asset_amount as "assetAmount",
-      trade_fees as "tradeFees"
-    FROM pools
-      WHERE account_id=$1
-        AND asset_id=$2
-  `, [accountId, assetId]);
-  return res.rows[0];
+  let res: QueryResult;
+  try {
+    res = await query(`
+      SELECT
+        pool_id as "poolId",
+        account_id as "accountId",
+        asset_id as "assetId",
+        asset_amount as "assetAmount",
+        trade_fees as "tradeFees"
+      FROM pools
+        WHERE account_id=$1
+          AND asset_id=$2
+      `, [accountId, assetId]);
+  } catch {
+    throw new Error('There was an error retrieving the pool');
+  }
+  if (res.rows.length === 0) throw new Error(`Pool does not exist`);
+  let pool: Pool = res.rows[0];
+  pool.poolLocks = await getPoolLocksByPoolId(pool.poolId);
+  return pool;
 }
 
 export async function getPoolsByAssetId(assetId: string | number, client?: PoolClient): Promise<Pool[]> {

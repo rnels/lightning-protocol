@@ -3,20 +3,18 @@ import * as api from '../lib/api';
 import NavBar from '../components/NavBar';
 
 import React, { useEffect, useState } from 'react';
+import type { AppProps } from 'next/app'
+import Head from 'next/head';
+import { AccountContext } from '../components/AccountContext';
+import { Account } from '../lib/types';
 
-// This default export is required in a new `pages/_app.js` file.
-export default function App({ Component, pageProps }){
+export default function App({ Component, pageProps }: AppProps){
 
-  const [logged, setLogged] = useState(false);
-  const [paper, setPaper] = useState(0);
+  const [account, setAccount] = useState<Account>();
 
-  // TODO: Pass down this callback to register and login
   function getAccountInfo(): void {
     api.getAccount()
-      .then((account) => {
-        setLogged(true);
-        setPaper(account.paper);
-      })
+      .then((account) => setAccount(account))
       .catch((errorRes) => {
         console.log(errorRes);
       });
@@ -24,15 +22,17 @@ export default function App({ Component, pageProps }){
 
   useEffect(() => {
     getAccountInfo();
-  });
+  }, []);
 
   return (
     <div className='App'>
-      <NavBar
-        logged={logged}
-        paper={paper}
-      />
-      <Component {...pageProps} />
+      <Head>
+        <title>Lightning Protocol</title>
+      </Head>
+      <AccountContext.Provider value={{account, setAccount}}>
+        <NavBar/>
+        <Component {...pageProps} />
+      </AccountContext.Provider>
     </div>
   );
 

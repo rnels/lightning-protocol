@@ -48,18 +48,22 @@ export default function UserPoolDetails(props: { pool: Pool }) {
       }}>
         Deposit
       </button>
-      <button onClick={() => {
-        setShowAssetModal(true);
-        setModalType(false);
-      }}>
-        Withdraw
-      </button>
+      {pool.assetAmount > 0 &&
+        <button onClick={() => {
+          setShowAssetModal(true);
+          setModalType(false);
+        }}>
+          Withdraw
+        </button>
+      }
       <PoolTradeFees
         tradeFees={pool.tradeFees}
       />
-      <button onClick={() => setShowFeesModal(true)}>
-        Withdraw
-      </button>
+      {pool.tradeFees > 0 &&
+        <button onClick={() => setShowFeesModal(true)}>
+          Withdraw
+        </button>
+      }
       <div>
         {`Locked: ${lockedAmount ? `${lockedAmount.toFixed(2)} (${(lockedAmount / pool.assetAmount).toFixed(2)}%)` : 0} `}
       </div>

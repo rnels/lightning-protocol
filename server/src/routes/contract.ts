@@ -114,57 +114,10 @@ router.get('/contract/type/asks', (req, res, next) => {
 
 // POST REQUESTS //
 
-// Create a contract
-// Expects in req.body:
-//  typeId (Integer) - Contract type to instantiate for contract
-//  askPrice (Decimal) [Optional - Defaults to null] - Starting price
-// TODO: Restrict this, only should be called by app not by users
-router.post('/contract', (req, res, next) => {
-  if (!req.body.typeId) {
-    return res.status(400).send({ message: 'Missing body parameter: typeId' });
-  }
-  contracts.createContract(
-    req.body.typeId,
-    req.body.askPrice
-  )
-    .then(() => {
-      res.status(201).send({ message: 'Contract created' });
-    })
-    .catch((error: any) => {
-      console.log('There was an error creating the contract:', error);
-      res.status(400).send({ message: 'Error creating contract' });
-    });
-});
-
-// Create a contract type
-// Expects in req.body:
-//   assetId (Integer)
-//   direction (Boolean)
-//   strikePrice (Decimal)
-//   expiresAt (Date) // TODO: Still need to revisit using date / time types
-// TODO: Restrict this, only should be called by app not by users
-// router.post('/contract/type', (req, res, next) => {
-//   if (!req.body.assetId || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
-//     return res.status(400).send({ message: 'Missing body parameters' });
-//   }
-//   contractTypes.createContractType(
-//     req.body.assetId,
-//     req.body.direction,
-//     req.body.strikePrice,
-//     req.body.expiresAt
-//   )
-//     .then(({contractTypeId}) => {
-//       res.status(201).send({ message: 'Contract type created' });
-//     })
-//     .catch((error: any) => {
-//       console.log('There was an error creating the contract type:', error);
-//       res.status(400).send({ message: 'Error creating contract type' });
-//     });
-// });
-
-// Exercises a contract type
+// Exercises a contract
 // Expects in req.body:
 //   contractId (Integer)
+// TODO: Respond with detailed error message
 router.post('/contract/exercise', (req, res, next) => {
   if (!req.body.contractId) {
     return res.status(400).send({ message: 'Missing body parameter: contractId' });
@@ -185,6 +138,7 @@ router.post('/contract/exercise', (req, res, next) => {
 // Expects in req.body:
 //  contractId - Integer
 //  askPrice - Decimal
+// TODO: Respond with detailed error message
 router.put('/contract/ask', (req, res, next) => {
   if (!req.body.contractId || !req.body.askPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });

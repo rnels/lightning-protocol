@@ -26,7 +26,10 @@ export async function getAssetGroupById(assetId: string | number): Promise<Asset
 export async function getAssetGroupOwned(accountId: string | number): Promise<Asset[]> {
   let assets = await getAllAssets();
   for (let asset of assets) {
-    asset.pools = [await getPoolGroupOwned(asset.assetId,  accountId)];
+    try {
+      let pool = await getPoolGroupOwned(asset.assetId,  accountId);
+      asset.pools = [pool];
+    } catch {}
     asset.contractTypes = await getContractTypeGroupOwned(asset.assetId, accountId);
   }
   return assets;
@@ -34,7 +37,10 @@ export async function getAssetGroupOwned(accountId: string | number): Promise<As
 
 export async function getAssetGroupOwnedById(assetId: string | number, accountId: string | number): Promise<Asset> {
   let asset = await getAssetById(assetId);
-  asset.pools = [await getPoolGroupOwned(asset.assetId,  accountId)];
+  try {
+    let pool = await getPoolGroupOwned(asset.assetId,  accountId);
+    asset.pools = [pool];
+  } catch {}
   asset.contractTypes = await getContractTypeGroupOwned(asset.assetId, accountId);
   return asset;
 }
@@ -49,9 +55,9 @@ export async function getPoolGroup(assetId: string | number): Promise<Pool[]> {
 }
 
 // NOTE: Does NOT include expired pool locks
+// NOTE: Will throw an error if there are no existing pools, should be wrapped in try-catch
 export async function getPoolGroupOwned(assetId: string | number, accountId: string | number): Promise<Pool> {
   let pool = await getPoolByAccountAssetIds(accountId, assetId);
-  pool.poolLocks = await getPoolLocksByPoolId(pool.poolId);
   return pool;
 }
 

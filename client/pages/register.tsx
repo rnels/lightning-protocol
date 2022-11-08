@@ -1,20 +1,22 @@
 import * as api from '../lib/api';
 
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useContext, useState } from 'react';
+import { AccountContext } from '../components/AccountContext';
+import Link from 'next/link';
 
 export default function Register() {
 
   return (
     <div className='register-page'>
-      <RegisterForm // TODO: Update with actual getInfo callback after implementing state management system
-        submitCallback={() => {}}
-      />
+      <RegisterForm/>
     </div>
   );
 
 };
 
-function RegisterForm(props: {submitCallback: Function}) {
+function RegisterForm() {
+
+  const { setAccount }: any = useContext(AccountContext);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -22,11 +24,16 @@ function RegisterForm(props: {submitCallback: Function}) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // TODO: Hook this up to a global state manager to update logged status instead of using submitCallback
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.registerAccount(email, password, firstName, lastName)
-      .then(() => props.submitCallback())
+      .then(() => {
+        return api.getAccount()
+          .then((account) => setAccount(account))
+          .catch((errorRes) => {
+            console.log(errorRes);
+          });
+      })
       .catch((errorRes) => {
         console.log(errorRes);
         if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
@@ -87,7 +94,7 @@ function RegisterForm(props: {submitCallback: Function}) {
         value='Submit'
       />
       {error && <div className='error-message'>{`Error: ${error}`}</div>}
-      <a href='/login'>Already have an account?</a>
+      <Link href="/login">Already have an account?</Link>
     </form>
   );
 

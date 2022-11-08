@@ -68,7 +68,8 @@ export function depositPaper(accountId: string | number, amount: number, client?
 
 export async function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
   let query = client ? client.query.bind(client) : db.query.bind(db);
-  return query(`
+  try {
+    return await query(`
     UPDATE accounts
     SET paper=paper-$2
       WHERE account_id=$1
@@ -77,4 +78,11 @@ export async function withdrawPaper(accountId: string | number, amount: number, 
     accountId,
     amount
   ]);
+  } catch (error: any) {
+    if (error.constraint === 'accounts_paper_check') {
+      throw new Error(`Account balance is too low to withdraw $${amount}`);
+    } else {
+      throw new Error('Error withdrawing from account balance');
+    }
+  }
 };

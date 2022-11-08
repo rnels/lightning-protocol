@@ -27,6 +27,13 @@ export type Asset = {
 	pools?: Pool[]
 };
 
+// TODO: Create extended interfaces for Pool, Contract, ContractType
+// TODO: Actually implement this one
+export interface AssetExt extends Asset {
+	contractTypes: ContractType[],
+	pools: Pool[]
+}
+
 export type Pool = {
   poolId: number,
 	accountId: number,

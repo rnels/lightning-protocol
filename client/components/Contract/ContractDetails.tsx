@@ -36,11 +36,11 @@ export default function ContractDetails(props: { contract: Contract }) {
 
   return (
     <div className='contract-details'>
-      <ContractAskPrice
+      {contract.askPrice && <ContractAskPrice
         askPrice={contract.askPrice}
-      />
+      />}
       <button onClick={() => setShowAskModal(true)}>
-        Update
+        {contract.askPrice ? 'Update' : 'Sell'}
       </button>
       {showAskModal && <ContractUpdateAskPriceModal
       contract={contract}
@@ -49,23 +49,27 @@ export default function ContractDetails(props: { contract: Contract }) {
         getContractDetails();
       }}
       />}
-      <ContractCreatedAt
+      {/* <ContractCreatedAt
         createdAt={contract.createdAt}
-      />
+      /> */}
       <ContractExercised
         exercised={contract.exercised}
         exercisedAmount={contract.exercisedAmount}
       />
-      <button onClick={() => setShowExerciseModal(true)}>
-        Exercise
-      </button>
-      {showExerciseModal && <ContractExerciseModal
-      contract={contract}
-      onClose={() => {
-        setShowExerciseModal(false);
-        getContractDetails();
-      }}
-      />}
+      {!contract.exercised &&
+        <>
+        <button onClick={() => setShowExerciseModal(true)}>
+          Exercise
+        </button>
+        {showExerciseModal && <ContractExerciseModal
+          contract={contract}
+          onClose={() => {
+            setShowExerciseModal(false);
+            getContractDetails();
+          }}
+          />}
+        </>
+      }
       {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
         contractType={contractType}
       />} */}

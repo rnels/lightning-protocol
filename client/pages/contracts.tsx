@@ -54,12 +54,17 @@ export default function UserContracts(props: { assets: Asset[] }) {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 
-  let assets = await api.getAssetListOwnedExt();
+  let cookie = context.req.cookies['lightning-app-cookie'];
 
-  return {
-    props: {
-      assets
-    }
+  let assets: any[] = [];
+  try {
+    assets = await api.getAssetListOwnedExt(cookie);
+    return { props: { assets } };
+  } catch (e) {
+    return {
+      props: {
+        assets: []
+      }
+    };
   }
-
 };

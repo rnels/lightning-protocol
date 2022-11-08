@@ -1,4 +1,4 @@
-import { PoolClient } from 'pg';
+import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
 import { Bid, Contract } from '../types';
 import { withdrawPaper, depositPaper } from './accountModel';
@@ -158,17 +158,23 @@ async function _getContractById(id: string | number, client?: PoolClient): Promi
 
 export async function getContractById(id: string | number, client?: PoolClient): Promise<Contract> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT
-      contract_id as "contractId",
-      type_id as "typeId",
-      ask_price as "askPrice",
-      created_at as "createdAt",
-      exercised,
-      exercised_amount as "exercisedAmount"
-    FROM contracts
-      WHERE contract_id=$1
-  `, [id]);
+  let res: QueryResult;
+  try {
+    res = await query(`
+      SELECT
+        contract_id as "contractId",
+        type_id as "typeId",
+        ask_price as "askPrice",
+        created_at as "createdAt",
+        exercised,
+        exercised_amount as "exercisedAmount"
+      FROM contracts
+        WHERE contract_id=$1
+    `, [id]);
+  } catch {
+    throw new Error(`There was an error retrieving the contract`);
+  }
+  if (res.rows.length === 0) throw new Error(`Contract with contractId ${id} does not exist`);
   return res.rows[0];
 }
 

@@ -21,7 +21,7 @@ export default function ContractUpdateAskPriceModal(props: {contract: Contract, 
       onClose={(e) => props.onClose()}
     >
     <div className='update-ask-modal'>
-      <h2 className='update-ask-modal-header'>Update Ask</h2>
+      <h2 className='update-ask-modal-header'>Set Ask</h2>
       <form
         className='update-ask-form'
         onSubmit={handleSubmit}
