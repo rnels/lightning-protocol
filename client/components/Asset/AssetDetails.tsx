@@ -8,6 +8,7 @@ import AssetName from "./AssetName";
 import AssetPrice from "./AssetPrice";
 import AssetSymbol from "./AssetSymbol";
 import AssetAmount from "./AssetAmount";
+import Link from 'next/link';
 
 // import ContractTypeStrikePrice from '../Contract/ContractType/ContractTypeStrikePrice';
 // import ContractTypeDetails from '../Contract/ContractType/ContractTypeDetails';
@@ -50,12 +51,12 @@ export default function AssetDetails(props: {assetId: string | number}) {
       <AssetPrice
         assetId={asset.assetId}
       />
-      <a href={`/assets/${asset.assetId}/pools`}>
+      <Link href={`/assets/${asset.assetId}/pools`}>
         Pools
-      </a>
-      <a href={`/assets/${asset.assetId}/contracts`}>
+      </Link>
+      <Link href={`/assets/${asset.assetId}/contracts`}>
         Contract Types
-      </a>
+      </Link>
     </div>
   );
 

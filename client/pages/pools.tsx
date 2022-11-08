@@ -5,6 +5,7 @@ import UserPoolDetails from '../components/Pool/UserPoolDetails';
 import { useEffect, useState } from 'react';
 import React from 'react';
 import { GetServerSideProps } from 'next';
+import Link from 'next/link';
 
 /** Renders a list of pools for the logged in user */
 export default function UserPools(props: { assets: Asset[] }) {
@@ -14,8 +15,9 @@ export default function UserPools(props: { assets: Asset[] }) {
       <h2>My Pools</h2>
       {props.assets.length > 0 &&
         props.assets.map((asset) =>
+        asset.pools &&
         <div key={asset.assetId}>
-          <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
+          <h3><Link href={`/assets/${asset.assetId}`}>{asset.name}</Link></h3>
           <UserPoolDetails
             key={asset.assetId}
             pool={asset.pools![0]}

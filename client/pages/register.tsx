@@ -3,6 +3,7 @@ import * as api from '../lib/api';
 import React, { FormEvent, useContext, useState } from 'react';
 import { AccountContext } from '../components/AccountContext';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Register() {
 
@@ -17,6 +18,7 @@ export default function Register() {
 function RegisterForm() {
 
   const { setAccount }: any = useContext(AccountContext);
+  const router = useRouter();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -29,7 +31,10 @@ function RegisterForm() {
     api.registerAccount(email, password, firstName, lastName)
       .then(() => {
         return api.getAccount()
-          .then((account) => setAccount(account))
+          .then((account) => {
+            setAccount(account);
+            router.push('/profile');
+          })
           .catch((errorRes) => {
             console.log(errorRes);
           });

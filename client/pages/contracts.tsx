@@ -5,6 +5,7 @@ import ContractDetails from '../components/Contract/ContractDetails';
 import React from 'react';
 import { GetServerSideProps } from 'next';
 import ContractTypeDetails from '../components/Contract/ContractType/ContractTypeDetails';
+import Link from 'next/link';
 
 /** Renders a list of contracts for the logged in user */
 export default function UserContracts(props: { assets: Asset[] }) {
@@ -42,7 +43,7 @@ export default function UserContracts(props: { assets: Asset[] }) {
         props.assets.map((asset) =>
           renderAssets[asset.assetId].length > 0 &&
           <div key={asset.assetId}>
-            <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
+            <h3><Link href={`/assets/${asset.assetId}`}>{asset.name}</Link></h3>
             {renderAssets[asset.assetId]}
           </div>
         )

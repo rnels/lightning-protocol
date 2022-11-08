@@ -5,6 +5,7 @@ import React from 'react';
 import { GetServerSideProps } from 'next';
 import BidDetails from '../components/Bids/BidDetails';
 import ContractTypeDetails from '../components/Contract/ContractType/ContractTypeDetails';
+import Link from 'next/link';
 
 /** Renders a list of bids for the logged in user */
 export default function UserBids(props: { assets: Asset[] }) {
@@ -39,7 +40,7 @@ export default function UserBids(props: { assets: Asset[] }) {
         props.assets.map((asset) =>
           renderAssets[asset.assetId].length > 0 &&
           <div key={asset.assetId}>
-            <h3><a href={`/assets/${asset.assetId}`}>{asset.name}</a></h3>
+            <h3><Link href={`/assets/${asset.assetId}`}>{asset.name}</Link></h3>
             {renderAssets[asset.assetId]}
           </div>
         )

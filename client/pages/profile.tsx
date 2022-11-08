@@ -2,12 +2,9 @@ import { Account } from '../lib/types';
 import { AccountContext } from '../components/AccountContext';
 import React, { useContext } from 'react';
 
-
 export default function UserProfile() {
 
   const { account }: any = useContext(AccountContext);
-
-  console.log(account);
 
   if (!account) return null;
 

@@ -3,6 +3,7 @@ import * as api from '../lib/api';
 import React, { FormEvent, useContext, useState } from "react";
 import { AccountContext } from '../components/AccountContext';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Login() {
 
@@ -21,13 +22,17 @@ function LoginForm() {
   const [error, setError] = useState('');
 
   const { setAccount }: any = useContext(AccountContext);
+  const router = useRouter();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.loginAccount(email, password)
       .then(() => {
         return api.getAccount()
-          .then((account) => setAccount(account))
+          .then((account) => {
+            setAccount(account);
+            router.push('/profile');
+          })
           .catch((errorRes) => {
             console.log(errorRes);
           });
