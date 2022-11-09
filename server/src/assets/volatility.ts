@@ -42,7 +42,7 @@ function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
   }
   let volatilitySum = groupsArray.reduce((sum, a) => sum + a, 0); // Get sum of group volatility
   let volatility = volatilitySum / groupsArray.length; // Get average volatility
-  console.log('volatility:', volatility);
+  // console.log('volatility:', volatility); // DEBUG
   return volatility;
 }
 

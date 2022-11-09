@@ -13,7 +13,7 @@ import { createContractType, getActiveContractTypesByAssetId, getContractTypeByI
 import { getUnlockedAmountByAssetId } from "../models/poolModel";
 import { getAssetPriceFromAPI } from "../assets/price";
 import { getAssetPriceVolatility, getAssetPriceVolatilityDebug } from '../assets/volatility';
-import { Asset } from '../types';
+import { Asset, ContractType } from '../types';
 import { getTradesWithin24HoursByTypeId } from '../models/tradeModel';
 
 // Goals:
@@ -154,29 +154,94 @@ export async function writeContractTypeChain(assetId: number) {
   }
 }
 
-export async function writeContractsChain(assetId: number) {
+// Goes through and creates as many contracts as possible for contractTypes with no open interest
+// TODO: Use historical trading data for contractTypes of the same qualities but sooner expiry to determine how many should be made of each type
+export async function initializeContracts(assetId: number) {
   const asset = await getAssetById(assetId);
+  const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
-    let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction);
-    // console.log('askPrice:', askPrice); // DEBUG
-    // This will create as many contracts as possible with the unlocked pools
-    // Does not account for any type of weights, just does a uniform distribution
-    // Works best under the assumption asset.assetAmount will be consistent across contractTypes (which it should be)
-    // TODO: This currently leads to some unlocked amounts due to needing a uniform distribution across all types
-    // Fix this to allow partial distributions
-    if (askPrice > 0) {
-      for (let i = 0; i < Math.floor(unlockedAmount / (asset.assetAmount * contractTypes.length)); i++) {
-        try { // TODO: Create better system of addressing this, partial distributions should help
-          await createContract(
-            contractType.contractTypeId,
-            askPrice
-          );
-        } catch {}
+    let contracts = await getActiveContractsByTypeId(contractType.contractTypeId);
+    let openInterest = contracts.length;
+    if (!openInterest) {
+      let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
+      // console.log('askPrice:', askPrice); // DEBUG
+      // This will create as many contracts as possible with the unlocked pools
+      // Does not account for any type of weights, just does a uniform distribution
+      // TODO: This currently leads to some unlocked amounts due to needing a uniform distribution across all types
+      // Fix this to allow partial distributions
+      if (askPrice > 0) {
+        for (let i = 0; i < Math.floor(unlockedAmount / (asset.assetAmount * contractTypes.length)); i++) {
+          try {
+            await createContract(
+              contractType.contractTypeId,
+              askPrice
+            );
+          } catch {}
+        }
       }
     }
   }
+
+}
+
+// Goes through and creates as many contracts as possible for contract types with trading history, amount created relative to OI ratio
+// TODO: Make sure I'm not maxing out the pools in a way where the writer can't create new contract types
+// due to being locked up (though could mitigate this by ensuring that new chains are created on expiry of old ones)
+export async function writeContracts(assetId: number) {
+  const asset = await getAssetById(assetId);
+  const assetPrice = await getAssetPriceById(assetId);
+  const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
+  let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
+  let maxContracts = Math.floor(unlockedAmount / asset.assetAmount); // The maximum that can be made with the unlocked amount
+  let typeRatios: {contractType: ContractType, askPrice: number, ratio: number} [] = [];
+  for (let contractType of contractTypes) {
+    if ( // Don't create contracts of ITM contract types
+      contractType.strikePrice > assetPrice && contractType.direction || // OTM call
+      contractType.strikePrice < assetPrice && !contractType.direction // OTM put
+    ) {
+      let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
+      console.log('askPrice:', askPrice); // DEBUG
+      if (askPrice > 0) {
+        let ratio = await _getVolumeOIRatio(contractType.contractTypeId);
+        console.log(ratio);
+        ratio && typeRatios.push({
+          contractType,
+          askPrice,
+          ratio
+        });
+      }
+    }
+  }
+  // TODO: Use standard deviations instead of average
+  let avgContractsPerType = maxContracts / typeRatios.length; // NOTE: Not rounding here on purpose
+  // TODO: Rethink this where instead of getting ratioAvg, get the amount of active contractTypes that meet certain requirements (i.e. not being ITM, having trade history)
+  let ratioSum = typeRatios.reduce((sum, a) => sum + a.ratio, 0);
+  let ratioAvg = ratioSum / typeRatios.length;
+  // Look at amount of contractTypes (within typeRatios), then use average ratio difference to calculate how many contracts should be created for each contract type
+  let count = 0; // DEBUG
+  // This will create as many contracts as possible with the unlocked pools (though currently is subject to rounding error)
+  for (let tr of typeRatios) {
+    let ct = tr.contractType;
+    // TODO: Consider doing an exponential / log equation for finding how many to create
+    // TODO: Don't write contracts for types which are less than average ratio
+    let createAmount = Math.floor(avgContractsPerType * (1 + ((tr.ratio - ratioAvg) / ratioAvg)));
+    // console.log('avgContractsPerType:', avgContractsPerType); // DEBUG
+    // console.log('createAmount:', createAmount); // DEBUG
+    try {
+      for (let i = 0; i < createAmount; i++) {
+          await createContract(
+            ct.contractTypeId,
+            tr.askPrice
+          );
+          count++; // DEBUG
+      }
+    } catch {
+      break; // If unable to create a contract, presumed due to hitting unlockedAmount limit, stop creating them
+    }
+  }
+  console.log('Contract creation limit reached at count ' + count + ' of ' + maxContracts); // DEBUG
 }
 
 export async function automaticBidTest(assetId: number) {
@@ -222,7 +287,8 @@ export async function writerAskUpdate(assetId: number) {
 (async () => {
   let assetId = 1;
   // await writeContractTypeChain(assetId);
-  // await writeContractsChain(assetId);
+  // await initializeContracts(assetId);
+  // await writeContracts(assetId);
   // await automaticBidTest(assetId);
   // await writerAskUpdate(assetId);
 })();
