@@ -40,8 +40,8 @@ export default function ContractExerciseModal(props: {contract: Contract, onClos
             value='Confirm'
           />
         </label>
+        {error && <label className='error-message'>{error}</label>}
       </form>
-      {error && <label className='error-message'>{error}</label>}
       {/* <button
         onClick={(e) => props.onClose()}
       >Close</button> */}

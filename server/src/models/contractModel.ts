@@ -302,7 +302,7 @@ export async function createContract(
     let poolLockPromises = [];
     let unallocatedAmount = asset.assetAmount;
     // Okay, so this should create a pool lock for all pools with
-    // Unlocked assets, cascading down until the contract is spent on locks
+    // unlocked assets, cascading down until the contract is spent on locks
     for (let pool of pools) {
       let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId, client); // TODO: Could technically get locked amounts and do the sum here
       if (unlockedAmount > 0) {
@@ -327,15 +327,16 @@ export async function createContract(
     client.release();
     return contract;
   } catch (e) {
-    console.log(e); // DEBUG
     await client.query('ROLLBACK');
     client.release();
-    throw new Error('Contract could not be created');
+    console.log(e); // DEBUG
+    throw new Error('There was an error creating the contract'); // TODO: Create detailed error messages
   }
 }
 
 // TODO: Ensure someone can't set an ask price on expired contracts
 export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
+
   const client = await db.connect();
   try {
     await client.query('BEGIN');
@@ -344,7 +345,6 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
       SET ask_price=$2
         WHERE contract_id=$1
           AND owner_id=$3
-          AND exercised=false
       RETURNING
         contract_id as "contractId",
         type_id as "typeId",
@@ -359,16 +359,22 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
       askPrice,
       ownerId
     ])).rows[0] as Contract; // Should return undefined if no contract matches the WHERE conditionals
-    if (contract) {
-      let bids = await _getMatchingBidsByAsk(contract, client);
-      if (bids.length > 0) await _tradeContract(contract, bids[0], client);
+    if (contract.exercised) {
+      throw new Error('Contract is already exercised');
     }
+    if (!contract) {
+      throw new Error('Contract could not be found');
+    }
+    await getActiveContractTypeById(contract.typeId); // Should throw exception is contract type is expired
+    let bids = await _getMatchingBidsByAsk(contract, client);
+    if (bids.length > 0) await _tradeContract(contract, bids[0], client);
     await client.query('COMMIT');
-  } catch (e) {
-    console.log(e) // DEBUG
-    await client.query('ROLLBACK');
-  } finally {
     client.release();
+  } catch (e: any) {
+    await client.query('ROLLBACK');
+    client.release();
+    console.log(e) // DEBUG
+    throw new Error(e);
   }
 }
 

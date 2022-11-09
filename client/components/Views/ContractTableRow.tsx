@@ -1,6 +1,6 @@
 import { Asset, Bid, Contract, ContractType, Trade } from '../../lib/types';
 import * as api from '../../lib/api';
-import PlaceBidModal from './PlaceBidModal';
+import PlaceBidModal from '../Bids/PlaceBidModal';
 
 import { useEffect, useState } from 'react';
 // import { Link, Outlet } from 'react-router-dom';

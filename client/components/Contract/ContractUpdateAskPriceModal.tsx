@@ -7,12 +7,20 @@ import Modal from '@mui/material/Modal';
 export default function ContractUpdateAskPriceModal(props: {contract: Contract, onClose: Function}) {
 
   const [price, setPrice] = useState<number>(props.contract.askPrice || 0);
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.updateAskPrice(props.contract.contractId, price)
       .then(() => props.onClose())
-      .catch((error) => console.log(error));
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   };
 
   return (
@@ -43,6 +51,7 @@ export default function ContractUpdateAskPriceModal(props: {contract: Contract, 
           value='Submit'
         />
         <small>Note: Pool provider fee accounts for 1% of sale cost</small>
+        {error && <label className='error-message'>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

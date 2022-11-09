@@ -137,11 +137,12 @@ export async function createBid(typeId: number, accountId: number, bidPrice: num
     let contracts = await _getMatchingAsksByBid(bid, client);
     if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
     await client.query('COMMIT');
+    client.release();
   } catch (e) {
     await client.query('ROLLBACK');
-    console.log(e); // DEBUG
-  } finally {
     client.release();
+    console.log(e); // DEBUG
+    throw new Error('There was an error creating the bid'); // TODO: Create detailed error messages
   }
 }
 
@@ -168,11 +169,12 @@ export async function updateBidPrice(bidId: number | string, bidPrice: number, a
     let contracts = await _getMatchingAsksByBid(bid, client);
     if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
     await client.query('COMMIT');
+    client.release();
   } catch (e) {
     await client.query('ROLLBACK');
-    console.log(e); // DEBUG
-  } finally {
     client.release();
+    console.log(e); // DEBUG
+    throw new Error('There was an error updating the bid'); // TODO: Create detailed error messages
   }
 }
 

@@ -9,6 +9,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
 
   const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
   const [amount, setAmount] = useState<number>(1);
+  const [error, setError] = useState('');
 
   const { getAccountInfo }: any = useContext(AccountContext);
 
@@ -18,7 +19,14 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
     for (let i = 0; i < amount; i++) { // TODO: Create a route which allows submitting multiple bids
       createBidPromises.push(
         api.createBid(props.contractType.contractTypeId, price)
-        .catch((error) => console.log(error))
+        .catch((errorRes) => {
+          console.log(errorRes);
+          if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+            setError(errorRes.response.data.message);
+          } else {
+            setError(errorRes.message);
+          }
+        })
       );
     }
     await Promise.all(createBidPromises);
@@ -70,6 +78,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
           disabled={price < 0.01 || amount < 1}
           value='Submit'
         />
+        {error && <label className='error-message'>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

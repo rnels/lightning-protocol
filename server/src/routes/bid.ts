@@ -70,7 +70,7 @@ router.post('/bid', (req, res, next) => {
     })
     .catch((error: any) => {
       console.log('There was an error creating the bid:', error);
-      res.status(400).send({ message: 'Error creating bid' });
+      res.status(400).send({ message: error.message });
     });
 });
 
@@ -89,7 +89,7 @@ router.put('/bid/price', (req, res, next) => {
     .then(() => {
       res.status(201).send({ message: 'Bid price updated' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error updating bid price' }));
+    .catch((error: any) => res.status(400).send({ message: error.message }));
 });
 
 // DELETE REQUESTS //

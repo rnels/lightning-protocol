@@ -8,6 +8,7 @@ import { AccountContext } from '../AccountContext';
 export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}) {
 
   const [price, setPrice] = useState<number>(props.bid.bidPrice || 0);
+  const [error, setError] = useState('');
 
   const { getAccountInfo }: any = useContext(AccountContext);
 
@@ -18,7 +19,14 @@ export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}
         getAccountInfo();
         props.onClose();
       })
-      .catch((error) => console.log(error));
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
   };
 
   return (
@@ -48,6 +56,7 @@ export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}
           disabled={price < 0.01}
           value='Submit'
         />
+        {error && <label className='error-message'>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

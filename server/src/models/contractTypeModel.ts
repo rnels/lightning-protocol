@@ -98,6 +98,9 @@ export async function getActiveContractTypeById(id: string | number, client?: Po
       WHERE contract_type_id=$1
         AND expires_at > NOW()
   `, [id]);
+  if (res.rows.length === 0) {
+    throw new Error('There is no active contract type associated with this type ID');
+  }
   return res.rows[0];
 }
 

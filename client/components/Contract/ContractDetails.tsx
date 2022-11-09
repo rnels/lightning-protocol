@@ -39,9 +39,10 @@ export default function ContractDetails(props: { contract: Contract }) {
       {contract.askPrice && <ContractAskPrice
         askPrice={contract.askPrice}
       />}
+      {!contract.exercised &&
       <button onClick={() => setShowAskModal(true)}>
         {contract.askPrice ? 'Update' : 'Sell'}
-      </button>
+      </button>}
       {showAskModal && <ContractUpdateAskPriceModal
       contract={contract}
       onClose={() => {
