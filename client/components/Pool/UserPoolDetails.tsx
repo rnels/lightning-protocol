@@ -27,13 +27,13 @@ export default function UserPoolDetails(props: { pool: Pool }) {
       });
   }
 
-  const lockedAmount = pool.poolLocks?.map(
+  const lockedAmount = pool.poolLocks!.length > 0 ? pool.poolLocks!.map(
     (poolLock) => Number(poolLock.assetAmount))
-    .reduce((sum, a=0) => sum + a);
+    .reduce((sum, a=0) => sum + a) : 0;
 
-  const lockedFees = pool.poolLocks?.map(
+  const lockedFees = pool.poolLocks!.length > 0 ? pool.poolLocks!.map(
     (poolLock) => Number(poolLock.tradeFees))
-    .reduce((sum, a=0) => sum + a);
+    .reduce((sum, a=0) => sum + a) : 0;
 
 
   return (

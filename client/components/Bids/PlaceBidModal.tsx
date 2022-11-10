@@ -53,7 +53,6 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
           Price
           <input
             type='number'
-            max={1000}
             min={0}
             step={0.01}
             value={price}

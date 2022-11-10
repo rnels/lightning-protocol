@@ -56,21 +56,21 @@ async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: Date, d
   let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, window);  // DEBUG, TODO: Delete for production
   // let volatility = 0.611;  // EXTRA DEBUG
   // console.log('volatility:', volatility); // DEBUG
-  return Math.trunc(bs.blackScholes(
+  return bs.blackScholes(
     assetPrice, // s - Current price of the underlying
     strikePrice, // k - Strike price
     timeToExpiry, // t - Time to expiration in years
     volatility, // v - Volatility as a decimal
     0, // TODO: Define r - Annual risk-free interest rate as a decimal
     direction ? 'call' : 'put' // callPut - The type of option to be priced - "call" or "put"
-  ) * 100) / 100;
+  );
 }
 
 function _getTimeToExpiryFromExpiresAt(expiresAt: Date) {
   return (expiresAt.getTime() - Date.now()) / 31556926000; // NOTE: Uses intersection between leap year and non-leap year time iirc
 }
 
-/** Represents how much a contract is being traded relative to the number of outstanding contracts. Should be used in the formula determining which contractTypes to be writing more of */
+/** Represents how much a contractType is being traded relative to the number of outstanding contracts. Should be used in the formula determining which contractTypes to be writing more of */
 async function _getVolumeOIRatio(typeId: number) {
   const trades = await getTradesWithin24HoursByTypeId(typeId);
   const contracts = await getActiveContractsByTypeId(typeId);
@@ -171,7 +171,7 @@ export async function initializeContracts(assetId: number) {
       // Does not account for any type of weights, just does a uniform distribution
       // TODO: This currently leads to some unlocked amounts due to needing a uniform distribution across all types
       // Fix this to allow partial distributions
-      if (askPrice > 0) {
+      if ((askPrice * asset.assetAmount) >= 0.01) {
         for (let i = 0; i < Math.floor(unlockedAmount / (asset.assetAmount * contractTypes.length)); i++) {
           try {
             await createContract(
@@ -189,13 +189,21 @@ export async function initializeContracts(assetId: number) {
 // Goes through and creates as many contracts as possible for contract types with trading history, amount created relative to OI ratio
 // TODO: Make sure I'm not maxing out the pools in a way where the writer can't create new contract types
 // due to being locked up (though could mitigate this by ensuring that new chains are created on expiry of old ones)
+
+// TODO: Consolidate this with writeContractTypeChain, instead of writing contracts for existing types, create them for the newly created wave of types using the historical data of the existing types
+// Consideration: New types may have different strike prices, will need to shift the window of historical data and interpolate where needed
 export async function writeContracts(assetId: number) {
   const asset = await getAssetById(assetId);
   const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
   let maxContracts = Math.floor(unlockedAmount / asset.assetAmount); // The maximum that can be made with the unlocked amount
-  let typeRatios: {contractType: ContractType, askPrice: number, ratio: number} [] = [];
+  // console.log('maxContracts:', maxContracts); // DEBUG
+  let typeRatios: {
+    contractType: ContractType,
+    askPrice: number,
+    ratio: number
+  } [] = [];
   for (let contractType of contractTypes) {
     if ( // Don't create contracts of ITM contract types
       contractType.strikePrice > assetPrice && contractType.direction || // OTM call
@@ -203,7 +211,7 @@ export async function writeContracts(assetId: number) {
     ) {
       let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
       console.log('askPrice:', askPrice); // DEBUG
-      if (askPrice > 0) {
+      if ((askPrice * asset.assetAmount) >= 0.01) {
         let ratio = await _getVolumeOIRatio(contractType.contractTypeId);
         console.log(ratio);
         ratio && typeRatios.push({
@@ -214,20 +222,26 @@ export async function writeContracts(assetId: number) {
       }
     }
   }
-  // TODO: Use standard deviations instead of average
   let avgContractsPerType = maxContracts / typeRatios.length; // NOTE: Not rounding here on purpose
-  // TODO: Rethink this where instead of getting ratioAvg, get the amount of active contractTypes that meet certain requirements (i.e. not being ITM, having trade history)
+  console.log('avgContractsPerType:', avgContractsPerType); // DEBUG
   let ratioSum = typeRatios.reduce((sum, a) => sum + a.ratio, 0);
   let ratioAvg = ratioSum / typeRatios.length;
+  let squaredArr: number[] = [];
+  // console.log('ratioAvg:', ratioAvg); // DEBUG
   // Look at amount of contractTypes (within typeRatios), then use average ratio difference to calculate how many contracts should be created for each contract type
   let count = 0; // DEBUG
   // This will create as many contracts as possible with the unlocked pools (though currently is subject to rounding error)
   for (let tr of typeRatios) {
+    let dif = tr.ratio - ratioAvg;
+    squaredArr.push(Math.pow(dif, 2));
+  }
+  let squaredSum = squaredArr.reduce((sum, a) => sum + a, 0);
+  let stdev = Math.sqrt(squaredSum / typeRatios.length);
+  // console.log('stdev,', stdev); // DEBUG
+  for (let tr of typeRatios) {
     let ct = tr.contractType;
-    // TODO: Consider doing an exponential / log equation for finding how many to create
-    // TODO: Don't write contracts for types which are less than average ratio
-    let createAmount = Math.floor(avgContractsPerType * (1 + ((tr.ratio - ratioAvg) / ratioAvg)));
-    // console.log('avgContractsPerType:', avgContractsPerType); // DEBUG
+    let createAmount = Math.floor(avgContractsPerType * (tr.ratio / stdev));
+    // console.log('tr.ratio / stdev:', tr.ratio / stdev); // DEBUG
     // console.log('createAmount:', createAmount); // DEBUG
     try {
       for (let i = 0; i < createAmount; i++) {

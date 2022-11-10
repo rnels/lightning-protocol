@@ -44,7 +44,6 @@ export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}
           Price
           <input
             type='number'
-            max={1000}
             min={0}
             step={0.01}
             value={price}
