@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   let cookie = context.req.cookies['lightning-app-cookie'];
 
-  let assetList: any[] = [];
+  let assetList: Asset[] = [];
   try {
     assetList = await api.getAssetList(cookie);
     return { props: { assetList } };

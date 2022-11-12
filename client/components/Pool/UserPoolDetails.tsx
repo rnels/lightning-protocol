@@ -69,20 +69,23 @@ export default function UserPoolDetails(props: { pool: Pool }) {
       <div>
         {`Lock Fees: ${lockedFees ? `$${lockedFees.toFixed(2)}` : '$0'} `}
       </div>
-      {showAssetModal && <PoolAssetModal
-      pool={pool}
-      modalType={assetModalType}
-      onClose={() => {
-        setShowAssetModal(false);
-        getPool();
-      }}
+      {showAssetModal &&
+      <PoolAssetModal
+        pool={pool}
+        unlockedAmount={Math.trunc((pool.assetAmount - lockedAmount) * 10000) / 10000}
+        modalType={assetModalType}
+        onClose={() => {
+          setShowAssetModal(false);
+          getPool();
+        }}
       />}
-      {showFeesModal && <PoolFeesWithdrawModal
-      pool={pool}
-      onClose={() => {
-        setShowFeesModal(false);
-        getPool();
-      }}
+      {showFeesModal &&
+      <PoolFeesWithdrawModal
+        pool={pool}
+        onClose={() => {
+          setShowFeesModal(false);
+          getPool();
+        }}
       />}
     </div>
   );

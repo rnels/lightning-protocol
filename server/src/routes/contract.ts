@@ -148,4 +148,20 @@ router.put('/contract/ask', (req, res, next) => {
     .catch((error: any) => res.status(400).send({ message: error.message }));
 });
 
+// DELETE REQUESTS //
+
+// Remove a contract ask price
+// Expects in req.query:
+//  contractId
+router.delete('/contract/ask', (req, res, next) => {
+  if (!req.query.contractId) {
+    return res.status(400).send({ message: 'Missing query parameter: contractId' });
+  }
+  contracts.removeAskPrice(req.query.contractId as string, req.user!.id)
+    .then(() => {
+      res.status(202).send({ message: 'Ask removed' });
+    })
+    .catch((error: any) => res.status(400).send({ message: 'Error removing ask price' }));
+});
+
 export default router;

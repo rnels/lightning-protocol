@@ -104,6 +104,13 @@ export function updateAskPrice(contractId: string | number, askPrice: number) {
     .then((response) => response.data);
 }
 
+export function removeAskPrice(contractId: string | number) {
+  return axios.delete(`${serverURL}/contract/ask`, {
+    params: { contractId }
+  })
+    .then((response) => response.data);
+}
+
 // CONTRACT TYPES //
 
 export function getContractType(typeId: string | number, cookie?: string): Promise<ContractType> {
@@ -199,6 +206,13 @@ export function getLastTrade(typeId: string | number, cookie?: string): Promise<
 export function getDailyTrades(typeId: string | number, cookie?: string): Promise<Trade[]> {
   return axios.get(`${serverURL}/trade/daily`, {
     params: { typeId },
+    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+  })
+    .then((response) => response.data.trades);
+}
+
+export function getUserTrades(cookie?: string): Promise<Trade[]> {
+  return axios.get(`${serverURL}/trade/owned`, {
     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
   })
     .then((response) => response.data.trades);

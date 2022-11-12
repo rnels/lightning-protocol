@@ -1,6 +1,6 @@
 import { Asset, Bid, Contract, ContractType, Trade } from '../../lib/types';
 import * as api from '../../lib/api';
-import PlaceBidModal from '../Bids/PlaceBidModal';
+import PlaceBidModal from '../Bid/PlaceBidModal';
 
 import { useEffect, useState } from 'react';
 // import { Link, Outlet } from 'react-router-dom';
@@ -84,7 +84,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td onClick={() => setShowModal(true)}>
         {highestBid === null ? 'N/A' :
         <>
-        {`$${props.amountFilter ? Math.trunc(highestBid * props.asset.assetAmount * 1000) / 1000 : highestBid}`}
+        {`$${(props.amountFilter ? Math.trunc(highestBid * props.asset.assetAmount * 1000) / 1000 : highestBid).toFixed(2)}`}
         <div>{`(x${bids.length})`}</div>
         </>
         }
@@ -92,14 +92,15 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td>
         {lowestAsk === null ? 'N/A' :
         <>
-        {`$${props.amountFilter ? Math.trunc(lowestAsk * props.asset.assetAmount * 1000) / 1000 : lowestAsk}`}
+        {`$${(props.amountFilter ? Math.trunc(lowestAsk * props.asset.assetAmount * 1000) / 1000 : lowestAsk).toFixed(2)}`}
         <div>{`(x${asks.length})`}</div>
         </>
         }
       </td>
       <td>{dailyTrades.length}</td>
       <td>{contracts.length}</td>
-      {showModal && <PlaceBidModal
+      {showModal &&
+      <PlaceBidModal
         key={props.contractType.contractTypeId}
         asset={props.asset}
         contractType={props.contractType}

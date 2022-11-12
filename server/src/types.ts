@@ -91,7 +91,8 @@ export type Trade = {
 	salePrice: number,
 	saleCost: number,
 	tradeFee: number,
-  createdAt: string
+  createdAt: string,
+	isBuyer?: boolean
 };
 
 export type User = {

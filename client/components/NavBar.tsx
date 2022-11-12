@@ -16,6 +16,7 @@ export default function NavBar() {
         <Link href="/pools">Pools</Link>
         <Link href="/bids">Bids</Link>
         <Link href="/contracts">Contracts</Link>
+        <Link href="/trades">Trades</Link>
         <Link href="/profile">Profile</Link>
       </div>
       {`${Math.trunc(account.paper * 100) / 100} 💵`}

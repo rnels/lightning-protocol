@@ -2,6 +2,10 @@ import { PoolClient } from 'pg';
 import db from '../db/db';
 import { Trade } from '../types';
 
+// TODO: Consider making an extended trades type which has buyer and seller ID as optional.
+// Currently, the Trade type is in line with the schema but the return types of functions which do not
+// includes those fields is technically not accurate
+
 // I'm not sure where you would ever use this
 export async function getAllTrades(sort='trade_id ASC', count=100): Promise<Trade[]> {
   const res = await db.query(`
@@ -9,8 +13,6 @@ export async function getAllTrades(sort='trade_id ASC', count=100): Promise<Trad
       trade_id as "tradeId",
       contract_id as "contractId",
       type_id as "typeId",
-      buyer_id as "buyerId",
-      seller_id as "sellerId",
       sale_price as "salePrice",
       sale_cost as "saleCost",
       trade_fee as "tradeFee",
@@ -28,8 +30,6 @@ export async function getTradeById(id: string | number): Promise<Trade> {
       trade_id as "tradeId",
       contract_id as "contractId",
       type_id as "typeId",
-      buyer_id as "buyerId",
-      seller_id as "sellerId",
       sale_price as "salePrice",
       sale_cost as "saleCost",
       trade_fee as "tradeFee",
@@ -52,12 +52,11 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
       trade_id as "tradeId",
       contract_id as "contractId",
       type_id as "typeId",
-      buyer_id as "buyerId",
-      seller_id as "sellerId",
       sale_price as "salePrice",
       sale_cost as "saleCost",
       trade_fee as "tradeFee",
-      created_at as "createdAt"
+      created_at as "createdAt",
+      buyer_id=$1 as "isBuyer"
     FROM trades
       WHERE buyer_id=$1
         OR seller_id=$1
@@ -81,6 +80,24 @@ export async function getTradesByContractId(contractId: string | number): Promis
   return res.rows;
 }
 
+export async function getTradesByContractIdAccountId(contractId: string | number, accountId: string | number): Promise<Trade[]> {
+  const res = await db.query(`
+    SELECT
+      trade_id as "tradeId",
+      contract_id as "contractId",
+      type_id as "typeId",
+      sale_price as "salePrice",
+      sale_cost as "saleCost",
+      trade_fee as "tradeFee",
+      created_at as "createdAt",
+      buyer_id=$2 as "isBuyer"
+    FROM trades
+      WHERE contract_id=$1
+        AND (buyer_id=$2 OR seller_id=$2)
+  `, [contractId, accountId]);
+  return res.rows;
+}
+
 /** Represents "Last" */
 export async function getLastTradeByTypeId(typeId: string | number): Promise<Trade> {
   const res = await db.query(`
@@ -88,8 +105,6 @@ export async function getLastTradeByTypeId(typeId: string | number): Promise<Tra
       trade_id as "tradeId",
       contract_id as "contractId",
       type_id as "typeId",
-      buyer_id as "buyerId",
-      seller_id as "sellerId",
       sale_price as "salePrice",
       sale_cost as "saleCost",
       trade_fee as "tradeFee",
@@ -108,8 +123,6 @@ export async function getTradesWithin24HoursByTypeId(typeId: string | number): P
       trade_id as "tradeId",
       contract_id as "contractId",
       type_id as "typeId",
-      buyer_id as "buyerId",
-      seller_id as "sellerId",
       sale_price as "salePrice",
       sale_cost as "saleCost",
       trade_fee as "tradeFee",
@@ -182,5 +195,3 @@ export async function _createTrade(
   ]);
   return res.rows[0];
 }
-
-// TODO: Define a function to get the last sale price for a contractType

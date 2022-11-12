@@ -56,14 +56,14 @@ async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: Date, d
   let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, window);  // DEBUG, TODO: Delete for production
   // let volatility = 0.611;  // EXTRA DEBUG
   // console.log('volatility:', volatility); // DEBUG
-  return bs.blackScholes(
+  return Math.trunc(bs.blackScholes(
     assetPrice, // s - Current price of the underlying
     strikePrice, // k - Strike price
     timeToExpiry, // t - Time to expiration in years
     volatility, // v - Volatility as a decimal
     0, // TODO: Define r - Annual risk-free interest rate as a decimal
     direction ? 'call' : 'put' // callPut - The type of option to be priced - "call" or "put"
-  );
+  ) * 100) / 100;
 }
 
 function _getTimeToExpiryFromExpiresAt(expiresAt: Date) {
@@ -129,9 +129,9 @@ export async function writeContractTypeChain(assetId: number) {
     let assetPriceRounded = Math.trunc(assetPrice / roundMultiplier) * roundMultiplier;
     // let volatility = 0.5; // DEBUG
     // let volatility = await getAssetPriceVolatility(asset, assetPrice, 365, daysOut); // TODO: Uncomment for production
-    let volatility = await getAssetPriceVolatilityDebug(asset, assetPriceRounded, 365, daysOut); // DEBUG: Remove for production
+    let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, daysOut); // DEBUG: Remove for production
     // console.log('volatility:', volatility); // DEBUG
-    let deviation = Math.trunc((assetPriceRounded * volatility) / roundMultiplier) * roundMultiplier;
+    let deviation = Math.trunc((assetPrice * volatility) / roundMultiplier) * roundMultiplier;
     let stepMultiplier = 5; // NOTE: Increasing this decreases the amount of standard deviations in the chain
     let deviationStep = deviation / stepMultiplier;
     // console.log('deviation:', deviation); // DEBUG
@@ -198,7 +198,7 @@ export async function writeContracts(assetId: number) {
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
   let maxContracts = Math.floor(unlockedAmount / asset.assetAmount); // The maximum that can be made with the unlocked amount
-  // console.log('maxContracts:', maxContracts); // DEBUG
+  console.log('maxContracts:', maxContracts); // DEBUG
   let typeRatios: {
     contractType: ContractType,
     askPrice: number,
@@ -210,10 +210,10 @@ export async function writeContracts(assetId: number) {
       contractType.strikePrice < assetPrice && !contractType.direction // OTM put
     ) {
       let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
-      console.log('askPrice:', askPrice); // DEBUG
+      // console.log('askPrice:', askPrice); // DEBUG
       if ((askPrice * asset.assetAmount) >= 0.01) {
         let ratio = await _getVolumeOIRatio(contractType.contractTypeId);
-        console.log(ratio);
+        // console.log(ratio);
         ratio && typeRatios.push({
           contractType,
           askPrice,
@@ -222,27 +222,13 @@ export async function writeContracts(assetId: number) {
       }
     }
   }
-  let avgContractsPerType = maxContracts / typeRatios.length; // NOTE: Not rounding here on purpose
-  console.log('avgContractsPerType:', avgContractsPerType); // DEBUG
+  if (!typeRatios.length) return; // If there's no contract types that are eligible to write for
   let ratioSum = typeRatios.reduce((sum, a) => sum + a.ratio, 0);
-  let ratioAvg = ratioSum / typeRatios.length;
-  let squaredArr: number[] = [];
-  // console.log('ratioAvg:', ratioAvg); // DEBUG
-  // Look at amount of contractTypes (within typeRatios), then use average ratio difference to calculate how many contracts should be created for each contract type
-  let count = 0; // DEBUG
-  // This will create as many contracts as possible with the unlocked pools (though currently is subject to rounding error)
-  for (let tr of typeRatios) {
-    let dif = tr.ratio - ratioAvg;
-    squaredArr.push(Math.pow(dif, 2));
-  }
-  let squaredSum = squaredArr.reduce((sum, a) => sum + a, 0);
-  let stdev = Math.sqrt(squaredSum / typeRatios.length);
-  // console.log('stdev,', stdev); // DEBUG
+  let count = 0;
   for (let tr of typeRatios) {
     let ct = tr.contractType;
-    let createAmount = Math.floor(avgContractsPerType * (tr.ratio / stdev));
-    // console.log('tr.ratio / stdev:', tr.ratio / stdev); // DEBUG
-    // console.log('createAmount:', createAmount); // DEBUG
+    let createAmount = Math.floor(maxContracts * (tr.ratio / ratioSum));
+    console.log('createAmount:', createAmount); // DEBUG
     try {
       for (let i = 0; i < createAmount; i++) {
           await createContract(

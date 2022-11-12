@@ -5,7 +5,7 @@ import { getBidsByContractTypeAndAccountId, getBidsByContractTypeId } from './bi
 import { getContractsByTypeId, getContractsByTypeIdOwnerId } from './contractModel';
 import { getContractTypesByAssetId } from './contractTypeModel';
 import { getPoolByAccountAssetIds, getPoolLocksByPoolId, getPoolsByAssetId } from './poolModel';
-import { getTradesByContractId } from './tradeModel';
+import { getTradesByContractId, getTradesByContractIdAccountId } from './tradeModel';
 
 export async function getAssetGroup(): Promise<Asset[]> {
   let assets = await getAllAssets();
@@ -94,7 +94,7 @@ export async function getContractGroup(typeId: string | number): Promise<Contrac
 export async function getContractGroupOwned(typeId: string | number, accountId: string | number): Promise<Contract[]> {
   let contracts = await getContractsByTypeIdOwnerId(typeId, accountId);
   for (let contract of contracts) {
-    contract.trades = await getTradesByContractId(contract.contractId); // TODO: Should only get trades since the point I owned it
+    contract.trades = await getTradesByContractIdAccountId(contract.contractId, accountId);
   }
   return contracts;
 }

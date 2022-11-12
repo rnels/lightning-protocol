@@ -81,6 +81,7 @@ export default function AssetContracts(
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+
   const { assetId } = context.query;
 
   let cookie = context.req.cookies['lightning-app-cookie'];

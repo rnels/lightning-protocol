@@ -21,6 +21,13 @@ export default function ContractDetails(props: { contract: Contract }) {
       .catch((error) => console.log(error));
   }
 
+  function deleteAsk() {
+    api.removeAskPrice(contract.contractId)
+      .then(() => getContractDetails())
+      .catch((error) => console.log(error));
+  }
+
+
   // TODO: Possibly refactor to have a component for contractType details which hydrates its information by being passed down a typeId rather than the whole contractType object
 
   // const [contractType, setContractType] = useState<ContractType>();
@@ -43,12 +50,18 @@ export default function ContractDetails(props: { contract: Contract }) {
       <button onClick={() => setShowAskModal(true)}>
         {contract.askPrice ? 'Update' : 'Sell'}
       </button>}
-      {showAskModal && <ContractUpdateAskPriceModal
-      contract={contract}
-      onClose={() => {
-        setShowAskModal(false);
-        getContractDetails();
-      }}
+      {contract.askPrice &&
+        <button onClick={deleteAsk}>
+          Remove
+        </button>
+      }
+      {showAskModal &&
+      <ContractUpdateAskPriceModal
+        contract={contract}
+        onClose={() => {
+          setShowAskModal(false);
+          getContractDetails();
+        }}
       />}
       {/* <ContractCreatedAt
         createdAt={contract.createdAt}
@@ -58,18 +71,19 @@ export default function ContractDetails(props: { contract: Contract }) {
         exercisedAmount={contract.exercisedAmount}
       />
       {!contract.exercised &&
-        <>
-        <button onClick={() => setShowExerciseModal(true)}>
-          Exercise
-        </button>
-        {showExerciseModal && <ContractExerciseModal
-          contract={contract}
-          onClose={() => {
-            setShowExerciseModal(false);
-            getContractDetails();
-          }}
-          />}
-        </>
+      <>
+      <button onClick={() => setShowExerciseModal(true)}>
+        Exercise
+      </button>
+      {showExerciseModal &&
+      <ContractExerciseModal
+        contract={contract}
+        onClose={() => {
+          setShowExerciseModal(false);
+          getContractDetails();
+        }}
+        />}
+      </>
       }
       {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
         contractType={contractType}

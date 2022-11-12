@@ -14,7 +14,7 @@ export type Asset = {
 	symbol: string,
 	priceApiId: number,
 	lastPrice: number,
-	lastUpdated: string,
+	lastUpdated: string, // TODO: Convert to date
 	iconUrl?: string,
 	contractTypes?: ContractType[],
 	pools?: Pool[]
@@ -51,7 +51,7 @@ export type ContractType = {
 export type Contract = {
 	contractId: number,
 	typeId: number,
-	createdAt: number,
+	createdAt: number, // TODO: Convert to date
 	exercised: boolean,
 	askPrice?: number,
 	exercisedAmount?: number,
@@ -62,7 +62,7 @@ export type Bid = {
 	bidId: number,
 	typeId: number,
 	bidPrice: number,
-	createdAt: number
+	createdAt: number // TODO: Convert to date
 };
 
 export type Trade = {
@@ -72,5 +72,6 @@ export type Trade = {
 	salePrice: number,
 	saleCost: number,
 	tradeFee: number,
-  createdAt: number
+  createdAt: string, // TODO: Convert to date
+	isBuyer: boolean
 };

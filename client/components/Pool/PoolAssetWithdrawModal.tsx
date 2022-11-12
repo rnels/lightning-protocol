@@ -6,9 +6,9 @@ import Modal from '@mui/material/Modal';
 
 const minAmount = 0.001;
 
-export default function PoolAssetWithdrawModal(props: {pool: Pool, onClose: Function}) {
+export default function PoolAssetWithdrawModal(props: {pool: Pool, unlockedAmount: number, onClose: Function}) {
 
-  const [amount, setAmount] = useState<number>(minAmount);
+  const [amount, setAmount] = useState<number>(props.unlockedAmount);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,12 +33,12 @@ export default function PoolAssetWithdrawModal(props: {pool: Pool, onClose: Func
           <input
             type='number'
             min={minAmount} // TODO: May need to adjust for different types of assets
-            max={props.pool.assetAmount}
+            max={props.unlockedAmount}
             step={minAmount}
             value={amount}
-            onChange={(e) => setAmount(Math.min(props.pool.assetAmount, Number(e.target.value)))}
+            onChange={(e) => setAmount(Math.min(props.unlockedAmount, Number(e.target.value)))}
           />
-        <small>{`Asset Amount: ${props.pool.assetAmount}`}</small>
+        <small>{`Unlocked Asset Amount: ${props.unlockedAmount}`}</small>
         </label>
         <input
           type='submit'

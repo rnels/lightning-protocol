@@ -3,7 +3,7 @@ import { Asset, Bid } from '../lib/types';
 
 import React from 'react';
 import { GetServerSideProps } from 'next';
-import BidDetails from '../components/Bids/BidDetails';
+import BidDetails from '../components/Bid/BidDetails';
 import ContractTypeDetails from '../components/Contract/ContractType/ContractTypeDetails';
 import Link from 'next/link';
 

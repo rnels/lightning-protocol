@@ -5,7 +5,7 @@ import PoolAssetWithdrawModal from './PoolAssetWithdrawModal';
 // modalType:
 // true - Deposit
 // false - Withdraw
-export default function PoolAssetModal(props: {pool: Pool, modalType: boolean, onClose: Function}) {
+export default function PoolAssetModal(props: {pool: Pool, unlockedAmount: number, modalType: boolean, onClose: Function}) {
 
   return (
     props.modalType ?
@@ -16,6 +16,7 @@ export default function PoolAssetModal(props: {pool: Pool, modalType: boolean, o
       :
       <PoolAssetWithdrawModal
         pool={props.pool}
+        unlockedAmount={props.unlockedAmount}
         onClose={props.onClose}
       />
   );

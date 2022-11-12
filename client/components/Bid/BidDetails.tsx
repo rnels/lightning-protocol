@@ -11,7 +11,6 @@ export default function BidDetails(props: { bid: Bid }) {
   const [showBidModal, setShowBidModal] = useState<boolean>(false);
   const [removed, setRemoved] = useState<boolean>(false);
 
-
   function getBidDetails() {
     api.getBid(bid.bidId)
       .then((bid) => setBid(bid))
