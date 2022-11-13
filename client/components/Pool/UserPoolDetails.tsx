@@ -8,6 +8,7 @@ import PoolFeesWithdrawModal from "./PoolFeesWithdrawModal";
 
 import { useState } from 'react';
 import React from 'react';
+import PoolReserveAmount from './PoolReserveAmount';
 
 // TODO: Determine if I want to use routing for this instead
 // Could extend an asset ID instead of being passed the pool as a prop from UserPoolList
@@ -55,6 +56,9 @@ export default function UserPoolDetails(props: { pool: Pool }) {
           Withdraw
         </button>
       }
+      <PoolReserveAmount
+        reserveAmount={pool.reserveAmount}
+      />
       <PoolTradeFees
         tradeFees={pool.tradeFees}
       />

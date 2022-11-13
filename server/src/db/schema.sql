@@ -51,6 +51,7 @@ CREATE TABLE pools (
 	account_id INTEGER NOT NULL,
 	asset_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
+	reserve_amount DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_amount>=0), -- Stores liquidity to trade if put option is exercised
 	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Amount provided by contract trading fees, able to be withdrawn into account balance
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)

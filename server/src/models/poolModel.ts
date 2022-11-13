@@ -24,7 +24,7 @@ async function _removeExpiredPoolLocks() {
       feePromises.push(
         client.query(`
           UPDATE pools
-          SET trade_fees=trade_fees+$2
+          SET reserve_amount=reserve_amount+$2
             WHERE pool_id=$1
         `, [pool.poolId, pool.reserveAmount])
       );
@@ -197,6 +197,7 @@ export async function getAllPools(sort='pool_id ASC', client?: PoolClient): Prom
       account_id as "accountId",
       asset_id as "assetId",
       asset_amount as "assetAmount",
+      reserve_amount as "reserveAmount",
       trade_fees as "tradeFees"
     FROM pools
     ORDER BY $1
@@ -215,6 +216,7 @@ export async function getPoolById(id: string | number, client?: PoolClient): Pro
         account_id as "accountId",
         asset_id as "assetId",
         asset_amount as "assetAmount",
+        reserve_amount as "reserveAmount",
         trade_fees as "tradeFees"
       FROM pools
       WHERE pool_id=$1
@@ -238,6 +240,7 @@ export async function getPoolByAccountAssetIds(accountId: string | number, asset
         account_id as "accountId",
         asset_id as "assetId",
         asset_amount as "assetAmount",
+        reserve_amount as "reserveAmount",
         trade_fees as "tradeFees"
       FROM pools
         WHERE account_id=$1
@@ -260,6 +263,7 @@ export async function getPoolsByAssetId(assetId: string | number, client?: PoolC
       account_id as "accountId",
       asset_id as "assetId",
       asset_amount as "assetAmount",
+      reserve_amount as "reserveAmount",
       trade_fees as "tradeFees"
     FROM pools
       WHERE asset_id=$1
@@ -285,6 +289,7 @@ export async function getPoolsByAccountId(accountId: string | number, client?: P
       account_id as "accountId",
       asset_id as "assetId",
       asset_amount as "assetAmount",
+      reserve_amount as "reserveAmount",
       trade_fees as "tradeFees"
     FROM pools
       WHERE account_id=$1
@@ -301,6 +306,7 @@ export async function getPoolLocksByPoolId(id: string | number, client?: PoolCli
       pool_id as "poolId",
       contract_id as "contractId",
       asset_amount as "assetAmount",
+      reserve_amount as "reserveAmount",
       expires_at as "expiresAt",
       trade_fees as "tradeFees"
     FROM pool_locks

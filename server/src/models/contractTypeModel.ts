@@ -33,25 +33,25 @@ async function _convertActivePutContractTypesNearStrike() {
         let contracts = await getActiveContractsByTypeId(contractType.contractTypeId, client);
         for (let contract of contracts) {
           let lockPools = await _getLockedPoolsByContractId(contract.contractId, client);
-          for (let pool of lockPools) {
+          for (let lockPool of lockPools) {
             // Represents selling at the strike price, implied that there's a limit order
             // Don't worry about the fact that there would be a margin between limit price and actual sale value
             // This is something that will be expressed much differently in the blockchain application
-            let addReserve = contractType.strikePrice * pool.assetAmount;
-            if (!pool.reserveAmount) {
+            let addReserve = contractType.strikePrice * lockPool.assetAmount;
+            if (!lockPool.reserveAmount) {
               typeReservePromises.push(
                 client.query(`
                   UPDATE pools
                     SET asset_amount=asset_amount-$2
                       WHERE pool_id=$1
-                `,[pool.poolId, pool.assetAmount]),
+                `,[lockPool.poolId, lockPool.assetAmount]),
                 client.query(`
                   UPDATE pool_locks
                     SET
                       asset_amount=0,
                       reserve_amount=$2
                     WHERE pool_lock_id=$1
-                `,[pool.poolLockId, addReserve])
+                `,[lockPool.poolLockId, addReserve])
               );
             }
           }
