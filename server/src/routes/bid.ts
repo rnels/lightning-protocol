@@ -12,7 +12,6 @@ const router = Router();
 // bid: {
 //   bidId
 //   typeId
-//   accountId
 //   bidPrice
 // }
 router.get('/bid', (req, res, next) => {

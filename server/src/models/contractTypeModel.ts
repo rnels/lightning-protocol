@@ -36,20 +36,22 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
             // Represents selling at the assetPrice, implied that there's a limit order
             // This is something that will be expressed much differently in the blockchain application
             // TODO: Consolidate this with the logic in _addToPoolLockReserveAmount()
-            if (poolLock.assetAmount) {
-              let addReserve = assetPrice * poolLock.assetAmount;
+            let assetAmount = Number(poolLock.assetAmount);
+            // NOTE: This conditional is the only thing keeping it from converting assets to reserves any number of times
+            // It's important that it's done this way because I can't subtract asset_amount from the pool lock
+            // if I want to keep track of how much it contributed to the contract
+            if (!Number(poolLock.reserveAmount)) {
+              let addReserve = assetPrice * assetAmount;
               typeReservePromises.push(
                 client.query(`
                   UPDATE pools
                     SET asset_amount=asset_amount-$2
                       WHERE pool_id=$1
-                `,[poolLock.poolId, poolLock.assetAmount]),
+                `,[poolLock.poolId, assetAmount]),
                 client.query(`
                   UPDATE pool_locks
-                    SET
-                      asset_amount=0,
-                      reserve_amount=$2
-                    WHERE pool_lock_id=$1
+                    SET reserve_amount=$2
+                      WHERE pool_lock_id=$1
                 `,[poolLock.poolLockId, addReserve])
               );
             }

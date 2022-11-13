@@ -407,10 +407,8 @@ export async function _tradeContract(
   let contractType = await getActiveContractTypeById(contract.typeId, client);
   let asset = await getAssetById(contractType.assetId, client);
   let saleCost = contract.askPrice * asset.assetAmount;
-  console.log('saleCost:', saleCost); // DEBUG
   let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
     saleCost * poolFee : saleCost;
-    console.log('tradeFee:', tradeFee); // DEBUG
   let sellerProceeds = saleCost - tradeFee; // TODO: Ensure this is resulting in 0 sellerProceeds when it's an initial sale
   let buyerId = bid.accountId;
   let sellerId = contract.ownerId;

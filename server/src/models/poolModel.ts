@@ -17,7 +17,7 @@ async function _removeExpiredPoolLocks() {
       DELETE FROM pool_locks
         WHERE expires_at <= NOW()
           RETURNING
-            pool_id as "poolId"
+            pool_id as "poolId",
             reserve_amount as "reserveAmount"
     `)).rows;
     for (let poolLock of deletePoolLocks) {
@@ -434,10 +434,11 @@ export async function _deletePoolLocksByContractId(contractId: number, client: P
     DELETE FROM pool_locks
       WHERE contract_id=$1
         RETURNING
-          pool_id as "poolId"
+          pool_id as "poolId",
           reserve_amount as "reserveAmount"
   `, [contractId])).rows;
   for (let poolLock of deletePoolLocks) {
+    console.log('reserveAmount delete:', poolLock.reserveAmount);
     feePromises.push(
       client.query(`
         UPDATE pools
