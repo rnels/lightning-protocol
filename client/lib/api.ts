@@ -353,6 +353,14 @@ export function getPoolLockAssetAmountByAssetId(assetId: string | number, cookie
     .then((response) => response.data.assetAmount);
 }
 
+export function createPool(assetId: number, assetAmount=0) {
+  return axios.post(`${serverURL}/pool`, {
+    assetId,
+    assetAmount
+  })
+    .then((response) => response.data);
+}
+
 export function depositPoolAssets(poolId: number, assetAmount: number) {
   return axios.post(`${serverURL}/pool/asset/deposit`, {
     poolId,
