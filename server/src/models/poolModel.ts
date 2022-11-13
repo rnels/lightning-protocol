@@ -20,13 +20,13 @@ async function _removeExpiredPoolLocks() {
             pool_id as "poolId"
             reserve_amount as "reserveAmount"
     `)).rows;
-    for (let pool of deletePoolLocks) {
+    for (let poolLock of deletePoolLocks) {
       feePromises.push(
         client.query(`
           UPDATE pools
           SET reserve_amount=reserve_amount+$2
             WHERE pool_id=$1
-        `, [pool.poolId, pool.reserveAmount])
+        `, [poolLock.poolId, poolLock.reserveAmount])
       );
     }
     await Promise.all(feePromises);
@@ -147,17 +147,21 @@ export async function _addToLockTradeFees(contractId: number, tradeFee: number, 
   return Promise.all(feePromises);
 }
 
-/** Decreases pools.asset_amount by pool_lock.asset_amount and removes the pool_locks for a given contractId.
- * Used when call option is exercised.
- */
+/** Adds to reserve_amount on pool_locks for given contractId. Decreases pools.asset_amount by pool_lock.asset_amount. Used in exercising calls */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export async function _removePoolLockAssets(contractId: number, client: PoolClient) {
-  let poolAssetPromises = [];
-  let lockPools = await _getLockedPoolsByContractId(contractId);
-  for (let pool of lockPools) {
-    // Opting to write this query here instead of using withdrawPoolAssets because I see them being used in different contexts,
-    // withdrawPoolAssets being used by a route and updated at some point to actually provide pooled assets to the user's wallet balance
-    poolAssetPromises.push(
+export async function _addToPoolLockReserve(contractId: number, strikePrice: number, client: PoolClient) {
+  let reservePromises = [];
+  let poolLocks = await _getLockedPoolsByContractId(contractId, client);
+  for (let pool of poolLocks) {
+    let reserveAmount = strikePrice * pool.assetAmount;
+    reservePromises.push(
+      client.query(`
+        UPDATE pool_locks
+        SET
+          reserve_amount=reserve_amount+$2,
+          asset_amount=0
+        WHERE pool_lock_id=$1
+      `, [pool.poolLockId, reserveAmount]),
       client.query(`
         UPDATE pools
           SET asset_amount=asset_amount-$2
@@ -165,8 +169,31 @@ export async function _removePoolLockAssets(contractId: number, client: PoolClie
       `,[pool.poolId, pool.assetAmount])
     );
   }
-  await Promise.all(poolAssetPromises); // NOTE: Ensure this is resolved before _deletePoolLocksByContractId is invoked
-  return _deletePoolLocksByContractId(contractId, client);
+  return Promise.all(reservePromises);
+}
+
+/** Subtracts reserve_amount on pool_locks for given contractId. Used in exercising puts */
+// INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+export async function _takeFromPoolLockReserve(contractId: number, strikePrice: number, client: PoolClient) {
+  let reservePromises = [];
+  let poolLocks = await _getLockedPoolsByContractId(contractId, client);
+  for (let pool of poolLocks) {
+    let reserveAmount = strikePrice * pool.assetAmount;
+    reservePromises.push(
+      client.query(`
+        UPDATE pool_locks
+        SET reserve_amount=reserve_amount-$2
+          WHERE pool_lock_id=$1
+      `, [pool.poolLockId, reserveAmount])
+    );
+  }
+  return Promise.all(reservePromises);
+}
+
+// Allows you to convert reserves into assets
+// TODO: Create
+export async function _convertPoolReserve(poolId: number, client: PoolClient) {
+
 }
 
 export async function getUnlockedAmountByPoolId(id: string | number, client?: PoolClient): Promise<number> {
@@ -399,13 +426,27 @@ export function _createPoolLock(
   ]);
 }
 
-/** Removes pool_locks with the given contract_id */
+/** Removes pool_locks with the given contract_id. Forwards pool_lock.reserve_amount to respective pools */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-export function _deletePoolLocksByContractId(contractId: number, client: PoolClient) {
-  return client.query(`
+export async function _deletePoolLocksByContractId(contractId: number, client: PoolClient) {
+  let feePromises = [];
+  let deletePoolLocks = (await client.query(`
     DELETE FROM pool_locks
       WHERE contract_id=$1
-  `, [contractId]);
+        RETURNING
+          pool_id as "poolId"
+          reserve_amount as "reserveAmount"
+  `, [contractId])).rows;
+  for (let poolLock of deletePoolLocks) {
+    feePromises.push(
+      client.query(`
+        UPDATE pools
+        SET reserve_amount=reserve_amount+$2
+          WHERE pool_id=$1
+      `, [poolLock.poolId, poolLock.reserveAmount])
+    );
+  }
+  return Promise.all(feePromises);
 }
 
 export async function withdrawPoolAssets(

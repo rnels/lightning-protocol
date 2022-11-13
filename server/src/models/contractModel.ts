@@ -10,8 +10,9 @@ import {
   getPoolsByAssetId,
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
-  _removePoolLockAssets,
-  _deletePoolLocksByContractId
+  _deletePoolLocksByContractId,
+  _addToPoolLockReserve,
+  _takeFromPoolLockReserve
 } from './poolModel';
 import { _createTrade } from './tradeModel';
 import { getAssetPriceFromAPI } from '../assets/price';
@@ -467,20 +468,18 @@ export async function exerciseContract(
     } else if (!contractType.direction && assetPrice > contractType.strikePrice) {
       throw new Error('Put option with asset market price above strike price can not be exercised');
     }
-
-    let saleProfits: number;
-    let poolFee = contractType.strikePrice * asset.assetAmount;
+    var saleProfits: number;
+    var poolReserves = contractType.strikePrice * asset.assetAmount;
     if (contractType.direction) { // If direction = call
-      saleProfits = (assetPrice * asset.assetAmount) - poolFee;
-      // Add to trade_fees for pool_locks paper equating to the assetAmount * strike price
-      // Ensure this is resolved before _removePoolLockAssets and _distributePoolLockFees are invoked
-      await _addToLockTradeFees(contract.contractId, poolFee, client);
-      await _removePoolLockAssets(contract.contractId, client);
-       // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
+      // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
+      saleProfits = (assetPrice * asset.assetAmount) - poolReserves;
+      // Add to reserve_amount for pool_locks paper equating to the assetAmount * strike price
+      await _addToPoolLockReserve(contract.contractId, contractType.strikePrice, client);
     } else { // If direction = put
-      saleProfits = poolFee; // Provides the exerciser with the same amount as the sum of pool_locks.reserve_amount for this contract_id
-      await _deletePoolLocksByContractId(contract.contractId, client);
+      saleProfits = poolReserves - (assetPrice * asset.assetAmount);
+      await _takeFromPoolLockReserve(contract.contractId, contractType.strikePrice, client);
     }
+    await _deletePoolLocksByContractId(contract.contractId, client);
     await depositPaper(contract.ownerId, saleProfits, client);
     if (contract.askPrice) { await _removeAskPrice(contract.contractId, client); }
     await _setExercised(contract, saleProfits, client);

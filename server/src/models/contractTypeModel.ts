@@ -8,9 +8,8 @@ import { _getLockedPoolsByContractId } from './poolModel';
 /** Used when put option is approaching strike price, converts assets to reserved liquidity equating to asset value at strikePrice x assetAmount, can be used to pay contract owner if they choose to exercise contract.
  * The first part simulates a stop loss / limit order.
  */
-// TODO: Have this called somewhere periodically, possibly whenever asset price is updated for an assetId? Would need to pass it an assetId in that case
-// TODO: Consider adding another property to the schema for put contractTypes which marks if they've already converted or not. Otherwise this could trigger repeatedly every price change beneath the 5% margin. It won't make any changes due to the checking, it'll just be expensive. If we have that flag, the initial list of contractTypes won't include converted ones, saving on all the rest. The only caveat is that if a contract was created for a type after it had already marked as converted, it wouldn't go through the process with the contract. I suppose it does have to be bound to the pool locks in that case. Not ideal, but I'll think on it more
-async function _convertActivePutContractTypesNearStrike() {
+// NOTE: Currently calling this within _updateAssetPrice()
+export async function _convertActivePutContractTypesNearStrike(assetId: number, assetPrice: number) {
   let client = await db.connect();
   try {
     await client.query('BEGIN');
@@ -23,35 +22,35 @@ async function _convertActivePutContractTypesNearStrike() {
         expires_at as "expiresAt"
       FROM contract_types
         WHERE direction=false
+          AND asset_id=$1
           AND expires_at > NOW()
-    `)).rows as ContractType[];
+    `, [assetId])).rows as ContractType[];
     let typeReservePromises = [];
     for (let contractType of contractTypes) { // TODO: Could group by strike price, since that's what is being evaluated
-      let assetPrice = await getAssetPriceById(contractType.assetId, client);
       let priceDif = (assetPrice - contractType.strikePrice) / contractType.strikePrice; // Decimal representing difference between asset price and strike
       if (priceDif < 0.05) { // If difference is less than 5%, time to put into the reserves
         let contracts = await getActiveContractsByTypeId(contractType.contractTypeId, client);
         for (let contract of contracts) {
-          let lockPools = await _getLockedPoolsByContractId(contract.contractId, client);
-          for (let lockPool of lockPools) {
-            // Represents selling at the strike price, implied that there's a limit order
-            // Don't worry about the fact that there would be a margin between limit price and actual sale value
+          let poolLocks = await _getLockedPoolsByContractId(contract.contractId, client);
+          for (let poolLock of poolLocks) {
+            // Represents selling at the assetPrice, implied that there's a limit order
             // This is something that will be expressed much differently in the blockchain application
-            let addReserve = contractType.strikePrice * lockPool.assetAmount;
-            if (!lockPool.reserveAmount) {
+            // TODO: Consolidate this with the logic in _addToPoolLockReserveAmount()
+            if (poolLock.assetAmount) {
+              let addReserve = assetPrice * poolLock.assetAmount;
               typeReservePromises.push(
                 client.query(`
                   UPDATE pools
                     SET asset_amount=asset_amount-$2
                       WHERE pool_id=$1
-                `,[lockPool.poolId, lockPool.assetAmount]),
+                `,[poolLock.poolId, poolLock.assetAmount]),
                 client.query(`
                   UPDATE pool_locks
                     SET
                       asset_amount=0,
                       reserve_amount=$2
                     WHERE pool_lock_id=$1
-                `,[lockPool.poolLockId, addReserve])
+                `,[poolLock.poolLockId, addReserve])
               );
             }
           }

@@ -60,6 +60,7 @@ export async function getTradesByAccountId(accountId: string | number): Promise<
     FROM trades
       WHERE buyer_id=$1
         OR seller_id=$1
+    ORDER BY created_at DESC
   `, [accountId]);
   return res.rows;
 }
@@ -76,6 +77,7 @@ export async function getTradesByContractId(contractId: string | number): Promis
       created_at as "createdAt"
     FROM trades
       WHERE contract_id=$1
+    ORDER BY created_at DESC
   `, [contractId]);
   return res.rows;
 }
@@ -94,6 +96,7 @@ export async function getTradesByContractIdAccountId(contractId: string | number
     FROM trades
       WHERE contract_id=$1
         AND (buyer_id=$2 OR seller_id=$2)
+    ORDER BY created_at DESC
   `, [contractId, accountId]);
   return res.rows;
 }

@@ -2,6 +2,7 @@ import db from '../db/db';
 import { getAssetPriceFromAPI } from '../assets/price';
 import { Asset, AssetType } from '../types';
 import { PoolClient } from 'pg';
+import { _convertActivePutContractTypesNearStrike } from './contractTypeModel';
 
 async function _checkIfAssetPriceHistoryExists(
   assetId: number,
@@ -39,6 +40,7 @@ async function _updateAssetPrice(
     assetId,
     lastPrice
   ]);
+  _convertActivePutContractTypesNearStrike(assetId, lastPrice);
   return lastPrice;
 };
 
