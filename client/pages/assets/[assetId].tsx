@@ -33,7 +33,7 @@ export default function AssetContracts(
       <div className='asset-contracts-view'>
         <h2 className='asset-contracts-view-header'>{`${props.asset.name} ($${props.asset.symbol})`}</h2>
         <div>{`Price: $${props.assetPrice >= 1 ? props.assetPrice.toFixed(2) : props.assetPrice.toFixed(4)}`}</div>
-        <div>{`Contract Amount: ${props.asset.assetAmount} ${props.asset.symbol}`}</div>
+        <div>{`Lot Size: ${props.asset.assetAmount} ${props.asset.symbol}`}</div>
         <div>
           {`Pooled: ${props.poolAssetAmount || 0} ${props.asset.symbol}
             (${(props.poolAssetAmount && props.poolLockAssetAmount) ? Math.floor(100 * (props.poolLockAssetAmount / props.poolAssetAmount)) : 0}% Backing)

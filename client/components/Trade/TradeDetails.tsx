@@ -11,8 +11,6 @@ import TradeType from './TradeType';
 
 export default function TradeDetails(props: {trade: Trade}) {
 
-  console.log(props.trade);
-
   const [contractType, setContractType] = useState<ContractType>();
 
   useEffect(() => {

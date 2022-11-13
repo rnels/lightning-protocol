@@ -18,7 +18,8 @@ async function _removeExpiredPoolLocks() {
         WHERE expires_at <= NOW()
           RETURNING
             pool_id as "poolId",
-            reserve_amount as "reserveAmount"
+            reserve_amount as "reserveAmount",
+            reserve_credit as "reserveCredit"
     `)).rows;
     for (let poolLock of deletePoolLocks) {
       feePromises.push(
@@ -26,7 +27,7 @@ async function _removeExpiredPoolLocks() {
           UPDATE pools
           SET reserve_amount=reserve_amount+$2
             WHERE pool_id=$1
-        `, [poolLock.poolId, poolLock.reserveAmount])
+        `, [poolLock.poolId, poolLock.reserveAmount - poolLock.reserveCredit])
       );
     }
     await Promise.all(feePromises);
@@ -179,6 +180,7 @@ export async function _takeFromPoolLockReserve(contractId: number, strikePrice: 
   let poolLocks = await _getLockedPoolsByContractId(contractId, client);
   for (let pool of poolLocks) {
     let reserveAmount = strikePrice * pool.assetAmount;
+    console.log('reserveAmount:', reserveAmount)
     reservePromises.push(
       client.query(`
         UPDATE pool_locks
@@ -428,6 +430,8 @@ export function _createPoolLock(
 
 /** Removes pool_locks with the given contract_id. Forwards pool_lock.reserve_amount to respective pools */
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
+// TODO: Currently not charging on the credit that's created, decide how I want to do this
+// Will probably end up creating an account that holds 'emergency funds' for which to draw from for reserveCredit
 export async function _deletePoolLocksByContractId(contractId: number, client: PoolClient) {
   let feePromises = [];
   let deletePoolLocks = (await client.query(`
@@ -438,7 +442,6 @@ export async function _deletePoolLocksByContractId(contractId: number, client: P
           reserve_amount as "reserveAmount"
   `, [contractId])).rows;
   for (let poolLock of deletePoolLocks) {
-    console.log('reserveAmount delete:', poolLock.reserveAmount);
     feePromises.push(
       client.query(`
         UPDATE pools

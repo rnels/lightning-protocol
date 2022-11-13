@@ -28,6 +28,10 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
     let typeReservePromises = [];
     for (let contractType of contractTypes) { // TODO: Could group by strike price, since that's what is being evaluated
       let priceDif = (assetPrice - contractType.strikePrice) / contractType.strikePrice; // Decimal representing difference between asset price and strike
+      let creditPrice = priceDif < 0 ? Math.abs(assetPrice - contractType.strikePrice) : 0;
+      // TODO: Consider making a "credited reserves" for each pool lock
+      // where if it wasn't updated in time before dipping below 0% priceDif, there's an account
+      // which funds the lock temporarily so it can still be exercised
       if (priceDif < 0.05) { // If difference is less than 5%, time to put into the reserves
         let contracts = await getActiveContractsByTypeId(contractType.contractTypeId, client);
         for (let contract of contracts) {
@@ -37,11 +41,12 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
             // This is something that will be expressed much differently in the blockchain application
             // TODO: Consolidate this with the logic in _addToPoolLockReserveAmount()
             let assetAmount = Number(poolLock.assetAmount);
+            let creditReserve = creditPrice * assetAmount;
             // NOTE: This conditional is the only thing keeping it from converting assets to reserves any number of times
             // It's important that it's done this way because I can't subtract asset_amount from the pool lock
             // if I want to keep track of how much it contributed to the contract
             if (!Number(poolLock.reserveAmount)) {
-              let addReserve = assetPrice * assetAmount;
+              let addReserve = creditReserve ? contractType.strikePrice * assetAmount : assetPrice * assetAmount;
               typeReservePromises.push(
                 client.query(`
                   UPDATE pools
@@ -50,9 +55,11 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
                 `,[poolLock.poolId, assetAmount]),
                 client.query(`
                   UPDATE pool_locks
-                    SET reserve_amount=$2
-                      WHERE pool_lock_id=$1
-                `,[poolLock.poolLockId, addReserve])
+                    SET
+                      reserve_amount=$2,
+                      reserve_credit=$3
+                    WHERE pool_lock_id=$1
+                `,[poolLock.poolLockId, addReserve, creditReserve])
               );
             }
           }
