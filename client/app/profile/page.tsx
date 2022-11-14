@@ -3,7 +3,7 @@
 import { AccountContext } from '../AccountContext';
 import * as api from '../../lib/api';
 import React, { useContext, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import PaperDepositModal from './PaperDepositModal';
 
 export default function UserProfilePage() {

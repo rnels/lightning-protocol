@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 
 export default async function AssetsPage() {
 
-  let assetList = await getAssetList();
+  const assetList = await getAssetList();
 
   return (
     <div className='assets-page'>

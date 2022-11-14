@@ -1,8 +1,4 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import React from 'react';
-import * as api from '../../lib/api';
 
 import { ContractType, Trade } from '../../lib/types';
 import TradeSalePrice from './TradeSalePrice';
@@ -11,18 +7,7 @@ import TradeCreatedAt from './TradeCreatedAt';
 import TradeType from './TradeType';
 import ContractTypeDetails from '../contracts/ContractTypeDetails';
 
-// TODO: Convert this to a server side component
-export default function TradeDetails(props: {trade: Trade}) {
-
-  const [contractType, setContractType] = useState<ContractType>();
-
-  useEffect(() => {
-    api.getContractType(props.trade.typeId)
-      .then((ct) => setContractType(ct))
-      .catch((error) => console.log(error));
-  }, []);
-
-  if (!props.trade || !contractType) return null;
+export default function TradeDetails(props: {trade: Trade, contractType: ContractType}) {
 
   return (
     <div className='trade-details'>
@@ -45,9 +30,9 @@ export default function TradeDetails(props: {trade: Trade}) {
         Contract Type
       </h4>
       <ContractTypeDetails
-        contractType={contractType}
+        contractType={props.contractType}
       />
     </div>
   );
 
-};
+}

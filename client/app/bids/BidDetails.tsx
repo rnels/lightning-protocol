@@ -1,9 +1,9 @@
 'use client';
 
 import * as api from '../../lib/api';
-import { Bid, Contract, ContractType } from "../../lib/types";
+import { Bid } from "../../lib/types";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import UpdateBidPriceModal from './UpdateBidPriceModal';
 import BidPrice from './BidPrice';
 

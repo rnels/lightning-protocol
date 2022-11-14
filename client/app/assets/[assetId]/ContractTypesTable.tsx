@@ -23,61 +23,61 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
   return (
     <div className='contract-types-table'>
       <form
-      className='contract-types-table-filters'
-      onSubmit={(e) => e.preventDefault()}
-    >
-      <label className='contract-types-table-filter-expiry'>
-        Expiry
-        <select
-          onChange={(e) => setDateFilter(new Date(e.target.value))}
-          value={dateFilter.toString()}
-        >
-          {dateFilterList.map((filter) =>
-            <option
-              key={filter}
-              value={filter}
-            >
-              {filter}
-            </option>
-          )}
-        </select>
-      </label>
-      <button
-          onClick={() => setAmountFilter(!amountFilter)}
-      >{amountFilter ? 'Show Price' : 'Show Cost'}</button>
-      <div className='contract-types-table-filter-direction'>
+        className='contract-types-table-filters'
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <label className='contract-types-table-filter-expiry'>
+          Expiry
+          <select
+            onChange={(e) => setDateFilter(new Date(e.target.value))}
+            value={dateFilter.toString()}
+          >
+            {dateFilterList.map((filter) =>
+              <option
+                key={filter}
+                value={filter}
+              >
+                {filter}
+              </option>
+            )}
+          </select>
+        </label>
         <button
-          onClick={() => setDirectionFilter(true)}
-        >Calls</button>
-        <button
-          onClick={() => setDirectionFilter(false)}
-        >Puts</button>
-      </div>
-    </form>
-    <table className='contract-types-table'>
-      <thead className='contract-table-header'>
-        <tr>
-          <th>Strike</th>
-          <th>Last</th>
-          <th>Change</th>
-          <th>{amountFilter ? 'Bid Cost' : 'Bid Price'}</th>
-          <th>{amountFilter ? 'Ask Cost' : 'Ask Price'}</th>
-          <th>Volume</th>
-          <th>OI</th>
-        </tr>
-      </thead>
-      <tbody>
-      {filteredTypeList.map((contractType) =>
-        <ContractTableRow
-          key={contractType.contractTypeId}
-          contractType={contractType}
-          asset={props.asset}
-          amountFilter={amountFilter}
-        />
-      )}
-      </tbody>
-    </table>
-  </div>
+            onClick={() => setAmountFilter(!amountFilter)}
+        >{amountFilter ? 'Show Price' : 'Show Cost'}</button>
+        <div className='contract-types-table-filter-direction'>
+          <button
+            onClick={() => setDirectionFilter(true)}
+          >Calls</button>
+          <button
+            onClick={() => setDirectionFilter(false)}
+          >Puts</button>
+        </div>
+      </form>
+      <table className='contract-types-table'>
+        <thead className='contract-table-header'>
+          <tr>
+            <th>Strike</th>
+            <th>Last</th>
+            <th>Change</th>
+            <th>{amountFilter ? 'Bid Cost' : 'Bid Price'}</th>
+            <th>{amountFilter ? 'Ask Cost' : 'Ask Price'}</th>
+            <th>Volume</th>
+            <th>OI</th>
+          </tr>
+        </thead>
+        <tbody>
+        {filteredTypeList.map((contractType) =>
+          <ContractTableRow
+            key={contractType.contractTypeId}
+            contractType={contractType}
+            asset={props.asset}
+            amountFilter={amountFilter}
+          />
+        )}
+        </tbody>
+      </table>
+    </div>
   );
 
 };
