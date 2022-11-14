@@ -5,7 +5,7 @@ import { Pool } from '../../lib/types';
 
 import { FormEvent, useContext, useState } from 'react';
 import Modal from '@mui/material/Modal';
-import { AccountContext } from '../../components/AccountContext';
+import { AccountContext } from '../AccountContext';
 
 const minAmount = 0.01;
 

@@ -2,34 +2,27 @@ import * as api from '../../lib/api';
 import { Asset } from '../../lib/types';
 
 import React from 'react';
-import { GetServerSideProps } from 'next';
 import AssetList from './AssetList';
+import { cookies } from 'next/headers';
 
-export default function AssetsPage(props: { assetList: Asset[] }) {
+export default async function AssetsPage() {
+
+  let assetList = await getAssetList();
 
   return (
     <div className='assets-page'>
       <h2>Assets</h2>
       <AssetList
-        assetList={props.assetList}
+        assetList={assetList}
       />
-      </div>
+    </div>
   );
-};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+}
 
-  let cookie = context.req.cookies['lightning-app-cookie'];
+async function getAssetList() {
+  let cookie = cookies().get('lightning-app-cookie');
+  let assetList = await api.getAssetList(cookie!.value);
+  return assetList;
 
-  let assetList: Asset[] = [];
-  try {
-    assetList = await api.getAssetList(cookie);
-    return { props: { assetList } };
-  } catch (e) {
-    return {
-      props: {
-        assetList: []
-      }
-    };
-  }
-};
+}

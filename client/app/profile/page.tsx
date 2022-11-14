@@ -1,6 +1,6 @@
 'use client';
 
-import { AccountContext } from '../../components/AccountContext';
+import { AccountContext } from '../AccountContext';
 import * as api from '../../lib/api';
 import React, { useContext, useState } from 'react';
 import { useRouter } from 'next/router';

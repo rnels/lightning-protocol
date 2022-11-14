@@ -14,4 +14,5 @@ export default function AssetList(props: { assetList: Asset[] }) {
     </div>
 
   );
-};
+
+}

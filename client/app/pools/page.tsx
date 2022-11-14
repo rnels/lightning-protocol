@@ -1,26 +1,34 @@
 'use client';
 
 import * as api from '../../lib/api';
-import { Asset, Pool } from '../../lib/types';
 import UserPoolDetails from './UserPoolDetails';
 
-import React, { useState } from 'react';
-import { GetServerSideProps } from 'next';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Asset } from '../../lib/types';
 
 /** Renders a list of pools for the logged in user */
-export default function UserPoolsPage(props: { assets: Asset[] }) {
+export default function UserPoolsPage() {
 
-  const [assets, setAssets] = useState(props.assets);
+  const [assets, setAssets] = useState<Asset[]>();
+
+  useEffect(() => {
+    if (assets) return;
+    api.getAssetListOwnedExt()
+    .then((res) => setAssets(res));
+  }, []);
 
   async function createPool(assetId: number) {
     try {
       await api.createPool(assetId)
-      setAssets(await api.getAssetListOwnedExt());
+      let res = await api.getAssetListOwnedExt();
+      setAssets(res);
     } catch (e) {
       console.log(e);
     }
   }
+
+  if (!assets) return null;
 
   return (
     <div className='user-pools-page'>
@@ -45,23 +53,5 @@ export default function UserPoolsPage(props: { assets: Asset[] }) {
     </div>
   );
 
-};
+}
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-
-  let cookie = context.req.cookies['lightning-app-cookie'];
-
-  let assets: Asset[] = [];
-
-  try {
-    assets = await api.getAssetListOwnedExt(cookie);
-    return { props: { assets } };
-  } catch (e) {
-    console.log(e);
-    return {
-      props: {
-        assets: []
-      }
-    };
-  }
-};

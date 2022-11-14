@@ -1,3 +1,5 @@
+'use client';
+
 import { useContext } from "react";
 import { AccountContext } from "./AccountContext";
 
@@ -30,4 +32,4 @@ export default function NavBar() {
     </div>
   );
 
-};
+}

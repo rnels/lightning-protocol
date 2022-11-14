@@ -5,7 +5,7 @@ import { Asset, ContractType } from '../../../lib/types';
 
 import { FormEvent, useState, useContext } from 'react';
 import Modal from '@mui/material/Modal';
-import { AccountContext } from '../../../components/AccountContext';
+import { AccountContext } from '../../AccountContext';
 
 export default function PlaceBidModal(props: {contractType: ContractType, asset: Asset, defaultBid: number | null, onClose: Function}) {
 
@@ -88,4 +88,4 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
     </Modal>
   );
 
-};
+}

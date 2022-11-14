@@ -5,7 +5,7 @@ import { Bid, Contract } from '../../lib/types';
 
 import { FormEvent, useContext, useState } from 'react';
 import Modal from '@mui/material/Modal';
-import { AccountContext } from '../../components/AccountContext';
+import { AccountContext } from '../AccountContext';
 
 export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}) {
 

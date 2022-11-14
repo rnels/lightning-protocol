@@ -1,10 +1,10 @@
+'use client';
+
 import * as api from '../../lib/api';
 import { Contract, ContractType } from "../../lib/types";
 import ContractAskPrice from "./ContractAskPrice";
 import ContractExercised from "./ContractExercised";
 // import ContractTypeDetails from "./ContractType/ContractTypeDetails";
-
-'use client';
 
 import { useState } from 'react';
 import ContractUpdateAskPriceModal from './ContractUpdateAskPriceModal';

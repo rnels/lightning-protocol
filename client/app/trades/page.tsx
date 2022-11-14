@@ -1,18 +1,19 @@
 import * as api from '../../lib/api';
-import { Trade } from '../../lib/types';
 
 import React from 'react';
-import { GetServerSideProps } from 'next';
 import TradeDetails from './TradeDetails';
+import { cookies } from 'next/headers';
 
 /** Renders a list of trades for the logged in user */
-export default function UserTradesPage(props: {trades: Trade[]}) {
+export default async function UserTradesPage() {
+
+  const trades = await getTrades();
 
   return (
     <div className='user-trades-page'>
       <h2>My Trades</h2>
-      {props.trades.length > 0 &&
-        props.trades.map((trade) =>
+      {trades.length > 0 &&
+        trades.map((trade) =>
           <TradeDetails
             key={trade.tradeId}
             trade={trade}
@@ -22,22 +23,10 @@ export default function UserTradesPage(props: {trades: Trade[]}) {
     </div>
   );
 
-};
+}
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-
-  let cookie = context.req.cookies['lightning-app-cookie'];
-
-  let trades: Trade[] = [];
-  try {
-    trades = await api.getUserTrades(cookie);
-    return { props: { trades } };
-  } catch (e) {
-    console.log(e);
-    return {
-      props: {
-        assets: []
-      }
-    };
-  }
-};
+async function getTrades() {
+  let cookie = cookies().get('lightning-app-cookie');
+  let trades = await api.getUserTrades(cookie!.value);
+  return trades;
+}

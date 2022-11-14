@@ -1,117 +1,67 @@
-'use client';
-
-import { useState } from 'react';
-import { GetServerSideProps } from 'next'
+import { cookies } from 'next/headers';
 import React from 'react';
 
-import { ContractType, Asset } from '../../../lib/types';
 import * as api from '../../../lib/api';
 import ContractTypesTable from './ContractTypesTable';
 
-export default function AssetContractsPage(
-  props: {
-    asset: Asset,
-    assetPrice: number,
-    poolAssetAmount: number,
-    poolLockAssetAmount: number,
-    contractTypeList: ContractType[]
-  }
-) {
+export default async function AssetContractsPage( { params }: { params: { assetId: string }} ) {
 
-  const [directionFilter, setDirectionFilter] = useState<boolean>(true);
-  const [dateFilter, setDateFilter] = useState<Date>(props.contractTypeList[0].expiresAt);
-  const dateFilterList = props.contractTypeList
-    .map((contractType) => contractType.expiresAt.toString())
-    .filter((expiry: string, i: number, expiryArray: string[]) => expiryArray.indexOf(expiry) === i);
+  const {
+    asset,
+    assetPrice,
+    poolAssetAmount,
+    poolLockAssetAmount,
+    contractTypeList
+  } = await getPropsData(params.assetId);
 
-  const filteredTypeList = props.contractTypeList
-    .filter((contractType => contractType.expiresAt === dateFilter && contractType.direction === directionFilter))
-    .sort((a, b) => a.strikePrice - b.strikePrice);
-
-  const [amountFilter, setAmountFilter] = useState<boolean>(false);
-
-    return (
-      <div className='asset-contracts-view'>
-        <h2 className='asset-contracts-view-header'>{`${props.asset.name} ($${props.asset.symbol})`}</h2>
-        <div>{`Price: $${props.assetPrice >= 1 ? props.assetPrice.toFixed(2) : props.assetPrice.toFixed(4)}`}</div>
-        <div>{`Lot Size: ${props.asset.assetAmount} ${props.asset.symbol}`}</div>
-        <div>
-          {`Pooled: ${props.poolAssetAmount || 0} ${props.asset.symbol}
-            (${(props.poolAssetAmount && props.poolLockAssetAmount) ? Math.floor(100 * (props.poolLockAssetAmount / props.poolAssetAmount)) : 0}% Backing)
-          `}
-        </div>
-        <form
-          className='asset-contracts-filters'
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <label className='asset-contracts-filter-expiry'>
-            Expiry
-            <select
-              onChange={(e) => setDateFilter(new Date(e.target.value))}
-              value={dateFilter.toString()}
-            >
-              {dateFilterList.map((filter) =>
-                <option
-                  key={filter}
-                  value={filter}
-                >
-                  {filter}
-                </option>
-              )}
-            </select>
-          </label>
-          <button
-              onClick={() => setAmountFilter(!amountFilter)}
-          >{amountFilter ? 'Show Price' : 'Show Cost'}</button>
-          <div className='asset-contracts-filter-direction'>
-            <button
-              onClick={() => setDirectionFilter(true)}
-            >Calls</button>
-            <button
-              onClick={() => setDirectionFilter(false)}
-            >Puts</button>
-          </div>
-        </form>
-        <ContractTypesTable
-          contractTypes={filteredTypeList}
-          asset={props.asset}
-          amountFilter={amountFilter}
-        />
+  return (
+    <div className='asset-contracts-page'>
+      <h2 className='asset-contracts-page-header'>{`${asset.name} ($${asset.symbol})`}</h2>
+      <div>{`Price: $${assetPrice >= 1 ? assetPrice.toFixed(2) : assetPrice.toFixed(4)}`}</div>
+      <div>{`Lot Size: ${asset.assetAmount} ${asset.symbol}`}</div>
+      <div>
+        {`Pooled: ${poolAssetAmount || 0} ${asset.symbol}
+          (${(poolAssetAmount && poolLockAssetAmount) ? Math.floor(100 * (poolLockAssetAmount / poolAssetAmount)) : 0}% Backing)
+        `}
       </div>
-    );
-};
+      <ContractTypesTable
+        contractTypes={contractTypeList}
+        asset={asset}
+      />
+    </div>
+  );
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+}
 
-  const { assetId } = context.query;
+async function getPropsData(assetId: string | number) {
 
-  let cookie = context.req.cookies['lightning-app-cookie'];
+  let cookie = cookies().get('lightning-app-cookie');
 
-  let asset: Asset;
-  let assetPrice: number;
-  let poolAssetAmount: number;
-  let poolLockAssetAmount: number;
-  let contractTypeList: ContractType[];
+  let results = await Promise.all([
+    api.getAsset(assetId, cookie!.value),
+    api.getAssetPrice(assetId, cookie!.value),
+    api.getPoolAssetAmountByAssetId(assetId, cookie!.value),
+    api.getPoolLockAssetAmountByAssetId(assetId, cookie!.value),
+    api.getContractTypesByAssetId(assetId, cookie!.value)
+  ]);
 
-  try {
-    asset = await api.getAsset(assetId as string, cookie);
-    assetPrice = await api.getAssetPrice(assetId as string, cookie);
-    poolAssetAmount = await api.getPoolAssetAmountByAssetId(assetId as string, cookie);
-    poolLockAssetAmount = await api.getPoolLockAssetAmountByAssetId(assetId as string, cookie);
-    contractTypeList = await api.getContractTypesByAssetId(assetId as string, cookie);
-    return {
-      props: {
-        asset,
-        assetPrice,
-        poolAssetAmount,
-        poolLockAssetAmount,
-        contractTypeList
-      }
-    }
-  } catch (e) {
-    return {
-      props: {}
-    };
+  return {
+    asset: results[0],
+    assetPrice: results[1],
+    poolAssetAmount: results[2],
+    poolLockAssetAmount: results[3],
+    contractTypeList: results[4]
   }
 
-};
+}
+
+// export async function generateStaticParams() {
+
+//   console.log('generate')
+
+//   const assets = await api.getAssetList();
+//   return assets.map((asset) => ({
+//     assetId: asset.assetId
+//   }));
+
+// }
