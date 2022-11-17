@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '../assets.module.css';
 import { Asset, Bid, Contract, ContractType, Trade } from '../../../lib/types';
 import * as api from '../../../lib/api';
 
@@ -7,7 +8,6 @@ import { useEffect, useState } from 'react';
 import PlaceBidModal from './PlaceBidModal';
 
 /** Renders a row of data for the given ContractType */
-// TODO: Convert this to server side rendering
 export default function ContractTableRow(props: {contractType: ContractType, asset: Asset, amountFilter: boolean}) {
 
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -71,7 +71,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
   const lastPrice = lastTrade ? lastTrade.salePrice : 0;
 
   return (
-    <tr className='contract-table-row'>
+    <tr className={styles.contractTableRow}>
       <td>{`$${props.contractType.strikePrice}`}</td>
       <td>{`$${lastPrice}`}</td>
       <td>

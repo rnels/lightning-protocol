@@ -22,4 +22,4 @@ export default function AssetPrice(props: {assetId: number}) {
     </div>
   );
 
-};
+}

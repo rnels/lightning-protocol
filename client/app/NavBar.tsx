@@ -1,5 +1,7 @@
 'use client';
 
+import styles from './nav.module.css';
+
 import { useContext } from "react";
 import { AccountContext } from "./AccountContext";
 
@@ -10,10 +12,10 @@ export default function NavBar() {
   const { account }: any = useContext(AccountContext);
 
   return (
-    <div className='nav-bar'>
+    <div className={styles['nav-bar']}>
       {account ?
       <>
-      <div className='nav-bar-left'>
+      <div className={styles['nav-bar-left']}>
         <Link href="/assets">Assets</Link>
         <Link href="/pools">Pools</Link>
         <Link href="/bids">Bids</Link>

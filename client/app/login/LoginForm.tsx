@@ -1,7 +1,7 @@
 'use client';
 
+import { errorMessage as errorMessageStyle } from '../styles.module.css';
 import * as api from '../../lib/api';
-
 import React, { FormEvent, useContext, useState } from 'react';
 import { AccountContext } from '../AccountContext';
 import Link from 'next/link';
@@ -34,7 +34,7 @@ export default function LoginForm() {
   };
 
   return (
-    <form className='login-form' onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <h2>
         Login
       </h2>
@@ -62,7 +62,7 @@ export default function LoginForm() {
         type='submit'
         value='Submit'
       />
-      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      {error && <div className={errorMessageStyle}>{`Error: ${error}`}</div>}
       <Link href="/register">Don't have an account?</Link>
     </form>
   );

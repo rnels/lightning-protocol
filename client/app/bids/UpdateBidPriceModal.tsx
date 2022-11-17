@@ -1,7 +1,12 @@
 'use client';
 
+import {
+  modal as modalStyle,
+  modalHeader as modalHeaderStyle,
+  errorMessage as errorMessageStyle
+} from '../styles.module.css';
 import * as api from '../../lib/api';
-import { Bid, Contract } from '../../lib/types';
+import { Bid } from '../../lib/types';
 
 import { FormEvent, useContext, useState } from 'react';
 import Modal from '@mui/material/Modal';
@@ -36,8 +41,8 @@ export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className='update-bid-modal'>
-      <h2 className='update-bid-modal-header'>Update bid</h2>
+    <div className={modalStyle}>
+      <h2 className={modalHeaderStyle}>Update bid</h2>
       <form
         className='update-bid-form'
         onSubmit={handleSubmit}
@@ -57,7 +62,7 @@ export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}
           disabled={price < 0.01}
           value='Submit'
         />
-        {error && <label className='error-message'>{error}</label>}
+        {error && <label className={errorMessageStyle}>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

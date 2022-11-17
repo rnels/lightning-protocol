@@ -1,0 +1,21 @@
+.nav-bar {
+  display: flex;
+  justify-content: space-evenly;
+  overflow: hidden;
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 10px;
+  font-size: calc(12px + 1vmin);
+}
+
+.nav-bar a {
+  color: #ececec;
+}
+
+.nav-bar-left {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}

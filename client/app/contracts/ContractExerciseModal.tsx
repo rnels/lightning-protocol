@@ -1,5 +1,10 @@
 'use client';
 
+import {
+  modal as modalStyle,
+  modalHeader as modalHeaderStyle,
+  errorMessage as errorMessageStyle
+} from '../styles.module.css';
 import * as api from '../../lib/api';
 import { Contract } from '../../lib/types';
 
@@ -29,8 +34,8 @@ export default function ContractExerciseModal(props: {contract: Contract, onClos
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className='exercise-contract-modal'>
-      <h2 className='exercise-contract-modal-header'>Exercise</h2>
+    <div className={modalStyle}>
+      <h2 className={modalHeaderStyle}>Exercise</h2>
       <form
         className='exercise-contract-form'
         onSubmit={handleSubmit}
@@ -42,7 +47,7 @@ export default function ContractExerciseModal(props: {contract: Contract, onClos
             value='Confirm'
           />
         </label>
-        {error && <label className='error-message'>{error}</label>}
+        {error && <label className={errorMessageStyle}>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

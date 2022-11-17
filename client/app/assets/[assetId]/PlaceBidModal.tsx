@@ -1,5 +1,10 @@
 'use client';
 
+import {
+  modal as modalStyle,
+  modalHeader as modalHeaderStyle,
+  errorMessage as errorMessageStyle
+} from '../../styles.module.css';
 import * as api from '../../../lib/api';
 import { Asset, ContractType } from '../../../lib/types';
 
@@ -7,7 +12,12 @@ import { FormEvent, useState, useContext } from 'react';
 import Modal from '@mui/material/Modal';
 import { AccountContext } from '../../AccountContext';
 
-export default function PlaceBidModal(props: {contractType: ContractType, asset: Asset, defaultBid: number | null, onClose: Function}) {
+export default function PlaceBidModal(props: {
+  contractType: ContractType,
+  asset: Asset,
+  defaultBid: number | null,
+  onClose: Function
+}) {
 
   const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
   const [amount, setAmount] = useState<number>(1);
@@ -45,8 +55,8 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className='place-bid-modal'>
-      <h2 className='place-bid-modal-header'>Place Bid</h2>
+    <div className={modalStyle}>
+      <h2 className={modalHeaderStyle}>Place Bid</h2>
       <form
         className='place-bid-form'
         onSubmit={handleSubmit}
@@ -79,7 +89,7 @@ export default function PlaceBidModal(props: {contractType: ContractType, asset:
           disabled={price < 0.01 || amount < 1}
           value='Submit'
         />
-        {error && <label className='error-message'>{error}</label>}
+        {error && <label className={errorMessageStyle}>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

@@ -1,5 +1,6 @@
 'use client';
 
+import {modal as modalStyle, modalHeader as modalHeaderStyle} from '../styles.module.css';
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
@@ -30,8 +31,8 @@ export default function PoolFeesWithdrawModal(props: {pool: Pool, onClose: Funct
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className='pool-fees-withdraw-modal'>
-      <h2 className='pool-fees-withdraw-modal-header'>Withdraw Fees</h2>
+    <div className={modalStyle}>
+      <h2 className={modalHeaderStyle}>Withdraw Fees</h2>
       <form
         className='pool-fees-withdraw-form'
         onSubmit={handleSubmit}

@@ -1,5 +1,6 @@
 'use client';
 
+import { errorMessage as errorMessageStyle } from '../styles.module.css';
 import * as api from '../../lib/api';
 
 import React, { FormEvent, useContext, useState } from 'react';
@@ -36,7 +37,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <form className='register-form' onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <h2>
         Register
       </h2>
@@ -84,7 +85,7 @@ export default function RegisterForm() {
         type='submit'
         value='Submit'
       />
-      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      {error && <div className={errorMessageStyle}>{`Error: ${error}`}</div>}
       <Link href="/login">Already have an account?</Link>
     </form>
   );

@@ -6,6 +6,9 @@ import ContractTypeDetails from './ContractTypeDetails';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 
+// TODO: Create an 'event log' view
+// Convert events (sells, buys, exercises, etc.) into human-readable messages
+
 /** Renders a list of contracts for the logged in user */
 export default async function UserContractsPage() {
 

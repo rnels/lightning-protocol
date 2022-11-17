@@ -1,0 +1,19 @@
+.contractsPageHeader {
+  margin-bottom: 5px;
+}
+
+.contractTableRow {
+  background-color: #333333;
+}
+
+.assetList {
+  display: flex;
+  flex-direction: column;
+}
+
+.assetDetails {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0px;
+}
+

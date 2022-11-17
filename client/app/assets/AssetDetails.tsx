@@ -1,5 +1,5 @@
+import styles from './assets.module.css';
 import React from 'react';
-
 import { Asset } from '../../lib/types';
 import AssetName from "./AssetName";
 import AssetPrice from "./AssetPrice";
@@ -15,7 +15,7 @@ import Link from 'next/link';
 export default function AssetDetails(props: {asset: Asset}) {
 
   return (
-    <div className='asset-details'>
+    <div className={styles.assetDetails}>
       {props.asset.iconUrl &&
         <img
           src={props.asset.iconUrl}
@@ -45,4 +45,4 @@ export default function AssetDetails(props: {asset: Asset}) {
     </div>
   );
 
-};
+}

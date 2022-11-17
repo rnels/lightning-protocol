@@ -1,5 +1,10 @@
 'use client';
 
+import {
+  modal as modalStyle,
+  modalHeader as modalHeaderStyle,
+  errorMessage as errorMessageStyle
+} from '../styles.module.css';
 import * as api from '../../lib/api';
 import { Contract } from '../../lib/types';
 
@@ -30,8 +35,8 @@ export default function ContractUpdateAskPriceModal(props: {contract: Contract, 
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className='update-ask-modal'>
-      <h2 className='update-ask-modal-header'>Set Ask</h2>
+    <div className={modalStyle}>
+      <h2 className={modalHeaderStyle}>Set Ask</h2>
       <form
         className='update-ask-form'
         onSubmit={handleSubmit}
@@ -52,7 +57,7 @@ export default function ContractUpdateAskPriceModal(props: {contract: Contract, 
           value='Submit'
         />
         <small>Note: Pool provider fee accounts for 1% of sale cost</small>
-        {error && <label className='error-message'>{error}</label>}
+        {error && <label className={errorMessageStyle}>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

@@ -1,3 +1,5 @@
+import styles from '../assets.module.css';
+
 import { cookies } from 'next/headers';
 import React from 'react';
 
@@ -16,7 +18,9 @@ export default async function AssetContractsPage( { params }: { params: { assetI
 
   return (
     <div className='asset-contracts-page'>
-      <h2 className='asset-contracts-page-header'>{`${asset.name} ($${asset.symbol})`}</h2>
+      <h2 className={styles.contractsPageHeader}>
+        {`${asset.name} ($${asset.symbol})`}
+      </h2>
       <div>{`Price: $${assetPrice >= 1 ? assetPrice.toFixed(2) : assetPrice.toFixed(4)}`}</div>
       <div>{`Lot Size: ${asset.assetAmount} ${asset.symbol}`}</div>
       <div>

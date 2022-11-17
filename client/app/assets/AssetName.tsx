@@ -6,4 +6,4 @@ export default function AssetName(props: {name: string}) {
     </div>
   );
 
-};
+}

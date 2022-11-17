@@ -1,5 +1,6 @@
 'use client';
 
+import { errorMessage as errorMessageStyle } from '../styles.module.css';
 import * as api from '../../lib/api';
 import { PoolLock, Pool } from '../../lib/types';
 import PoolLockDetails from './PoolLockDetails';
@@ -30,7 +31,7 @@ export default function PoolLockList(props: { pool: Pool }) {
   return (
     <div className="pool-lock-list">
       <h4>Locks</h4>
-      {error && <div className='error-message'>{`Error: ${error}`}</div>}
+      {error && <div className={errorMessageStyle}>{`Error: ${error}`}</div>}
       {poolLockList.length > 0 ?
         poolLockList.map((poolLock) =>
           <PoolLockDetails

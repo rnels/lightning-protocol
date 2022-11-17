@@ -1,5 +1,4 @@
 import * as api from '../../lib/api';
-import { Asset } from '../../lib/types';
 
 import React from 'react';
 import AssetList from './AssetList';
@@ -24,5 +23,4 @@ async function getAssetList() {
   let cookie = cookies().get('lightning-app-cookie');
   let assetList = await api.getAssetList(cookie!.value);
   return assetList;
-
 }

@@ -1,5 +1,9 @@
 'use client';
 
+import {
+  modal as modalStyle,
+  modalHeader as modalHeaderStyle
+} from '../styles.module.css';
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
@@ -16,7 +20,7 @@ export default function PoolAssetDepositModal(props: {pool: Pool, onClose: Funct
     e.preventDefault();
     api.depositPoolAssets(props.pool.poolId, amount)
       .then(() => props.onClose())
-      .catch((error) => console.log(error));
+      .catch((error) => console.log(error)); // TODO: Error handling
   };
 
   return (
@@ -24,8 +28,8 @@ export default function PoolAssetDepositModal(props: {pool: Pool, onClose: Funct
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className='pool-asset-deposit-modal'>
-      <h2 className='pool-asset-deposit-modal-header'>Deposit Assets</h2>
+    <div className={modalStyle}>
+      <h2 className={modalHeaderStyle}>Deposit Assets</h2>
       <form
         className='pool-asset-deposit-form'
         onSubmit={handleSubmit}

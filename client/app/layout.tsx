@@ -1,6 +1,7 @@
 'use client';
 
-import '../styles.css'
+import './global.css';
+import { app as appStyle } from './styles.module.css'
 import * as api from '../lib/api';
 import NavBar from './NavBar';
 
@@ -8,7 +9,7 @@ import React, { useEffect, useState } from 'react';
 import { AccountContext } from './AccountContext';
 import { Account } from '../lib/types';
 
-export default function RootLayout({ children }: { children: React.ReactNode} ) {
+export default function RootLayout({ children }: { children: React.ReactNode } ) {
 
   const [account, setAccount] = useState<Account>();
 
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode} ) 
   return (
     <html lang='en'>
       <body>
-      <div className='App'>
+      <div className={appStyle}>
         <AccountContext.Provider value={{account, getAccountInfo}}>
           <NavBar/>
           {children}

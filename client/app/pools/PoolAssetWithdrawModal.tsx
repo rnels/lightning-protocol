@@ -1,5 +1,9 @@
 'use client';
 
+import {
+  modal as modalStyle,
+  modalHeader as modalHeaderStyle
+} from '../styles.module.css';
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
@@ -16,7 +20,7 @@ export default function PoolAssetWithdrawModal(props: {pool: Pool, unlockedAmoun
     e.preventDefault();
     api.withdrawPoolAssets(props.pool.poolId, amount)
       .then(() => props.onClose())
-      .catch((error) => console.log(error));
+      .catch((error) => console.log(error)); // TODO: Error handling
   };
 
   return (
@@ -24,8 +28,8 @@ export default function PoolAssetWithdrawModal(props: {pool: Pool, unlockedAmoun
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className='pool-asset-withdraw-modal'>
-      <h2 className='pool-asset-withdraw-modal-header'>Withdraw Assets</h2>
+    <div className={modalStyle}>
+      <h2 className={modalHeaderStyle}>Withdraw Assets</h2>
       <form
         className='pool-asset-withdraw-form'
         onSubmit={handleSubmit}
