@@ -8,12 +8,42 @@
 
 .assetList {
   display: flex;
-  flex-direction: column;
+  gap: 20px;
 }
 
 .assetDetails {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 325px;
+  height: 200px;
+  background-color: rgba(0,0,0,0.7);
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: darken;
   margin: 10px 0px;
+  border-radius: 1em;
+}
+
+.assetName {
+  font-size: 36pt;
+  font-weight: bold;
+}
+
+.assetPriceInfo {
+  font-size: 18pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.assetPrice {
+  font-size: 24pt;
+}
+
+.assetPriceHistoryGraph {
+  font-size: 24pt;
 }
 

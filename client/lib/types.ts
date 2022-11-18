@@ -3,18 +3,18 @@ export type Account = {
   email: string,
   firstName: string,
   lastName: string,
-	paper: number
+	paper: string | number
 };
 
 export type Asset = {
   assetId: number,
 	assetType: string,
-	assetAmount: number,
+	assetAmount: string | number,
 	name: string,
 	symbol: string,
 	priceApiId: number,
-	lastPrice: number,
-	lastUpdated: string, // TODO: Convert to date
+	lastPrice: string | number,
+	lastUpdated: string,
 	iconUrl?: string,
 	contractTypes?: ContractType[],
 	pools?: Pool[]
@@ -23,9 +23,9 @@ export type Asset = {
 export type Pool = {
   poolId: number,
 	assetId: number,
-	assetAmount: number,
-	reserveAmount: number,
-	tradeFees: number,
+	assetAmount: string | number,
+	reserveAmount: string | number,
+	tradeFees: string | number,
 	poolLocks?: PoolLock[]
 };
 
@@ -33,18 +33,18 @@ export type PoolLock = {
   poolLockId: number,
 	poolId: number,
 	contractId: number,
-	assetAmount: number,
-	reserveAmount: number,
-	expiresAt: Date,
-	tradeFees: number
+	assetAmount: string | number,
+	reserveAmount: string | number,
+	expiresAt: string,
+	tradeFees: string | number
 };
 
 export type ContractType = {
 	contractTypeId: number,
 	assetId: number,
 	direction: boolean,
-	strikePrice: number,
-	expiresAt: Date,
+	strikePrice: string | number,
+	expiresAt: string,
 	contracts?: Contract[],
 	bids?: Bid[]
 };
@@ -52,27 +52,27 @@ export type ContractType = {
 export type Contract = {
 	contractId: number,
 	typeId: number,
-	createdAt: number, // TODO: Convert to date
+	createdAt: string,
 	exercised: boolean,
-	askPrice?: number,
-	exercisedAmount?: number,
+	askPrice?: string | number,
+	exercisedAmount?: string | number,
 	trades?: Trade[]
 };
 
 export type Bid = {
 	bidId: number,
 	typeId: number,
-	bidPrice: number,
-	createdAt: number // TODO: Convert to date
+	bidPrice: string | number,
+	createdAt: string
 };
 
 export type Trade = {
 	tradeId: number,
 	contractId: number,
 	typeId: number,
-	salePrice: number,
-	saleCost: number,
-	tradeFee: number,
-  createdAt: string, // TODO: Convert to date
+	salePrice: string | number,
+	saleCost: string | number,
+	tradeFee: string | number,
+  createdAt: string,
 	isBuyer: boolean
 };

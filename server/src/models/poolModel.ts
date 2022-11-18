@@ -131,7 +131,7 @@ export async function _addToLockTradeFees(contractId: number, tradeFee: number, 
   let lockPools = await _getLockedPoolsByContractId(contractId, client);
   let totalAssetAmount = await _getLockedAmountSumByContractId(contractId, client);
   for (let pool of lockPools) {
-    let fee = tradeFee * (pool.assetAmount / totalAssetAmount);
+    let fee = tradeFee * (Number(pool.assetAmount) / totalAssetAmount);
     feePromises.push(
       client.query(`
         UPDATE pool_locks
@@ -154,7 +154,7 @@ export async function _addToPoolLockReserve(contractId: number, strikePrice: num
   let reservePromises = [];
   let poolLocks = await _getLockedPoolsByContractId(contractId, client);
   for (let pool of poolLocks) {
-    let reserveAmount = strikePrice * pool.assetAmount;
+    let reserveAmount = strikePrice * Number(pool.assetAmount);
     reservePromises.push(
       client.query(`
         UPDATE pool_locks
@@ -179,7 +179,7 @@ export async function _takeFromPoolLockReserve(contractId: number, strikePrice: 
   let reservePromises = [];
   let poolLocks = await _getLockedPoolsByContractId(contractId, client);
   for (let pool of poolLocks) {
-    let reserveAmount = strikePrice * pool.assetAmount;
+    let reserveAmount = strikePrice * Number(pool.assetAmount);
     console.log('reserveAmount:', reserveAmount)
     reservePromises.push(
       client.query(`
@@ -409,7 +409,7 @@ export function _createPoolLock(
   poolId: number,
   contractId: number,
   assetAmount: number,
-  expiresAt: Date,
+  expiresAt: Date | string,
   client: PoolClient
 ) {
   return client.query(`

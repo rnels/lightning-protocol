@@ -45,7 +45,7 @@ import { getTradesWithin24HoursByTypeId } from '../models/tradeModel';
   // NOTE: Technically, volatility will be constant across strikePrices so you could pass this as an argument instead since you'll be getting the same volatility across all strikes ... but it looks neater here
 // TODO: Consider whether I want to pass assetPrice as an arg instead, seeing as there are repeated calls for it when this is called in succession, but it will (should) be unchanging between calls
 // TODO: For future prices, use IV instead of HV based on activity (?)
-async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: Date, direction: boolean, assetPrice?: number) {
+async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string, direction: boolean, assetPrice?: number) {
   // console.log('expiresAt:', expiresAt); // DEBUG
   let timeToExpiry = _getTimeToExpiryFromExpiresAt(expiresAt);
   // console.log('timeToExpiry:', timeToExpiry); // DEBUG
@@ -66,8 +66,8 @@ async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: Date, d
   ) * 100) / 100;
 }
 
-function _getTimeToExpiryFromExpiresAt(expiresAt: Date) {
-  return (expiresAt.getTime() - Date.now()) / 31556926000; // NOTE: Uses intersection between leap year and non-leap year time iirc
+function _getTimeToExpiryFromExpiresAt(expiresAt: string) {
+  return (new Date(expiresAt).getTime() - Date.now()) / 31556926000; // NOTE: Uses intersection between leap year and non-leap year time iirc
 }
 
 /** Represents how much a contractType is being traded relative to the number of outstanding contracts. Should be used in the formula determining which contractTypes to be writing more of */
@@ -158,10 +158,12 @@ export async function writeContractTypeChain(assetId: number) {
 // TODO: Use historical trading data for contractTypes of the same qualities but sooner expiry to determine how many should be made of each type
 export async function initializeContracts(assetId: number) {
   const asset = await getAssetById(assetId);
+  asset.assetAmount = Number(asset.assetAmount);
   const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
+    contractType.strikePrice = Number(contractType.strikePrice);
     let contracts = await getActiveContractsByTypeId(contractType.contractTypeId);
     let openInterest = contracts.length;
     if (!openInterest) {
@@ -194,6 +196,7 @@ export async function initializeContracts(assetId: number) {
 // Consideration: New types may have different strike prices, will need to shift the window of historical data and interpolate where needed
 export async function writeContracts(assetId: number) {
   const asset = await getAssetById(assetId);
+  asset.assetAmount = Number(asset.assetAmount);
   const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
@@ -205,6 +208,7 @@ export async function writeContracts(assetId: number) {
     ratio: number
   } [] = [];
   for (let contractType of contractTypes) {
+    contractType.strikePrice = Number(contractType.strikePrice);
     if ( // Don't create contracts of ITM contract types
       contractType.strikePrice > assetPrice && contractType.direction || // OTM call
       contractType.strikePrice < assetPrice && !contractType.direction // OTM put
@@ -249,6 +253,7 @@ export async function automaticBidTest(assetId: number) {
   const account = await getAccountInfoById(1);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
+    contractType.strikePrice = Number(contractType.strikePrice);
     let bidPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction);
     // Creates 1 bid per contractType
     // TODO: Ensure that this account has "unlimited" paper
@@ -271,6 +276,7 @@ export async function writerAskUpdate(assetId: number) {
   const asset = await getAssetById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
+    contractType.strikePrice = Number(contractType.strikePrice);
     let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction);
     // console.log('askPrice:', askPrice); // DEBUG
     // Updates ask price for each active contracts of the contractType

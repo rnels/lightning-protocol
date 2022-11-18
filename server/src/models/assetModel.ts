@@ -106,6 +106,26 @@ export async function getAssetPriceById(id: string | number, client?: PoolClient
   return Number(lastPrice);
 };
 
+/** Can be used to limit the query results for limited lookback in calculating greeks / volatility */
+export async function getAssetPriceHistoryByAssetIdLimit(
+  assetId: string | number,
+  limit: string | number
+): Promise<{price: string | number, dataPeriod: string}[]>{
+  return (await db.query(`
+    SELECT
+      price,
+      data_period as "dataPeriod"
+    FROM asset_prices
+      WHERE asset_id=$1
+    ORDER BY data_period DESC
+    LIMIT $2
+  `,
+  [
+    assetId,
+    limit
+  ])).rows;
+};
+
 export async function getAssetsByAssetType(assetType: string, client?: PoolClient): Promise<Asset[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
@@ -177,25 +197,6 @@ export async function _getAssetPriceHistoryByAssetId(assetId: number): Promise<{
   `,
   [
     assetId,
-  ])).rows;
-};
-
-/** Can be used to limit the query results for limited lookback in calculating greeks / volatility */
-// TODO: Cast price to numeric
-export async function _getAssetPriceHistoryByAssetIdLimit(
-  assetId: number,
-  limit: number
-): Promise<{price: string, data_period: string}[]>{
-  return (await db.query(`
-    SELECT price, data_period
-      FROM asset_prices
-        WHERE asset_id=$1
-      ORDER BY data_period DESC
-      LIMIT $2
-  `,
-  [
-    assetId,
-    limit
   ])).rows;
 };
 

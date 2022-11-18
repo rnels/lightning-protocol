@@ -145,7 +145,7 @@ import { QueryResult } from 'pg';
   let assetId = 1;
   let direction = true;
   let strikePrice = 50.54;
-  let expiresAt = 1340235435039430954309; // TODO: Redo this with epoch representation of long time out
+  let expiresAt = '1340235435039430954309';
   let result = await contractTypes.createContractType(
     assetId,
     direction,

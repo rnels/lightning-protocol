@@ -10,17 +10,17 @@ export type Account = {
   passwordHash: string,
   firstName: string,
   lastName: string,
-	paper: number
+	paper: string | number
 };
 
 export type Asset = {
   assetId: number,
 	assetType: AssetType,
-	assetAmount: number,
+	assetAmount: string | number,
 	name: string,
 	symbol: string,
 	priceApiId: number,
-	lastPrice: number,
+	lastPrice: string | number,
 	lastUpdated: string,
 	iconUrl?: string,
 	contractTypes?: ContractType[],
@@ -48,18 +48,18 @@ export type PoolLock = {
   poolLockId: number,
 	poolId: number,
 	contractId: number,
-	assetAmount: number,
-	reserveAmount: number,
-	expiresAt: Date,
-	tradeFees: number
+	assetAmount: string | number,
+	reserveAmount: string | number,
+	expiresAt: string,
+	tradeFees: string | number
 };
 
 export type ContractType = {
 	contractTypeId: number,
 	assetId: number,
 	direction: boolean,
-	strikePrice: number,
-	expiresAt: Date,
+	strikePrice: string | number,
+	expiresAt: string,
 	contracts?: Contract[],
 	bids?: Bid[]
 };
@@ -69,9 +69,9 @@ export type Contract = {
 	typeId: number,
 	createdAt: string,
 	exercised: boolean,
-	exercisedAmount?: number,
+	exercisedAmount?: string | number,
 	ownerId?: number,
-	askPrice?: number,
+	askPrice?: string | number,
 	trades?: Trade[]
 };
 
@@ -79,7 +79,7 @@ export type Bid = {
 	bidId: number,
 	typeId: number,
 	accountId: number,
-	bidPrice: number,
+	bidPrice: string | number,
 	createdAt: string
 };
 
@@ -89,9 +89,9 @@ export type Trade = {
 	typeId: number,
 	buyerId: number,
   sellerId?: number,
-	salePrice: number,
-	saleCost: number,
-	tradeFee: number,
+	salePrice: string | number,
+	saleCost: string | number,
+	tradeFee: string | number,
   createdAt: string,
 	isBuyer?: boolean
 };

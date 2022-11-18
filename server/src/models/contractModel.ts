@@ -301,11 +301,11 @@ export async function createContract(
     ])).rows[0] as Contract;
     let pools = await getPoolsByAssetId(asset.assetId, client);
     let poolLockPromises = [];
-    let unallocatedAmount = asset.assetAmount;
+    let unallocatedAmount = Number(asset.assetAmount);
     // Okay, so this should create a pool lock for all pools with
     // unlocked assets, cascading down until the contract is spent on locks
     for (let pool of pools) {
-      let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId, client); // TODO: Could technically get locked amounts and do the sum here
+      let unlockedAmount = Number(await getUnlockedAmountByPoolId(pool.poolId, client)); // TODO: Could technically get locked amounts and do the sum here
       if (unlockedAmount > 0) {
         let allocatedAmount = unallocatedAmount >= unlockedAmount ? unlockedAmount : unallocatedAmount;
         poolLockPromises.push(
@@ -403,10 +403,11 @@ export async function _tradeContract(
   bid: Bid,
   client: PoolClient
 ) {
-  if (!contract.askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
+  let askPrice = Number(contract.askPrice);
+  if (askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
   let contractType = await getActiveContractTypeById(contract.typeId, client);
   let asset = await getAssetById(contractType.assetId, client);
-  let saleCost = contract.askPrice * asset.assetAmount;
+  let saleCost = Number(askPrice) * Number(asset.assetAmount);
   let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
     saleCost * poolFee : saleCost;
   let sellerProceeds = saleCost - tradeFee; // TODO: Ensure this is resulting in 0 sellerProceeds when it's an initial sale
@@ -420,7 +421,7 @@ export async function _tradeContract(
       contract.contractId,
       contract.typeId,
       buyerId,
-      contract.askPrice,
+      askPrice,
       saleCost,
       tradeFee,
       client,
@@ -467,15 +468,17 @@ export async function exerciseContract(
       throw new Error('Put option with asset market price above strike price can not be exercised');
     }
     var saleProfits: number;
-    var poolReserves = contractType.strikePrice * asset.assetAmount;
+    let assetAmount = Number(asset.assetAmount);
+    let strikePrice = Number(contractType.strikePrice);
+    var poolReserves = strikePrice * assetAmount;
     if (contractType.direction) { // If direction = call
       // Provide contract owner / exerciser with remaining paper, which equates to (assetAmount * market price) - (assetAmount * strike price)
-      saleProfits = (assetPrice * asset.assetAmount) - poolReserves;
+      saleProfits = (assetPrice * assetAmount) - poolReserves;
       // Add to reserve_amount for pool_locks paper equating to the assetAmount * strike price
-      await _addToPoolLockReserve(contract.contractId, contractType.strikePrice, client);
+      await _addToPoolLockReserve(contract.contractId, strikePrice, client);
     } else { // If direction = put
-      saleProfits = poolReserves - (assetPrice * asset.assetAmount);
-      await _takeFromPoolLockReserve(contract.contractId, contractType.strikePrice, client);
+      saleProfits = poolReserves - (assetPrice * assetAmount);
+      await _takeFromPoolLockReserve(contract.contractId, strikePrice, client);
     }
     await _deletePoolLocksByContractId(contract.contractId, client);
     await depositPaper(contract.ownerId, saleProfits, client);

@@ -8,13 +8,15 @@ import ContractTableRow from './ContractTableRow';
 export default function ContractTypesTable(props: {contractTypes: ContractType[], asset: Asset}) {
 
   const [directionFilter, setDirectionFilter] = useState<boolean>(true);
-  const [dateFilter, setDateFilter] = useState<Date>(props.contractTypes[0].expiresAt);
+  const [dateFilter, setDateFilter] = useState<string>(props.contractTypes[0].expiresAt);
 
   const [amountFilter, setAmountFilter] = useState<boolean>(false);
 
+  // TODO: Ensure the time zone conversion works
   const dateFilterList = props.contractTypes
-    .map((contractType) => contractType.expiresAt.toString())
-    .filter((expiry: string, i: number, expiryArray: string[]) => expiryArray.indexOf(expiry) === i);
+    .map((contractType) => contractType.expiresAt)
+    .filter((expiry: string, i: number, expiryArray: string[]) => expiryArray.indexOf(expiry) === i)
+    .map((value) => new Date(value).toLocaleDateString('en-us', { year:'numeric', month:'short', day:'numeric' }));
 
   const filteredTypeList = props.contractTypes
     .filter((contractType => contractType.expiresAt === dateFilter && contractType.direction === directionFilter))
@@ -29,8 +31,8 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
         <label className='contract-types-table-filter-expiry'>
           Expiry
           <select
-            onChange={(e) => setDateFilter(new Date(e.target.value))}
-            value={dateFilter.toString()}
+            onChange={(e) => setDateFilter(e.target.value)}
+            value={dateFilter}
           >
             {dateFilterList.map((filter) =>
               <option

@@ -27,8 +27,9 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
     `, [assetId])).rows as ContractType[];
     let typeReservePromises = [];
     for (let contractType of contractTypes) { // TODO: Could group by strike price, since that's what is being evaluated
-      let priceDif = (assetPrice - contractType.strikePrice) / contractType.strikePrice; // Decimal representing difference between asset price and strike
-      let creditPrice = priceDif < 0 ? Math.abs(assetPrice - contractType.strikePrice) : 0;
+      let strikePrice = Number(contractType.strikePrice);
+      let priceDif = (assetPrice - strikePrice) / strikePrice; // Decimal representing difference between asset price and strike
+      let creditPrice = priceDif < 0 ? Math.abs(assetPrice - strikePrice) : 0;
       // TODO: Consider making a "credited reserves" for each pool lock
       // where if it wasn't updated in time before dipping below 0% priceDif, there's an account
       // which funds the lock temporarily so it can still be exercised
@@ -46,7 +47,7 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
             // It's important that it's done this way because I can't subtract asset_amount from the pool lock
             // if I want to keep track of how much it contributed to the contract
             if (!Number(poolLock.reserveAmount)) {
-              let addReserve = creditReserve ? contractType.strikePrice * assetAmount : assetPrice * assetAmount;
+              let addReserve = creditReserve ? strikePrice * assetAmount : assetPrice * assetAmount;
               typeReservePromises.push(
                 client.query(`
                   UPDATE pools
@@ -165,7 +166,7 @@ export async function createContractType(
   assetId: number,
   direction: boolean,
   strikePrice: number,
-  expiresAt: Date
+  expiresAt: Date | string
 ): Promise<{contractTypeId: number}> {
   const res = await db.query(`
     INSERT INTO contract_types (

@@ -11,6 +11,7 @@ export default async function AssetContractsPage( { params }: { params: { assetI
   const {
     asset,
     assetPrice,
+    assetPriceHistory, // TODO: Implement assetPriceHistory
     poolAssetAmount,
     poolLockAssetAmount,
     contractTypeList
@@ -44,6 +45,7 @@ async function getPropsData(assetId: string | number) {
   let results = await Promise.all([
     api.getAsset(assetId, cookie!.value),
     api.getAssetPrice(assetId, cookie!.value),
+    api.getAssetPriceHistory(assetId, 7, cookie!.value),
     api.getPoolAssetAmountByAssetId(assetId, cookie!.value),
     api.getPoolLockAssetAmountByAssetId(assetId, cookie!.value),
     api.getContractTypesByAssetId(assetId, cookie!.value)
@@ -52,9 +54,10 @@ async function getPropsData(assetId: string | number) {
   return {
     asset: results[0],
     assetPrice: results[1],
-    poolAssetAmount: results[2],
-    poolLockAssetAmount: results[3],
-    contractTypeList: results[4]
+    assetPriceHistory: results[2],
+    poolAssetAmount: results[3],
+    poolLockAssetAmount: results[4],
+    contractTypeList: results[5]
   }
 
 }

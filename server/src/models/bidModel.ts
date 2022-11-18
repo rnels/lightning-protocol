@@ -41,7 +41,7 @@ export function _removeBid(bidId: number | string, client: PoolClient) {
   ]);
 }
 
-export async function getBidById(id: string | number, client?: PoolClient): Promise<Bid> {
+export async function getBidById(id: string | number, client?: PoolClient): Promise<{bidId: number, typeId: number, bidPrice: string}> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   let res: QueryResult;
   try {
@@ -165,7 +165,7 @@ export async function updateBidPrice(bidId: number | string, bidPrice: number, a
       bidId,
       bidPrice,
       accountId
-    ])).rows[0];
+    ])).rows[0] as Bid;
     let contracts = await _getMatchingAsksByBid(bid, client);
     if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
     await client.query('COMMIT');

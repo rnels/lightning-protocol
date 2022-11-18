@@ -488,12 +488,29 @@ export function getAssetPrice(assetId: string | number, cookie?: string): Promis
     credentials: 'include'
   })
     .then((result) => result.json())
-    .then((json) => json.price);
+    .then((json) => Number(json.price));
   // return axios.get(`${serverURL}/asset/price`, {
   //   params: { id: assetId },
   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
   // })
   //   .then((response) => response.data.price);
+}
+
+export function getAssetPriceHistory(
+  assetId: string | number,
+  days: string | number,
+  cookie?: string
+): Promise<{price: string | number, dataPeriod: string}[]> {
+  var url = new URL(`${serverURL}/asset/price/history`);
+  url.searchParams.append('id', assetId as string);
+  url.searchParams.append('days', days as string);
+  return fetch(url, {
+    method: 'GET',
+    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    credentials: 'include'
+  })
+    .then((result) => result.json())
+    .then((json) => json.prices);
 }
 
 // POOLS //
