@@ -14,14 +14,14 @@ import { AccountContext } from '../AccountContext';
 
 export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}) {
 
-  const [price, setPrice] = useState<number>(props.bid.bidPrice || 0);
+  const [price, setPrice] = useState<string | number>(props.bid.bidPrice || 0);
   const [error, setError] = useState('');
 
   const { getAccountInfo }: any = useContext(AccountContext);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    api.updateBidPrice(props.bid.bidId, price)
+    api.updateBidPrice(props.bid.bidId, Number(price))
       .then(() => {
         getAccountInfo();
         props.onClose();

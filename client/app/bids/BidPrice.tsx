@@ -1,4 +1,4 @@
-export default function BidPrice(props: {bidPrice: number}) {
+export default function BidPrice(props: {bidPrice: string | number}) {
 
   return (
     <div className='bid-price'>

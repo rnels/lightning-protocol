@@ -1,4 +1,4 @@
-export default function ContractTypeStrikePrice(props: {strikePrice: number}) {
+export default function ContractTypeStrikePrice(props: {strikePrice: string | number}) {
 
   return (
     <div className='contract-type-strike-price'>

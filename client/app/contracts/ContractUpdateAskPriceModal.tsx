@@ -13,12 +13,12 @@ import Modal from '@mui/material/Modal';
 
 export default function ContractUpdateAskPriceModal(props: {contract: Contract, onClose: Function}) {
 
-  const [price, setPrice] = useState<number>(props.contract.askPrice || 0);
+  const [price, setPrice] = useState<string | number>(props.contract.askPrice || 0);
   const [error, setError] = useState('');
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    api.updateAskPrice(props.contract.contractId, price)
+    api.updateAskPrice(props.contract.contractId, Number(price))
       .then(() => props.onClose())
       .catch((errorRes) => {
         console.log(errorRes);

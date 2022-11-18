@@ -24,7 +24,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       .catch((err) => console.log(err));
   }
 
-  const [asks, setAsks] = useState<{askPrice: number, contractId: number}[]>([]);
+  const [asks, setAsks] = useState<{askPrice: string | number, contractId: number}[]>([]);
   function getAsks() {
     api.getAsks(props.contractType.contractTypeId)
       .then((asks) => setAsks(asks))
@@ -64,11 +64,11 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.contractType]);
 
-  let askPrices = asks.map((ask) => ask.askPrice);
+  let askPrices = asks.map((ask) => Number(ask.askPrice));
   const lowestAsk = askPrices.length > 0 ? Math.min(...askPrices) : null;
-  let bidPrices = bids.map((bid) => bid.bidPrice);
+  let bidPrices = bids.map((bid) => Number(bid.bidPrice));
   const highestBid = bidPrices.length > 0 ? Math.max(...bidPrices) : null;
-  const lastPrice = lastTrade ? lastTrade.salePrice : 0;
+  const lastPrice = lastTrade ? Number(lastTrade.salePrice) : 0;
 
   return (
     <tr className={styles.contractTableRow}>
@@ -85,7 +85,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td onClick={() => setShowModal(true)}>
         {highestBid === null ? 'N/A' :
         <>
-        {`$${(props.amountFilter ? Math.trunc(highestBid * props.asset.assetAmount * 1000) / 1000 : highestBid).toFixed(2)}`}
+        {`$${(props.amountFilter ? Math.trunc(highestBid * Number(props.asset.assetAmount) * 1000) / 1000 : highestBid).toFixed(2)}`}
         <div>{`(x${bids.length})`}</div>
         </>
         }
@@ -93,7 +93,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td>
         {lowestAsk === null ? 'N/A' :
         <>
-        {`$${(props.amountFilter ? Math.trunc(lowestAsk * props.asset.assetAmount * 1000) / 1000 : lowestAsk).toFixed(2)}`}
+        {`$${(props.amountFilter ? Math.trunc(lowestAsk * Number(props.asset.assetAmount) * 1000) / 1000 : lowestAsk).toFixed(2)}`}
         <div>{`(x${asks.length})`}</div>
         </>
         }

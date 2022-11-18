@@ -1,4 +1,4 @@
-export default function PoolReserveAmount(props: {reserveAmount: number}) {
+export default function PoolReserveAmount(props: {reserveAmount: string | number}) {
 
   return (
     <div className='pool-reserve-amount'>

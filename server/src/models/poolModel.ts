@@ -94,7 +94,7 @@ async function _doesPoolExist(accountId: number, assetId: number, client?: PoolC
           AND asset_id=$2
     )
   `, [accountId, assetId]);
-  return res.rows[0].exists;
+  return Boolean(res.rows[0].exists);
 }
 
 async function _getTradeFeesByPoolId(poolId: number, client?: PoolClient): Promise<number> {
@@ -308,7 +308,7 @@ export async function getPoolAssetsByAssetId(assetId: string | number, client?: 
     FROM pools
       WHERE asset_id=$1
   `, [assetId]);
-  return res.rows[0].sum;
+  return Number(res.rows[0].sum);
 }
 
 export async function getPoolsByAccountId(accountId: string | number, client?: PoolClient): Promise<Pool[]> {

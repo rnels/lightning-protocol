@@ -12,7 +12,7 @@ const minAmount = 0.01;
 
 export default function PoolFeesWithdrawModal(props: {pool: Pool, onClose: Function}) {
 
-  const [amount, setAmount] = useState<number>(Math.trunc(props.pool.tradeFees * 100) / 100);
+  const [amount, setAmount] = useState<number>(Math.trunc(Number(props.pool.tradeFees) * 100) / 100);
 
   const { getAccountInfo }: any = useContext(AccountContext);
 
@@ -45,7 +45,7 @@ export default function PoolFeesWithdrawModal(props: {pool: Pool, onClose: Funct
             max={props.pool.tradeFees}
             step={minAmount}
             value={amount}
-            onChange={(e) => setAmount(Math.min(props.pool.tradeFees, Number(e.target.value)))}
+            onChange={(e) => setAmount(Math.min(Number(props.pool.tradeFees), Number(e.target.value)))}
           />
         <small>{`Fee Amount: ${Math.trunc(Number(props.pool.tradeFees) * 100) / 100}`}</small>
         </label>

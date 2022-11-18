@@ -67,7 +67,7 @@ export default function UserPoolDetails(props: { pool: Pool }) {
         </button>
       }
       <div>
-        {`Locked: ${lockedAmount ? `${lockedAmount.toFixed(2)} (${(lockedAmount / pool.assetAmount * 100).toFixed(2)}%)` : 0} `}
+        {`Locked: ${lockedAmount ? `${lockedAmount.toFixed(2)} (${(lockedAmount / Number(pool.assetAmount) * 100).toFixed(2)}%)` : 0} `}
       </div>
       <div>
         {`Lock Fees: ${lockedFees ? `$${lockedFees.toFixed(2)}` : '$0'} `}
@@ -75,7 +75,7 @@ export default function UserPoolDetails(props: { pool: Pool }) {
       {showAssetModal &&
       <PoolAssetModal
         pool={pool}
-        unlockedAmount={Math.trunc((pool.assetAmount - lockedAmount) * 10000) / 10000}
+        unlockedAmount={Math.trunc((Number(pool.assetAmount) - lockedAmount) * 10000) / 10000}
         modalType={assetModalType}
         onClose={() => {
           setShowAssetModal(false);

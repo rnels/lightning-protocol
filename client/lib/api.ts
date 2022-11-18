@@ -132,7 +132,7 @@ export function getUserContractsExt(typeId: string | number, cookie?: string): P
   //   .then((response) => response.data.contracts);
 }
 
-export function getAsks(typeId: string | number, cookie?: string): Promise<{askPrice: number, contractId: number}[]> {
+export function getAsks(typeId: string | number, cookie?: string): Promise<{askPrice: string | number, contractId: number}[]> {
   var url = new URL(`${serverURL}/contract/type/asks`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {

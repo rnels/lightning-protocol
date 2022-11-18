@@ -20,7 +20,7 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
 
   const filteredTypeList = props.contractTypes
     .filter((contractType => contractType.expiresAt === dateFilter && contractType.direction === directionFilter))
-    .sort((a, b) => a.strikePrice - b.strikePrice);
+    .sort((a, b) => Number(a.strikePrice) - Number(b.strikePrice));
 
   return (
     <div className='contract-types-table'>

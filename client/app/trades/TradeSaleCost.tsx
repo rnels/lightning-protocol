@@ -1,8 +1,8 @@
-export default function TradeSaleCost(props: {saleCost: number}) {
+export default function TradeSaleCost(props: {saleCost: string | number}) {
 
   return (
     <div className='trade-sale-cost'>
-      {`Sale Cost: $${(Math.trunc(props.saleCost * 100) / 100).toFixed(2)}`}
+      {`Sale Cost: $${(Math.trunc(Number(props.saleCost) * 100) / 100).toFixed(2)}`}
     </div>
   );
 

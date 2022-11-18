@@ -70,7 +70,7 @@ export default function PlaceBidModal(props: {
             value={price}
             onChange={(e) => setPrice(Math.trunc(Number(e.target.value) * 100) / 100)}
           />
-        <small>{`Cost: $${(props.asset.assetAmount * price).toFixed(2)} ($${price} x ${props.asset.assetAmount})`}</small>
+        <small>{`Cost: $${(Number(props.asset.assetAmount) * price).toFixed(2)} ($${price} x ${props.asset.assetAmount})`}</small>
         </label>
 
         <label className='place-bid-amount'>
@@ -82,7 +82,7 @@ export default function PlaceBidModal(props: {
             value={amount}
             onChange={(e) => setAmount(Math.max(1, Math.floor(Number(e.target.value))))}
           />
-        <small>{`Total: $${(props.asset.assetAmount * price * amount).toFixed(2)} ($${(props.asset.assetAmount * price).toFixed(2)} x ${amount})`}</small>
+        <small>{`Total: $${(Number(props.asset.assetAmount) * price * amount).toFixed(2)} ($${(Number(props.asset.assetAmount) * price).toFixed(2)} x ${amount})`}</small>
         </label>
         <input
           type='submit'

@@ -1,4 +1,4 @@
-export default function ContractExercised(props: {exercised: boolean, exercisedAmount: number | undefined}) {
+export default function ContractExercised(props: {exercised: boolean, exercisedAmount: string | number | undefined}) {
 
   if (!props.exercised) return null;
 
