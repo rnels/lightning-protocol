@@ -86,6 +86,7 @@ async function _getVolumeOIRatio(typeId: number) {
 // Start with 2 months(?)
 export async function writeContractTypeChain(assetId: number) {
   const asset = await getAssetById(assetId);
+  asset.assetAmount = Number(asset.assetAmount);
   const contractTypes = await getActiveContractTypesByAssetId(assetId);
   // let assetPrice = 1; // DEBUG
   let assetPrice = await getAssetPriceById(asset.assetId);
@@ -121,12 +122,11 @@ export async function writeContractTypeChain(assetId: number) {
     // TODO: Keep in mind that daysOut affects the the price volatility (and BS model pricing),
     // So if I'm always creating the contracts at a fixed interval, it would be good to base everything around that interval
     let daysOut = 8 * 7; // 8 weeks / 56 days
-    let expiresAt = new Date(Date.now());
+    let expiresAt = new Date(Date.now()); // TODO: Change to be at a fixed hour i.e. 4PM ET
     expiresAt.setDate(expiresAt.getDate() + daysOut);
     // console.log('expiresAt:', expiresAt); // DEBUG
     // Get historical volatility, use to generate a standard deviation from current price
     // Each standard deviation represents 1 strike price in either direction
-    let assetPriceRounded = Math.trunc(assetPrice / roundMultiplier) * roundMultiplier;
     // let volatility = 0.5; // DEBUG
     // let volatility = await getAssetPriceVolatility(asset, assetPrice, 365, daysOut); // TODO: Uncomment for production
     let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, daysOut); // DEBUG: Remove for production
@@ -137,20 +137,55 @@ export async function writeContractTypeChain(assetId: number) {
     // console.log('deviation:', deviation); // DEBUG
     let createContractTypePromises = [];
     // Creates (10 / stepMultiplier) standard deviations worth of contractTypes
-    for (let i = 1; i <= 10; i++) {
+    let assetPriceRounded = Math.round(assetPrice / roundMultiplier) * roundMultiplier;
+    let assetPriceOffset = assetPriceRounded - assetPrice;
+    let deviationOffset = Math.ceil(assetPriceOffset / deviationStep);
+    console.log('deviationOffset', deviationOffset); // DEBUG
+    console.log('assetPrice', assetPrice); // DEBUG
+    console.log('assetPriceRounded', assetPriceRounded); // DEBUG
+    let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
+    let contractsToCreate = Math.floor(unlockedAmount / asset.assetAmount);
+    let callLimit = true;
+    let putLimit = true;
+    for (let i = 0; callLimit || putLimit; i++) {
       let strikePrices = {
-        // Includes an initial offset of 5%
-        call: assetPriceRounded + (deviationStep * i) + (assetPriceRounded * 0.05),
-        put: assetPriceRounded - ((deviationStep * i) / 2) - (assetPriceRounded * 0.05) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
+        call: assetPriceRounded + (deviationStep * deviationOffset) + (deviationStep * i),
+        put: assetPriceRounded - (deviationStep * deviationOffset * 2) - ((deviationStep * i) / 2) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
       };
-      // console.log('strikePrices.call:', strikePrices.call); // DEBUG
-      // console.log('strikePrices.put:', strikePrices.put); // DEBUG
-      createContractTypePromises.push(
-        createContractType(asset.assetId, true, strikePrices.call, expiresAt),
-        strikePrices.put > 0 && createContractType(asset.assetId, false, strikePrices.put, expiresAt)
-      );
+      // This is a really janky looking way of doing it but I was having trouble iterating through strikeprices
+      let callAskPrice =  await _getBSPrice(asset, strikePrices.call, expiresAt.toString(), true, assetPrice);
+      if ((callAskPrice * asset.assetAmount) >= 0.01) {
+        createContractTypePromises.push(
+          createContractType(asset.assetId, true, strikePrices.call, expiresAt)
+        );
+      } else if ((callAskPrice * asset.assetAmount) < 0.01) { callLimit = false; }
+      if (createContractTypePromises.length >= contractsToCreate) { break; }
+      let putAskPrice =  await _getBSPrice(asset, strikePrices.put, expiresAt.toString(), false, assetPrice);
+      if ((putAskPrice * asset.assetAmount) >= 0.01) {
+        createContractTypePromises.push(
+          createContractType(asset.assetId, false, strikePrices.put, expiresAt)
+        );
+      } else if ((putAskPrice * asset.assetAmount) < 0.01) { putLimit = false; }
+      if (createContractTypePromises.length >= contractsToCreate) { break; }
     }
-    await Promise.all(createContractTypePromises);
+    let contractTypeIdObjs = await Promise.all(createContractTypePromises);
+    console.log('contractsToCreate', contractsToCreate); // DEBUG
+    let contractLimit = 0;
+    while (contractLimit < contractsToCreate) {
+      for (let typeObj of contractTypeIdObjs) {
+        try {
+          await createContract(typeObj.contractTypeId); // NOTE: pg seems to get overwhelmed if I try to Promise.all these instead
+          contractLimit++
+        } catch {
+          console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
+          return;
+        }
+        if (contractLimit === contractsToCreate) {
+          console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
+          return;
+        }
+      }
+    }
   }
 }
 
@@ -195,9 +230,10 @@ export async function initializeContracts(assetId: number) {
   const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
-  let counter = 0;
+  let contractsToCreate = Math.floor(unlockedAmount / asset.assetAmount);
+  let contractLimit = 0;
   // Keep looping while there are still unlockedAmounts
-  while (counter < Math.floor(unlockedAmount / asset.assetAmount)) {
+  while (contractLimit < contractsToCreate) {
     for (let contractType of contractTypes) {
       contractType.strikePrice = Number(contractType.strikePrice);
       let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
@@ -213,15 +249,15 @@ export async function initializeContracts(assetId: number) {
             contractType.contractTypeId,
             askPrice
           );
-          counter++;
+          contractLimit++;
         } catch {
-          console.log('Contract creation limit reached at counter', counter, 'for limit', Math.floor(unlockedAmount / asset.assetAmount)); // DEBUG
+          console.log('Contract creation limit reached at', contractLimit, 'of', contractsToCreate); // DEBUG
           return;
         }
       }
     }
   }
-  console.log('Contract creation limit reached at counter', counter, 'for limit', Math.floor(unlockedAmount / asset.assetAmount)); // DEBUG
+  console.log('Contract creation limit reached at', contractLimit, 'of', contractsToCreate); // DEBUG
 }
 
 // Goes through and creates as many contracts as possible for contract types with trading history, amount created relative to OI ratio
@@ -310,10 +346,11 @@ export async function automaticBidTest(assetId: number) {
 
 export async function writerAskUpdate(assetId: number) {
   const asset = await getAssetById(assetId);
+  const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   for (let contractType of contractTypes) {
     contractType.strikePrice = Number(contractType.strikePrice);
-    let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction);
+    let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
     // console.log('askPrice:', askPrice); // DEBUG
     // Updates ask price for each active contracts of the contractType
     let activeContracts = await _writerGetContractsByTypeId(contractType.contractTypeId);
