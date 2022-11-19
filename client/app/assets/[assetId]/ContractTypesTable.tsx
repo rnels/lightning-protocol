@@ -1,5 +1,7 @@
 'use client';
 
+import styles from '../assets.module.css';
+
 import { useState } from 'react';
 import { Asset, ContractType } from '../../../lib/types';
 import ContractTableRow from './ContractTableRow';
@@ -20,7 +22,7 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
 
   const filteredTypeList = props.contractTypes
     .filter((contractType => contractType.expiresAt === dateFilter && contractType.direction === directionFilter))
-    .sort((a, b) => Number(a.strikePrice) - Number(b.strikePrice));
+    .sort((a, b) => Number(b.strikePrice) - Number(a.strikePrice));
 
   return (
     <div className='contract-types-table'>
@@ -56,8 +58,9 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
           >Puts</button>
         </div>
       </form>
-      <table className='contract-types-table'>
-        <thead className='contract-table-header'>
+      <div className={styles.tableContracts}>
+      <table>
+        <thead className='fixed'>
           <tr>
             <th>Strike</th>
             <th>Last</th>
@@ -79,6 +82,7 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
         )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 

@@ -85,7 +85,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td onClick={() => setShowModal(true)}>
         {highestBid === null ? 'N/A' :
         <>
-        {`$${(props.amountFilter ? Math.trunc(highestBid * Number(props.asset.assetAmount) * 1000) / 1000 : highestBid).toFixed(2)}`}
+        {`$${props.amountFilter ? (Math.trunc(highestBid * Number(props.asset.assetAmount) * 1000) / 1000).toFixed(3) : highestBid.toFixed(2)}`}
         <div>{`(x${bids.length})`}</div>
         </>
         }
@@ -93,7 +93,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
       <td>
         {lowestAsk === null ? 'N/A' :
         <>
-        {`$${(props.amountFilter ? Math.trunc(lowestAsk * Number(props.asset.assetAmount) * 1000) / 1000 : lowestAsk).toFixed(2)}`}
+        {`$${props.amountFilter ? (Math.trunc(lowestAsk * Number(props.asset.assetAmount) * 1000) / 1000).toFixed(3) : lowestAsk.toFixed(2)}`}
         <div>{`(x${asks.length})`}</div>
         </>
         }
