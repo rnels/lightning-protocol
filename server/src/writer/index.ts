@@ -156,17 +156,50 @@ export async function writeContractTypeChain(assetId: number) {
 
 // Goes through and creates as many contracts as possible for contractTypes with no open interest
 // TODO: Use historical trading data for contractTypes of the same qualities but sooner expiry to determine how many should be made of each type
+// export async function initializeContracts(assetId: number) {
+//   const asset = await getAssetById(assetId);
+//   asset.assetAmount = Number(asset.assetAmount);
+//   const assetPrice = await getAssetPriceById(assetId);
+//   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
+//   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
+//   for (let contractType of contractTypes) {
+//     contractType.strikePrice = Number(contractType.strikePrice);
+//     let contracts = await getActiveContractsByTypeId(contractType.contractTypeId);
+//     let openInterest = contracts.length;
+//     if (!openInterest) {
+//       let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
+//       // console.log('askPrice:', askPrice); // DEBUG
+//       // This will create as many contracts as possible with the unlocked pools
+//       // Does not account for any type of weights, just does a uniform distribution
+//       // TODO: This currently leads to some unlocked amounts due to needing a uniform distribution across all types
+//       // Fix this to allow partial distributions
+//       if ((askPrice * asset.assetAmount) >= 0.01) {
+//         for (let i = 0; i < Math.floor(unlockedAmount / (asset.assetAmount * contractTypes.length)); i++) {
+//           try {
+//             await createContract(
+//               contractType.contractTypeId,
+//               askPrice
+//             );
+//           } catch {}
+//         }
+//       }
+//     }
+//   }
+// }
+
+// Goes through and creates as many contracts as possible for contractTypes with no open interest
+// TODO: Use historical trading data for contractTypes of the same qualities but sooner expiry to determine how many should be made of each type, consolidate this with writeContracts
 export async function initializeContracts(assetId: number) {
   const asset = await getAssetById(assetId);
   asset.assetAmount = Number(asset.assetAmount);
   const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
-  for (let contractType of contractTypes) {
-    contractType.strikePrice = Number(contractType.strikePrice);
-    let contracts = await getActiveContractsByTypeId(contractType.contractTypeId);
-    let openInterest = contracts.length;
-    if (!openInterest) {
+  let counter = 0;
+  // Keep looping while there are still unlockedAmounts
+  while (counter < Math.floor(unlockedAmount / asset.assetAmount)) {
+    for (let contractType of contractTypes) {
+      contractType.strikePrice = Number(contractType.strikePrice);
       let askPrice =  await _getBSPrice(asset, contractType.strikePrice, contractType.expiresAt, contractType.direction, assetPrice);
       // console.log('askPrice:', askPrice); // DEBUG
       // This will create as many contracts as possible with the unlocked pools
@@ -174,18 +207,21 @@ export async function initializeContracts(assetId: number) {
       // TODO: This currently leads to some unlocked amounts due to needing a uniform distribution across all types
       // Fix this to allow partial distributions
       if ((askPrice * asset.assetAmount) >= 0.01) {
-        for (let i = 0; i < Math.floor(unlockedAmount / (asset.assetAmount * contractTypes.length)); i++) {
-          try {
-            await createContract(
-              contractType.contractTypeId,
-              askPrice
-            );
-          } catch {}
+        try {
+          // If there are not enough assets to create another contract, return
+          await createContract(
+            contractType.contractTypeId,
+            askPrice
+          );
+          counter++;
+        } catch {
+          console.log('Contract creation limit reached at counter', counter, 'for limit', Math.floor(unlockedAmount / asset.assetAmount)); // DEBUG
+          return;
         }
       }
     }
   }
-
+  console.log('Contract creation limit reached at counter', counter, 'for limit', Math.floor(unlockedAmount / asset.assetAmount)); // DEBUG
 }
 
 // Goes through and creates as many contracts as possible for contract types with trading history, amount created relative to OI ratio
