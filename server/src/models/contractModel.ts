@@ -272,7 +272,7 @@ export async function getContractsByOwnerId(ownerId: string | number, client?: P
 // TODO: Decide if the sell to close should credit the pool owners with initial tradeFees that reflect a higher percentage of the sale (i.e. 50%)
 export async function createContract(
   typeId: number,
-  askPrice: number
+  askPrice?: number
 ): Promise<Contract> {
   const client = await db.connect();
   try {
@@ -322,8 +322,10 @@ export async function createContract(
       }
     }
     await Promise.all(poolLockPromises);
-    let bids = await _getMatchingBidsByAsk(contract, client);
-    if (bids.length > 0) await _tradeContract(contract, bids[0], client);
+    if (askPrice) {
+      let bids = await _getMatchingBidsByAsk(contract, client);
+      if (bids.length > 0) await _tradeContract(contract, bids[0], client);
+    }
     await client.query('COMMIT');
     client.release();
     return contract;
@@ -337,7 +339,6 @@ export async function createContract(
 
 // TODO: Ensure someone can't set an ask price on expired contracts
 export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
-
   const client = await db.connect();
   try {
     await client.query('BEGIN');
