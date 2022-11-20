@@ -139,7 +139,7 @@ export async function writeContractTypeChain(assetId: number) {
     // Creates (10 / stepMultiplier) standard deviations worth of contractTypes
     let assetPriceRounded = Math.round(assetPrice / roundMultiplier) * roundMultiplier;
     let assetPriceOffset = assetPriceRounded - assetPrice;
-    let deviationOffset = Math.ceil(assetPriceOffset / deviationStep);
+    let deviationOffset = Math.ceil(Math.abs(assetPriceOffset) / deviationStep);
     console.log('deviationOffset', deviationOffset); // DEBUG
     console.log('assetPrice', assetPrice); // DEBUG
     console.log('assetPriceRounded', assetPriceRounded); // DEBUG
@@ -150,7 +150,7 @@ export async function writeContractTypeChain(assetId: number) {
     for (let i = 0; callLimit || putLimit; i++) {
       let strikePrices = {
         call: assetPriceRounded + (deviationStep * deviationOffset) + (deviationStep * i),
-        put: assetPriceRounded - (deviationStep * deviationOffset * 2) - ((deviationStep * i) / 2) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
+        put: assetPriceRounded - (deviationStep * deviationOffset) - ((deviationStep * i) / 2) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
       };
       // This is a really janky looking way of doing it but I was having trouble iterating through strikeprices
       let callAskPrice =  await _getBSPrice(asset, strikePrices.call, expiresAt.toString(), true, assetPrice);
