@@ -63,6 +63,18 @@ export function getContract(contractId: string | number, cookie?: string): Promi
   //   .then((response) => response.data.contract)
 }
 
+// Get trades along with contract info (requires ownership)
+export function getContractExt(contractId: string | number, cookie?: string): Promise<Contract> {
+  var url = new URL(`${serverURL}/contract/ext`);
+  url.searchParams.append('id', contractId as string);
+  return fetch(url, {
+    method: 'GET',
+    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    credentials: 'include'
+  })
+    .then((result) => result.json())
+    .then((json) => json.contract);
+}
 
 export function getContractListByType(typeId: string | number, cookie?: string): Promise<Contract[]> {
   var url = new URL(`${serverURL}/contract/list`);

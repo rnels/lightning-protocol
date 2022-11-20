@@ -17,7 +17,7 @@ export default function ContractDetails(props: { contract: Contract }) {
   const [showExerciseModal, setShowExerciseModal] = useState<boolean>(false);
 
   function getContractDetails() {
-    api.getContract(contract.contractId)
+    api.getContractExt(contract.contractId)
       .then((contract) => setContract(contract))
       .catch((error) => console.log(error));
   }
@@ -27,7 +27,6 @@ export default function ContractDetails(props: { contract: Contract }) {
       .then(() => getContractDetails())
       .catch((error) => console.log(error));
   }
-
 
   // TODO: Possibly refactor to have a component for contractType details which hydrates its information by being passed down a typeId rather than the whole contractType object
 
@@ -47,6 +46,12 @@ export default function ContractDetails(props: { contract: Contract }) {
       {contract.askPrice && <ContractAskPrice
         askPrice={contract.askPrice}
       />}
+      <div>
+      {`Sale Price: $${Math.trunc(Number(contract.trades![0].salePrice) * 100) / 100}`}
+      </div>
+      <div>
+      {`Sale Cost: $${Math.trunc(Number(contract.trades![0].saleCost) * 100) / 100}`}
+      </div>
       {!contract.exercised &&
       <button onClick={() => setShowAskModal(true)}>
         {contract.askPrice ? 'Update' : 'Sell'}

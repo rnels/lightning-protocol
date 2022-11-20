@@ -14,7 +14,7 @@ import {
   _addToPoolLockReserve,
   _takeFromPoolLockReserve
 } from './poolModel';
-import { _createTrade } from './tradeModel';
+import { getTradesByContractIdAccountId, _createTrade } from './tradeModel';
 import { getAssetPriceFromAPI } from '../assets/price';
 import { getAssetById } from './assetModel';
 
@@ -177,6 +177,13 @@ export async function getContractById(id: string | number, client?: PoolClient):
   }
   if (res.rows.length === 0) throw new Error(`Contract with contractId ${id} does not exist`);
   return res.rows[0];
+}
+
+// TODO: Make this less janky looking
+export async function getContractOwnedByIdExt(contractId: string | number, accountId: string | number): Promise<Contract> {
+  let contract = await getContractById(contractId);
+  contract.trades = await getTradesByContractIdAccountId(contract.contractId, accountId);
+  return contract;
 }
 
 export async function getContractsByTypeId(typeId: string | number): Promise<Contract[]> {
@@ -405,7 +412,7 @@ export async function _tradeContract(
   client: PoolClient
 ) {
   let askPrice = Number(contract.askPrice);
-  if (askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
+  if (!askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
   let contractType = await getActiveContractTypeById(contract.typeId, client);
   let asset = await getAssetById(contractType.assetId, client);
   let saleCost = Number(askPrice) * Number(asset.assetAmount);

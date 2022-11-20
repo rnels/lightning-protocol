@@ -84,6 +84,7 @@ async function _getVolumeOIRatio(typeId: number) {
 // Should also be used for determining new types of contracts to write for an existing asset, such as when the strike price spread should be increased or decreased based on current price
 // TODO: Determine the fixed expiresAt time we want to use, because it will be fixed
 // Start with 2 months(?)
+// TODO: Use pg transactions
 export async function writeContractTypeChain(assetId: number) {
   const asset = await getAssetById(assetId);
   asset.assetAmount = Number(asset.assetAmount);
@@ -122,8 +123,9 @@ export async function writeContractTypeChain(assetId: number) {
     // TODO: Keep in mind that daysOut affects the the price volatility (and BS model pricing),
     // So if I'm always creating the contracts at a fixed interval, it would be good to base everything around that interval
     let daysOut = 8 * 7; // 8 weeks / 56 days
-    let expiresAt = new Date(Date.now()); // TODO: Change to be at a fixed hour i.e. 4PM ET
-    expiresAt.setDate(expiresAt.getDate() + daysOut);
+    let expiresAt = new Date(Date.now());
+    expiresAt.setUTCDate(expiresAt.getDate() + daysOut);
+    expiresAt.setUTCHours(0, 0, 0, 0); // 7PM ET
     // console.log('expiresAt:', expiresAt); // DEBUG
     // Get historical volatility, use to generate a standard deviation from current price
     // Each standard deviation represents 1 strike price in either direction
@@ -367,7 +369,6 @@ export async function writerAskUpdate(assetId: number) {
 (async () => {
   let assetId = 1;
   // await writeContractTypeChain(assetId);
-  // await initializeContracts(assetId);
   // await writeContracts(assetId);
   // await automaticBidTest(assetId);
   // await writerAskUpdate(assetId);
