@@ -56,7 +56,7 @@ async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string,
   let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, window);  // DEBUG, TODO: Delete for production
   // let volatility = 0.611;  // EXTRA DEBUG
   // console.log('volatility:', volatility); // DEBUG
-  return Math.trunc(bs.blackScholes(
+  return Math.trunc(bs.blackScholes( // TODO: May have to use assetAmount as a multiplier if I do microcap coins(?)
     assetPrice, // s - Current price of the underlying
     strikePrice, // k - Strike price
     timeToExpiry, // t - Time to expiration in years
@@ -158,23 +158,24 @@ export async function writeContractTypeChain(assetId: number) {
         createContractTypePromises.push(
           createContractType(asset.assetId, true, strikePrices.call, expiresAt)
         );
-      } else if ((callAskPrice * asset.assetAmount) < 0.01) { callLimit = false; }
-      if (createContractTypePromises.length >= contractsToCreate) { break; }
+      } else { callLimit = false; }
+      if (createContractTypePromises.length === contractsToCreate) { break; }
       let putAskPrice =  await _getBSPrice(asset, strikePrices.put, expiresAt.toString(), false, assetPrice);
       if ((putAskPrice * asset.assetAmount) >= 0.01) {
         createContractTypePromises.push(
           createContractType(asset.assetId, false, strikePrices.put, expiresAt)
         );
-      } else if ((putAskPrice * asset.assetAmount) < 0.01) { putLimit = false; }
-      if (createContractTypePromises.length >= contractsToCreate) { break; }
+      } else { putLimit = false; }
+      if (createContractTypePromises.length === contractsToCreate) { break; }
     }
-    let contractTypeIdObjs = await Promise.all(createContractTypePromises);
+    let createdContractTypes = await Promise.all(createContractTypePromises);
     console.log('contractsToCreate', contractsToCreate); // DEBUG
     let contractLimit = 0;
     while (contractLimit < contractsToCreate) {
-      for (let typeObj of contractTypeIdObjs) {
+      for (let type of createdContractTypes) {
+        let askPrice =  await _getBSPrice(asset, Number(type.strikePrice), type.expiresAt, type.direction, assetPrice);
         try {
-          await createContract(typeObj.contractTypeId); // NOTE: pg seems to get overwhelmed if I try to Promise.all these instead
+          await createContract(type.contractTypeId, askPrice); // NOTE: pg seems to get overwhelmed if I try to Promise.all these instead
           contractLimit++
         } catch {
           console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG

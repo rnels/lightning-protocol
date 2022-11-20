@@ -167,7 +167,7 @@ export async function createContractType(
   direction: boolean,
   strikePrice: number,
   expiresAt: Date | string
-): Promise<{contractTypeId: number}> {
+): Promise<ContractType> {
   const res = await db.query(`
     INSERT INTO contract_types (
       asset_id,
@@ -180,7 +180,12 @@ export async function createContractType(
       $3,
       $4
     )
-    RETURNING contract_type_id as "contractTypeId"
+    RETURNING
+      contract_type_id as "contractTypeId",
+      asset_id as "assetId",
+      direction,
+      strike_price as "strikePrice",
+      expires_at as "expiresAt"
   `,
   [
     assetId,

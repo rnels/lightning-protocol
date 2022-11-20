@@ -398,7 +398,7 @@ export function removeAskPrice(
 
 // JavaScript can I please have access modifiers
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-// TODO: Put in protections against trading with own account
+// TODO: Put in protections against trading with own account(?)
 export async function _tradeContract(
   contract: Contract,
   bid: Bid,
@@ -411,12 +411,11 @@ export async function _tradeContract(
   let saleCost = Number(askPrice) * Number(asset.assetAmount);
   let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, all proceeds go to the pool provider
     saleCost * poolFee : saleCost;
-  let sellerProceeds = saleCost - tradeFee; // TODO: Ensure this is resulting in 0 sellerProceeds when it's an initial sale
   let buyerId = bid.accountId;
   let sellerId = contract.ownerId;
   return Promise.all([
     withdrawPaper(buyerId, saleCost, client),
-    sellerId && depositPaper(sellerId, sellerProceeds, client),  // TODO: Ensure this is not calling depositPaper on an initial sale
+    sellerId && depositPaper(sellerId, saleCost - tradeFee, client),
     _addToLockTradeFees(contract.contractId, tradeFee, client),
     _createTrade(
       contract.contractId,
