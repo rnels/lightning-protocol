@@ -301,7 +301,8 @@ export async function createContract(
   const client = await db.connect()
   try {
     await client.query('BEGIN');
-    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // NOTE: This stops concurrent creation issue where too many pool locks are created, but I will probably want to find a better way
+    // NOTE: Commented this out since I seemed to have figured out a better way, but uncomment if the problem shows up again for some reason
+    // await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // NOTE: This stops concurrent creation issue where too many pool locks are created, but I will probably want to find a better way
     let contractType = await getActiveContractTypeById(typeId, client);
     let asset = await getAssetById(contractType.assetId, client);
     let unallocatedAmount = Number(asset.assetAmount);

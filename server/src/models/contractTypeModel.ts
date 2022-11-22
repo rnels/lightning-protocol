@@ -57,6 +57,7 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
                 client.query(`
                   UPDATE pool_locks
                     SET
+                      asset_amount=0,
                       reserve_amount=$2,
                       reserve_credit=$3
                     WHERE pool_lock_id=$1

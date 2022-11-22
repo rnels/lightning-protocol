@@ -116,6 +116,7 @@ export async function _getLockedPoolsByContractId(contractId: number, client?: P
       contract_id as "contractId",
       asset_amount as "assetAmount",
       reserve_amount as "reserveAmount",
+      contract_asset_amount as "contractAssetAmount",
       expires_at as "expiresAt",
       trade_fees as "tradeFees"
     FROM pool_locks
@@ -131,7 +132,7 @@ export async function _addToLockTradeFees(contractId: number, tradeFee: number, 
   let lockPools = await _getLockedPoolsByContractId(contractId, client);
   let totalAssetAmount = await _getLockedAmountSumByContractId(contractId, client);
   for (let pool of lockPools) {
-    let fee = tradeFee * (Number(pool.assetAmount) / totalAssetAmount);
+    let fee = tradeFee * (Number(pool.contractAssetAmount) / totalAssetAmount);
     feePromises.push(
       client.query(`
         UPDATE pool_locks
@@ -179,7 +180,7 @@ export async function _takeFromPoolLockReserve(contractId: number, strikePrice: 
   let reservePromises = [];
   let poolLocks = await _getLockedPoolsByContractId(contractId, client);
   for (let pool of poolLocks) {
-    let reserveAmount = strikePrice * Number(pool.assetAmount);
+    let reserveAmount = strikePrice * Number(pool.contractAssetAmount);
     console.log('reserveAmount:', reserveAmount)
     reservePromises.push(
       client.query(`
@@ -352,6 +353,7 @@ export async function getPoolLocksByPoolId(id: string | number, client?: PoolCli
       pool_id as "poolId",
       contract_id as "contractId",
       asset_amount as "assetAmount",
+      contract_asset_amount as "contractAssetAmount",
       reserve_amount as "reserveAmount",
       expires_at as "expiresAt",
       trade_fees as "tradeFees"
@@ -371,6 +373,7 @@ export async function getPoolLocksByAccountId(accountId: string | number, client
       pool_locks.pool_id as "poolId",
       pool_locks.contract_id as "contractId",
       pool_locks.asset_amount as "assetAmount",
+      pool_locks.contract_asset_amount as "contractAssetAmount",
       pool_locks.reserve_amount as "reserveAmount",
       pool_locks.expires_at as "expiresAt",
       pool_locks.trade_fees as "tradeFees"
@@ -434,12 +437,14 @@ export function _createPoolLock(
       pool_id,
       contract_id,
       asset_amount,
+      contract_asset_amount,
       expires_at
-    ) VALUES ($1, $2, $3, $4)
+    ) VALUES ($1, $2, $3, $4, $5)
   `,
   [
     poolId,
     contractId,
+    assetAmount,
     assetAmount,
     expiresAt
   ]);

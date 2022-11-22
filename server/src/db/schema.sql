@@ -103,6 +103,10 @@ CREATE TABLE pool_locks (
 	pool_id INTEGER NOT NULL,
 	contract_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
+	-- Represents originally pledged amount for contract lock, used to determine payout, is not affected by sells
+	-- Was created to combat the reserve amount bug
+	-- TODO: Make this not so janky looking
+	contract_asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (contract_asset_amount>=0),
 	reserve_amount DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_amount>=0), -- Stores liquidity to trade if put option is exercised
 	reserve_credit DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_credit>=0), -- Compensates in case put covering does not happen at a high enough price to cover strike
 	expires_at TIMESTAMP NOT NULL,
