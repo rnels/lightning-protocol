@@ -1,6 +1,15 @@
+.assetPage {
+  max-width: 1035px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
 .assetList {
   display: flex;
-  gap: 20px;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
 }
 
 .assetDetails {
@@ -14,7 +23,7 @@
   background-size: cover;
   background-position: center;
   background-blend-mode: darken;
-  margin: 10px 0px;
+  margin: 0px 0px;
   border-radius: 1em;
 }
 

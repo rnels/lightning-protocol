@@ -18,8 +18,8 @@ export default function NavBar() {
       <div className={styles['nav-bar-left']}>
         <Link href="/assets">Assets</Link>
         <Link href="/pools">Pools</Link>
-        <Link href="/bids">Bids</Link>
         <Link href="/contracts">Contracts</Link>
+        <Link href="/bids">Bids</Link>
         <Link href="/trades">Trades</Link>
         <Link href="/profile">Profile</Link>
       </div>

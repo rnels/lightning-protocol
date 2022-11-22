@@ -21,7 +21,9 @@ export default async function AssetPriceInfo(props: {assetId: number}) {
       <AssetPrice
         assetPrice={assetPrice}
       />
-      <div>
+      <div
+        id={priceDifPercentage > 0 ? styles.positivePrice : styles.negativePrice}
+      >
         {`${priceDifPercentage > 0 ? '+' : ''}${(priceDifPercentage * 100).toFixed(2)}%`}
       </div>
       {/* <AssetPriceHistoryGraph
@@ -72,3 +74,4 @@ async function getAssetPriceHistory(assetId: string | number, days=7): Promise<{
   let assetPriceHistory = await api.getAssetPriceHistory(assetId, days, cookie!.value);
   return assetPriceHistory;
 }
+

@@ -11,6 +11,7 @@ export default function AssetDetails(props: {asset: Asset}) {
     <Link href={`assets/${props.asset.assetId}`} key={`asset-${props.asset.assetId}`}>
     <div
       className={styles.assetDetails}
+      // TODO: 'Bump' the bg image on hover
       style={{
         backgroundImage: `url('${props.asset.iconUrl}')`
       }}

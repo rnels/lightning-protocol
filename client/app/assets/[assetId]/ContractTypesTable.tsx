@@ -63,7 +63,7 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
         <thead className='fixed'>
           <tr>
             <th>Strike</th>
-            <th>Last</th>
+            <th>{amountFilter ? 'Last Cost' : 'Last Price'}</th>
             <th>Change</th>
             <th>{amountFilter ? 'Bid Cost' : 'Bid Price'}</th>
             <th>{amountFilter ? 'Ask Cost' : 'Ask Price'}</th>

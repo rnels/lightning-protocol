@@ -73,7 +73,7 @@ export default function ContractTableRow(props: {contractType: ContractType, ass
   return (
     <tr className={styles.contractTableRow}>
       <td>{`$${props.contractType.strikePrice}`}</td>
-      <td>{`$${lastPrice}`}</td>
+      <td>{`$${props.amountFilter ? (Math.trunc(lastPrice * Number(props.asset.assetAmount) * 1000) / 1000).toFixed(3) : lastPrice.toFixed(2)}`}</td>
       <td>
         {dailyPriceChange === 0 ? 'N/A' :
         <>
