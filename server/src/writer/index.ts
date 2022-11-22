@@ -149,10 +149,11 @@ export async function writeContractTypeChain(assetId: number) {
     let contractsToCreate = Math.floor(unlockedAmount / asset.assetAmount);
     let callLimit = true;
     let putLimit = true;
-    for (let i = 0; callLimit || putLimit; i++) {
+    for (let i = 1; callLimit || putLimit; i++) {
       let strikePrices = {
         call: assetPriceRounded + (deviationStep * deviationOffset) + (deviationStep * i),
-        put: assetPriceRounded - (deviationStep * deviationOffset) - ((deviationStep * i) / 2) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
+        // 5% offset for puts to avoid immediate reserves
+        put: (assetPriceRounded * 0.95) - (deviationStep * deviationOffset) - ((deviationStep * i) / 2) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
       };
       // This is a really janky looking way of doing it but I was having trouble iterating through strikeprices
       let callAskPrice =  await _getBSPrice(asset, strikePrices.call, expiresAt.toString(), true, assetPrice);
@@ -377,8 +378,10 @@ export async function writerAskUpdate(assetId: number) {
 });
 
 // Concurrency testing
+// Doesn't have any reservations about creating new contractTypes (expected)
+// TODO: Create checks in createContractType to avoid duplicates of strike + expiry
 (async () => {
-  let assetId = 1;
+  let assetId = 4;
   await Promise.all([
     writeContractTypeChain(assetId),
     writeContractTypeChain(assetId),
@@ -386,5 +389,13 @@ export async function writerAskUpdate(assetId: number) {
     writeContractTypeChain(assetId),
     writeContractTypeChain(assetId),
     writeContractTypeChain(assetId)
+  ]);
+});
+
+(async () => {
+  await Promise.all([
+    writeContractTypeChain(1),
+    writeContractTypeChain(2),
+    writeContractTypeChain(4)
   ]);
 });
