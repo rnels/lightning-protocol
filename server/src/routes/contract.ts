@@ -28,6 +28,29 @@ router.get('/contract', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract info' }));
 });
 
+// Get extended contract info by contract ID (includes trades)
+// Expects in req.query:
+//  id - Contract ID to retrieve details of
+// Successful response data:
+// contract: {
+//   contractId
+//   typeId
+//   createdAt
+//   exercised
+//   exercisedAmount
+//   trades: Trade[]
+// }
+router.get('/contract/ext', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  contracts.getContractOwnedByIdExt(req.query.id as string, req.user!.id)
+    .then((contract) => {
+      res.status(200).send({contract});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract info' }));
+});
+
 // Get contract type info by contract type ID
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve details of
