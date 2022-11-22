@@ -162,6 +162,7 @@ export async function getContractTypesByAssetId(assetId: string | number): Promi
   return res.rows;
 }
 
+// TODO: Create checks so I'm not creating duplicate contract types
 export async function createContractType(
   assetId: number,
   direction: boolean,

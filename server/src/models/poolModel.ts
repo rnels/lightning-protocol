@@ -204,7 +204,7 @@ export async function getUnlockedAmountByPoolId(id: string | number, client?: Po
     getPoolById(id, client)
   ]);
   let lockedAmount = results[0];
-  let totalAmount = results[1].assetAmount;
+  let totalAmount = Number(results[1].assetAmount);
   return totalAmount - lockedAmount;
 }
 
@@ -296,6 +296,23 @@ export async function getPoolsByAssetId(assetId: string | number, client?: PoolC
       trade_fees as "tradeFees"
     FROM pools
       WHERE asset_id=$1
+  `, [assetId]);
+  return res.rows;
+}
+
+export async function _getPoolsByAssetIdForUpdate(assetId: string | number, client?: PoolClient): Promise<Pool[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
+    SELECT
+      pool_id as "poolId",
+      account_id as "accountId",
+      asset_id as "assetId",
+      asset_amount as "assetAmount",
+      reserve_amount as "reserveAmount",
+      trade_fees as "tradeFees"
+    FROM pools
+      WHERE asset_id=$1
+    FOR UPDATE
   `, [assetId]);
   return res.rows;
 }

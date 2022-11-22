@@ -7,12 +7,12 @@ import { getActiveContractTypeById } from './contractTypeModel';
 import {
    _createPoolLock,
   _addToLockTradeFees,
-  getPoolsByAssetId,
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
   _deletePoolLocksByContractId,
   _addToPoolLockReserve,
-  _takeFromPoolLockReserve
+  _takeFromPoolLockReserve,
+  _getPoolsByAssetIdForUpdate
 } from './poolModel';
 import { getTradesByContractIdAccountId, _createTrade } from './tradeModel';
 import { getAssetPriceFromAPI } from '../assets/price';
@@ -157,6 +157,24 @@ async function _getContractById(id: string | number, client?: PoolClient): Promi
   return res.rows[0];
 }
 
+async function _getContractByIdForUpdate(id: string | number, client?: PoolClient): Promise<Contract> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
+    SELECT
+      contract_id as "contractId",
+      type_id as "typeId",
+      owner_id as "ownerId",
+      ask_price as "askPrice",
+      created_at as "createdAt",
+      exercised,
+      exercised_amount as "exercisedAmount"
+    FROM contracts
+      WHERE contract_id=$1
+    FOR UPDATE
+  `, [id]);
+  return res.rows[0];
+}
+
 export async function getContractById(id: string | number, client?: PoolClient): Promise<Contract> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   let res: QueryResult;
@@ -276,18 +294,19 @@ export async function getContractsByOwnerId(ownerId: string | number, client?: P
 
 // Creates a contract, locks in amounts to pools
 // Creating a contract does not assign it an owner by default, since they're not created by people
-// TODO: Decide if the sell to close should credit the pool owners with initial tradeFees that reflect a higher percentage of the sale (i.e. 50%)
 export async function createContract(
   typeId: number,
   askPrice?: number
 ): Promise<Contract> {
-  const client = await db.connect();
+  const client = await db.connect()
   try {
     await client.query('BEGIN');
+    await client.query('LOCK TABLE contracts IN EXCLUSIVE MODE'); // NOTE: This stops concurrent creation issue where too many pool locks are created, but I will probably want to find a better way
     let contractType = await getActiveContractTypeById(typeId, client);
     let asset = await getAssetById(contractType.assetId, client);
+    let unallocatedAmount = Number(asset.assetAmount);
     let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(asset.assetId, client);
-    if (unlockedPoolAssetTotal < asset.assetAmount) throw new Error('Not enough unlocked assets to create contract');
+    if (unlockedPoolAssetTotal < unallocatedAmount) throw new Error('Not enough unlocked assets to create contract (1)');
     const contract = (await client.query(`
       INSERT INTO contracts (
         type_id,
@@ -306,13 +325,12 @@ export async function createContract(
       typeId,
       askPrice
     ])).rows[0] as Contract;
-    let pools = await getPoolsByAssetId(asset.assetId, client);
+    let pools = await _getPoolsByAssetIdForUpdate(asset.assetId, client);
     let poolLockPromises = [];
-    let unallocatedAmount = Number(asset.assetAmount);
     // Okay, so this should create a pool lock for all pools with
     // unlocked assets, cascading down until the contract is spent on locks
     for (let pool of pools) {
-      let unlockedAmount = Number(await getUnlockedAmountByPoolId(pool.poolId, client)); // TODO: Could technically get locked amounts and do the sum here
+      let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId, client);
       if (unlockedAmount > 0) {
         let allocatedAmount = unallocatedAmount >= unlockedAmount ? unlockedAmount : unallocatedAmount;
         poolLockPromises.push(
@@ -325,9 +343,11 @@ export async function createContract(
           )
         );
         unallocatedAmount -= allocatedAmount;
-        if (!unallocatedAmount) break; // Stops creating new pools when amount hits 0
+        // NOTE: Using this small amount to prevent rounding errors
+        if (unallocatedAmount <= 0.0000001) break; // Stops creating new pools when amount hits 0
       }
     }
+    if (unallocatedAmount > 0.0000001) throw new Error('Not enough unlocked assets to create contract (2)'); // NOTE: Not strictly needed, mostly for debugging, but can stop a contract from being created without enough backing assets if pool amounts were withdrawn during the course of this (though I've locked pools for update so it can't happen now)
     await Promise.all(poolLockPromises);
     if (askPrice) {
       let bids = await _getMatchingBidsByAsk(contract, client);
@@ -344,7 +364,6 @@ export async function createContract(
   }
 }
 
-// TODO: Ensure someone can't set an ask price on expired contracts
 export async function updateAskPrice(contractId: string | number, askPrice: number, ownerId: string | number) {
   const client = await db.connect();
   try {
@@ -354,6 +373,7 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
       SET ask_price=$2
         WHERE contract_id=$1
           AND owner_id=$3
+          AND exercised=false
       RETURNING
         contract_id as "contractId",
         type_id as "typeId",
@@ -368,9 +388,6 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
       askPrice,
       ownerId
     ])).rows[0] as Contract; // Should return undefined if no contract matches the WHERE conditionals
-    if (contract.exercised) {
-      throw new Error('Contract is already exercised');
-    }
     if (!contract) {
       throw new Error('Contract could not be found');
     }
@@ -453,7 +470,7 @@ export async function exerciseContract(
   let client = await db.connect();
   try {
     await client.query('BEGIN');
-    let contract = await _getContractById(contractId, client);
+    let contract = await _getContractByIdForUpdate(contractId, client);
     if (contract.ownerId !== ownerId) {
       throw new Error('Provided ownerId does not match contract.ownerId');
     }

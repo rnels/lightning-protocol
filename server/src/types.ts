@@ -38,9 +38,9 @@ export type Pool = {
   poolId: number,
 	accountId: number,
 	assetId: number,
-	assetAmount: number,
-	reserveAmount: number,
-	tradeFees: number,
+	assetAmount: string | number,
+	reserveAmount: string | number,
+	tradeFees: string | number,
 	poolLocks?: PoolLock[]
 };
 

@@ -366,10 +366,25 @@ export async function writerAskUpdate(assetId: number) {
 }
 
 // TESTS
+
+// General testing
 (async () => {
   let assetId = 1;
-  // await writeContractTypeChain(assetId);
+  await writeContractTypeChain(assetId);
   // await writeContracts(assetId);
   // await automaticBidTest(assetId);
   // await writerAskUpdate(assetId);
-})();
+});
+
+// Concurrency testing
+(async () => {
+  let assetId = 1;
+  await Promise.all([
+    writeContractTypeChain(assetId),
+    writeContractTypeChain(assetId),
+    writeContractTypeChain(assetId),
+    writeContractTypeChain(assetId),
+    writeContractTypeChain(assetId),
+    writeContractTypeChain(assetId)
+  ]);
+});
