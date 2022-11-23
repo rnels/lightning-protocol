@@ -45,7 +45,8 @@
 }
 
 .assetPriceHistoryGraph {
-  font-size: 24pt;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 #positivePrice {
@@ -53,7 +54,7 @@
 }
 
 #negativePrice {
-  color: #d43f3f;
+  color: #D43F3F;
 }
 
 .contractsPageHeader {

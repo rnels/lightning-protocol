@@ -3,6 +3,8 @@ import styles from './assets.module.css';
 import * as api from '../../lib/api'; // TODO: Ensure that using 'import * as api' instead of destructuring specific methods does not hurt our memory usage by loading the entire api.ts file every time
 import { cookies } from 'next/headers';
 
+import AssetPriceHistoryCanvas from './AssetPriceHistoryCanvas';
+
 export default async function AssetPriceInfo(props: {assetId: number}) {
 
   let res = await Promise.all([
@@ -15,6 +17,7 @@ export default async function AssetPriceInfo(props: {assetId: number}) {
   let yesterdayPrice = Number(priceHistory[0].price);
   let priceDif = assetPrice - yesterdayPrice;
   let priceDifPercentage = priceDif / yesterdayPrice;
+  let priceStyle = priceDifPercentage > 0;
 
   return (
     <div className={styles.assetPriceInfo}>
@@ -22,42 +25,24 @@ export default async function AssetPriceInfo(props: {assetId: number}) {
         assetPrice={assetPrice}
       />
       <div
-        id={priceDifPercentage > 0 ? styles.positivePrice : styles.negativePrice}
+        id={priceStyle ? styles.positivePrice : styles.negativePrice}
       >
-        {`${priceDifPercentage > 0 ? '+' : ''}${(priceDifPercentage * 100).toFixed(2)}%`}
+        {`${priceStyle ? '+' : ''}${(priceDifPercentage * 100).toFixed(2)}%`}
       </div>
-      {/* <AssetPriceHistoryGraph
+      <AssetPriceHistoryCanvas
         priceHistory={priceHistory}
-      /> */}
+        priceStyle={priceStyle}
+      />
     </div>
   );
 
 }
-
 
 function AssetPrice(props: {assetPrice: number}) {
 
   return (
     <div className={styles.assetPrice}>
       {`$${props.assetPrice.toFixed(2)}`}
-    </div>
-  );
-
-}
-
-// TODO: Make this a graph
-function AssetPriceHistoryGraph(
-  props: {
-    priceHistory: {
-      price: string | number,
-      dataPeriod: string
-    }[]
-  }
-) {
-
-  return (
-    <div className={styles.assetPriceHistoryGraph}>
-      {`$${Number(props.priceHistory[0].price).toFixed(2)}`}
     </div>
   );
 
