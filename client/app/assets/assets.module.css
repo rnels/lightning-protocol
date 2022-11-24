@@ -18,7 +18,7 @@
   justify-content: center;
   align-items: center;
   width: 325px;
-  height: 200px;
+  height: 225px;
   background-color: rgba(0,0,0,0.75);
   background-size: cover;
   background-position: center;
@@ -28,7 +28,7 @@
 }
 
 .assetName {
-  font-size: 36pt;
+  font-size: 32pt;
   font-weight: bold;
 }
 
