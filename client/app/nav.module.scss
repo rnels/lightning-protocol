@@ -1,4 +1,4 @@
-.nav-bar {
+.navBar {
   display: flex;
   justify-content: space-evenly;
   overflow: hidden;
@@ -10,12 +10,18 @@
   font-size: calc(12px + 1vmin);
 }
 
-.nav-bar a {
+.navBar a {
   color: #ececec;
+  margin: 0px;
+  padding: 0px 10px;
 }
 
-.nav-bar-left {
+.navBarLeft {
   display: flex;
   justify-content: flex-start;
-  gap: 10px;
+}
+
+#currentPage {
+  color: #232323;
+  background-color: #ececec;
 }

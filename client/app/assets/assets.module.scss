@@ -2,7 +2,7 @@ $positive-price-color: #63E163;
 $negative-price-color: #D43F3F;
 
 .assetPage {
-  max-width: 1035px;
+  max-width: 1150px;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -20,8 +20,8 @@ $negative-price-color: #D43F3F;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 325px;
-  height: 225px;
+  width: 350px;
+  height: 200px;
   background-color: rgba(0,0,0,0.75);
   background-size: cover;
   background-position: center;
@@ -48,8 +48,8 @@ $negative-price-color: #D43F3F;
 }
 
 .assetPriceHistoryGraph {
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 #positivePrice {

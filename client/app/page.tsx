@@ -1,7 +1,7 @@
 import {
   homePage as pageStyle,
   homePageHeader as headerStyle
-} from './home.module.css';
+} from './home.module.scss';
 
 import Link from 'next/link';
 import React from 'react';

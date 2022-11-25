@@ -46,7 +46,7 @@ export default function AssetPriceHistoryCanvas(
     var dy1 = 0;
     context.beginPath();
     context.moveTo(preP.x, preP.y);
-    console.log(priceArray);
+    // console.log(priceArray); // DEBUG
     for (let i = 1; i < heightArray.length; i++) {
       let dx2: number, dy2: number;
       var curP = {
@@ -65,8 +65,8 @@ export default function AssetPriceHistoryCanvas(
           dx2 = 0;
           dy2 = 0;
       }
-      console.log('curP.y', curP.y);
-      // console.log('nexP', nexP.x, nexP.y);
+      // console.log('curP.y', curP.y); // DEBUG
+      // console.log('nexP', nexP.x, nexP.y); // DEBUG
       context.bezierCurveTo(
         preP.x - dx1, preP.y - dy1,
         curP.x + dx2, curP.y + dy2,
@@ -107,8 +107,9 @@ export default function AssetPriceHistoryCanvas(
       <canvas
         ref={canvasRef}
         id='pricegraph'
-        height='50px'
-        width='250px'>
+        height='40px'
+        width='250px'
+      >
         {/* TODO: look into 'role' property */}
       </canvas>
     </div>
