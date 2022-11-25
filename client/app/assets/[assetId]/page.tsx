@@ -1,4 +1,4 @@
-import styles from '../assets.module.css';
+import styles from '../assets.module.scss';
 
 import { cookies } from 'next/headers';
 import React from 'react';

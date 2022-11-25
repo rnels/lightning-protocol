@@ -1,4 +1,4 @@
-import styles from './assets.module.css';
+import styles from './assets.module.scss';
 
 export default function AssetName(props: {name: string}) {
 

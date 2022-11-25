@@ -1,5 +1,5 @@
 
-import styles from './assets.module.css';
+import styles from './assets.module.scss';
 import * as api from '../../lib/api'; // TODO: Ensure that using 'import * as api' instead of destructuring specific methods does not hurt our memory usage by loading the entire api.ts file every time
 import { cookies } from 'next/headers';
 

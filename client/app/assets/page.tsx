@@ -1,5 +1,5 @@
 import * as api from '../../lib/api';
-import styles from './assets.module.css';
+import styles from './assets.module.scss';
 
 import React from 'react';
 import AssetList from './AssetList';

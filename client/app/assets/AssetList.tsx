@@ -1,4 +1,4 @@
-import styles from './assets.module.css';
+import styles from './assets.module.scss';
 import React from 'react';
 import { Asset } from '../../lib/types';
 import AssetDetails from './AssetDetails';

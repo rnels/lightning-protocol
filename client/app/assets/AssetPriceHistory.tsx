@@ -1,5 +1,5 @@
 
-import styles from './assets.module.css';
+import styles from './assets.module.scss';
 import * as api from '../../lib/api';
 import { cookies } from 'next/headers';
 

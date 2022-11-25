@@ -1,3 +1,6 @@
+$positive-price-color: #63E163;
+$negative-price-color: #D43F3F;
+
 .assetPage {
   max-width: 1035px;
   display: flex;
@@ -50,11 +53,11 @@
 }
 
 #positivePrice {
-  color: #63E163;
+  color: $positive-price-color;
 }
 
 #negativePrice {
-  color: #D43F3F;
+  color: $negative-price-color;
 }
 
 .contractsPageHeader {

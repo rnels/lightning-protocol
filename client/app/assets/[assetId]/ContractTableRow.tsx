@@ -1,6 +1,6 @@
 'use client';
 
-import styles from '../assets.module.css';
+import styles from '../assets.module.scss';
 import { Asset, Bid, Contract, ContractType, Trade } from '../../../lib/types';
 import * as api from '../../../lib/api';
 

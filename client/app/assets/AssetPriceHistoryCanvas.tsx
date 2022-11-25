@@ -1,7 +1,7 @@
 
 'use client';
 
-import styles from './assets.module.css';
+import styles from './assets.module.scss';
 import { useEffect, useRef } from 'react';
 
 export default function AssetPriceHistoryCanvas(
@@ -107,7 +107,7 @@ export default function AssetPriceHistoryCanvas(
       <canvas
         ref={canvasRef}
         id='pricegraph'
-        height='40px'
+        height='50px'
         width='250px'>
         {/* TODO: look into 'role' property */}
       </canvas>
