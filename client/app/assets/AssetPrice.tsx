@@ -9,8 +9,6 @@ export default async function AssetPrice(props: {assetId: number}) {
 
   const assetPrice = await getAssetPrice(props.assetId);
 
-  console.log(assetPrice);
-
   return (
     <div className={styles.assetPrice}>
       {`$${assetPrice.toFixed(2)}`}

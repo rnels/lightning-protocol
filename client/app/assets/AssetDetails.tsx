@@ -4,6 +4,7 @@ import { Asset } from '../../lib/types';
 import AssetName from "./AssetName";
 import AssetPriceInfo from "./AssetPriceInfo";
 import Link from 'next/link';
+import AssetBackgroundCanvas from './AssetBackgroundCanvas';
 
 export default function AssetDetails(props: {asset: Asset}) {
 
@@ -16,6 +17,9 @@ export default function AssetDetails(props: {asset: Asset}) {
         backgroundImage: `url('${props.asset.iconUrl}')`
       }}
     >
+      {/* <AssetBackgroundCanvas
+        asset={props.asset}
+      /> */}
       <AssetName
         name={props.asset.name}
       />

@@ -1,6 +1,6 @@
 'use client';
 
-import {modal as modalStyle, modalHeader as modalHeaderStyle} from '../styles.module.css';
+import {modal as modalStyle, modalHeader as modalHeaderStyle} from '../styles.module.scss';
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 

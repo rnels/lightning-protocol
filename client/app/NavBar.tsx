@@ -10,9 +10,7 @@ import { usePathname } from 'next/navigation';
 export default function NavBar() {
 
   const { account }: any = useContext(AccountContext);
-  const [activeLink, setActiveLink] = useState(() => usePathname()?.split('/')[1]);
-
-  console.log(activeLink);
+  const [activeLink, setActiveLink] = useState(() => usePathname()!.split('/')[1]);
 
   function handleClick(e: any) {
     setActiveLink(e.target.getAttribute('href').split('/')[1]);

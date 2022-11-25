@@ -4,7 +4,7 @@ import {
   modal as modalStyle,
   modalHeader as modalHeaderStyle,
   errorMessage as errorMessageStyle
-} from '../../styles.module.css';
+} from '../../styles.module.scss';
 import * as api from '../../../lib/api';
 import { Asset, ContractType } from '../../../lib/types';
 

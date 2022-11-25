@@ -1,7 +1,7 @@
 'use client';
 
-import './global.css';
-import { app as appStyle } from './styles.module.css'
+import './global.scss';
+import { app as appStyle } from './styles.module.scss'
 import * as api from '../lib/api';
 import NavBar from './NavBar';
 

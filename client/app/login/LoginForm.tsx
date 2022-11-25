@@ -1,6 +1,6 @@
 'use client';
 
-import { errorMessage as errorMessageStyle } from '../styles.module.css';
+import { errorMessage as errorMessageStyle } from '../styles.module.scss';
 import * as api from '../../lib/api';
 import React, { FormEvent, useContext, useState } from 'react';
 import { AccountContext } from '../AccountContext';
