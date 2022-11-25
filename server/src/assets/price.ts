@@ -14,6 +14,9 @@ import { Asset } from '../types';
 
 // DEBUG: Change process.env.CMC_API_* to process.env.CMC_API_SANDBOX_*
 
+// NOTE: There is an issue running this file for testing individually when also running the server dev
+// Need to shut down server dev first
+
 function _getCryptoPriceHistoricalDataFromAPI(symbol: string, limit=365): Promise<any[]> {
   // NOTE: I know this is ugly but using params / header objects doesn't work with this API for some reason
   return axios.get(`${process.env.CC_API_URL}/data/v2/histoday?fsym=${symbol}&tsym=USD&limit=${limit}&api_key=${process.env.CC_API_KEY}`)
