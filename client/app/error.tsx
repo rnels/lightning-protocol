@@ -1,4 +1,4 @@
-'use client';
+'use client'; // NOTE: Error boundaries must be client components
 
 import './global.scss';
 import { homePage as pageStyle } from './home.module.scss';

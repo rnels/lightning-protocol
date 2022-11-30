@@ -2,7 +2,7 @@
 
 import styles from './nav.module.scss';
 
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AccountContext } from './AccountContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -10,13 +10,21 @@ import { usePathname } from 'next/navigation';
 export default function NavBar() {
 
   const { account }: any = useContext(AccountContext);
-  const [activeLink, setActiveLink] = useState(() => usePathname()!.split('/')[1]);
+  const [activeLink, setActiveLink] = useState<string>();
+  const path = usePathname();
+
+  useEffect(() => {
+    if (activeLink) return;
+    let activePath = path?.split('/')[1];
+    setActiveLink(activePath);
+  }, []);
 
   function handleClick(e: any) {
     setActiveLink(e.target.getAttribute('href').split('/')[1]);
   }
 
   // TODO: Clean up active link implementation
+  // TODO: Have this update when links are clicked in other components
 
   return (
     <div className={styles.navBar}>

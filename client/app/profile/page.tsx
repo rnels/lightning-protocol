@@ -13,7 +13,7 @@ export default function UserProfilePage() {
 
   const router = useRouter();
 
-  if (!account) return null;
+  if (!account) throw new Error('Login required');
 
   const handleLogout = () => {
     api.logoutAccount()
