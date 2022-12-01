@@ -6,7 +6,6 @@ import { _removeBid } from './bidModel';
 import { getActiveContractTypeById } from './contractTypeModel';
 import {
    _createPoolLock,
-  _addToLockTradeFees,
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
   _releasePoolLockFeesByContractId,
@@ -69,21 +68,20 @@ async function _setExercised(
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-async function _setPremium(
+async function _addToPremium(
   contract: Contract,
-  feeAmount: number,
+  premiumAmount: number,
   client: PoolClient
 ) {
-  if (contract.premiumFee) throw new Error('Can\'t update premium, already exists');
   let contractId = (await client.query(`
     UPDATE contracts
-      SET exercised_amount=$2
+      SET premium_fees=premium_fees+$2
     WHERE contract_id=$1
       RETURNING contract_id as "contractId"
   `,
   [
     contract.contractId,
-    feeAmount
+    premiumAmount
   ])).rows[0].contractId;
   if (!contractId) throw new Error('No contract exists with this contractId');
 }
@@ -128,7 +126,7 @@ export async function _writerUpdateAskPrice(
         created_at as "createdAt",
         exercised,
         exercised_amount as "exercisedAmount",
-        premium_fee as "premiumFee"
+        premium_fees as "premiumFees"
     `,
     [
       contractId,
@@ -174,7 +172,7 @@ async function _getContractById(id: string | number, client?: PoolClient): Promi
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE contract_id=$1
   `, [id]);
@@ -207,7 +205,7 @@ async function _getContractByIdForUpdate(id: string | number, client?: PoolClien
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE contract_id=$1
     FOR UPDATE
@@ -227,7 +225,7 @@ export async function getContractById(id: string | number, client?: PoolClient):
         created_at as "createdAt",
         exercised,
         exercised_amount as "exercisedAmount",
-        premium_fee as "premiumFee"
+        premium_fees as "premiumFees"
       FROM contracts
         WHERE contract_id=$1
     `, [id]);
@@ -255,7 +253,7 @@ export async function getContractsByTypeId(typeId: string | number): Promise<Con
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE type_id=$1
   `, [typeId]);
@@ -272,7 +270,7 @@ export async function getContractsByTypeIdOwnerId(typeId: string | number, owner
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE type_id=$1
         AND owner_id=$2
@@ -292,7 +290,7 @@ export async function getActiveContractsByTypeId(typeId: string | number, client
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE type_id=$1
         AND exercised=false
@@ -311,7 +309,7 @@ export async function getActiveContractsByTypeIdAndOwnerId(typeId: string | numb
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE type_id=$1
         AND owner_id=$2
@@ -331,7 +329,7 @@ export async function getContractsByOwnerId(ownerId: string | number, client?: P
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE owner_id=$1
   `, [ownerId]);
@@ -367,7 +365,7 @@ export async function createContract(
         created_at as "createdAt",
         exercised,
         exercised_amount as "exercisedAmount",
-        premium_fee as "premiumFee"
+        premium_fees as "premiumFees"
     `,
     [
       typeId,
@@ -429,7 +427,7 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
         created_at as "createdAt",
         exercised,
         exercised_amount as "exercisedAmount",
-        premium_fee as "premiumFee"
+        premium_fees as "premiumFees"
     `,
     [
       contractId,
@@ -488,8 +486,9 @@ export async function _tradeContract(
   return Promise.all([
     withdrawPaper(buyerId, saleCost, client),
     sellerId && depositPaper(sellerId, saleCost - tradeFee, client),
-    tradeFee && _addToLockTradeFees(contract.contractId, tradeFee, client),
-    !sellerId && _setPremium(contract, saleCost, client),
+    sellerId ?
+    _addToPremium(contract, tradeFee, client) :
+    _addToPremium(contract, saleCost, client),
     _createTrade(
       contract.contractId,
       contract.typeId,
@@ -553,7 +552,7 @@ export async function exerciseContract(
       saleProfits = poolReserves - (assetPrice * assetAmount);
       await _takeFromPoolLockReserve(contract.contractId, strikePrice, client);
     }
-    await _addToLockPremium(contract.contractId, contract.premiumFee as number, client);
+    await _addToLockPremium(contract.contractId, contract.premiumFees as number, client); // NOTE: Must always do this this before release
     await _releasePoolLockFeesByContractId(contract.contractId, client);
     await depositPaper(contract.ownerId, saleProfits, client);
     if (contract.askPrice) { await _removeAskPrice(contract.contractId, client); }
@@ -578,7 +577,7 @@ export async function _writerGetContractsByTypeId(typeId: string | number): Prom
       created_at as "createdAt",
       exercised,
       exercised_amount as "exercisedAmount",
-      premium_fee as "premiumFee"
+      premium_fees as "premiumFees"
     FROM contracts
       WHERE type_id=$1
         AND owner_id IS NULL
