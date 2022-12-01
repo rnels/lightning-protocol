@@ -528,6 +528,7 @@ export async function _tradeContract(
   bid: Bid,
   client: PoolClient
 ) {
+  await releaseExpiredContracts(); // TODO: Temporary place, set up listener to go off routinely
   let askPrice = Number(contract.askPrice);
   if (!askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
   let contractType = await getActiveContractTypeById(contract.typeId, client);
@@ -604,7 +605,7 @@ export async function exerciseContract(
       saleProfits = poolReserves - (assetPrice * assetAmount);
       await _takeFromPoolLockReserve(contract.contractId, strikePrice, client);
     }
-    await _addToPoolLockPremium(contract.contractId, contract.premiumFees as number, client); // NOTE: Must always do this this before release
+    await _addToPoolLockPremium(contract, client, assetAmount); // NOTE: Must always do this this before release
     await _releasePoolLockFeesByContractId(contract.contractId, client);
     await depositPaper(contract.ownerId, saleProfits, client);
     if (contract.askPrice) { await _removeAskPrice(contract.contractId, client); }
@@ -619,8 +620,7 @@ export async function exerciseContract(
   }
 }
 
-/** Should be called as often as possible to release fees from expired contracts */
-// TODO: Hook this somewhere to be called
+/** Should be called as often as possible to release fees from expired contracts. Currently hooked in _tradeContract() */
 export async function releaseExpiredContracts() {
   let client = await db.connect();
   try {
@@ -628,7 +628,7 @@ export async function releaseExpiredContracts() {
     let contracts = await _getUncheckedExpiredContracts(client);
     for (let contract of contracts) {
       // NOTE: These must be in order, can't release before adding premium
-      await _addToPoolLockPremium(contract.contractId, contract.premiumFees as number, client);
+      await _addToPoolLockPremium(contract, client);
       await _releasePoolLockFeesByContractId(contract.contractId, client);
     }
     await client.query('COMMIT');

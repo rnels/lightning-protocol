@@ -1,7 +1,6 @@
 import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
-import { Pool, PoolLock } from '../types';
-import { depositPaper } from './accountModel';
+import { Contract, Pool, PoolLock } from '../types';
 import { getAssetById, getAssetPriceById } from './assetModel';
 import { getContractById, isContractActive } from './contractModel';
 import { getActiveContractTypeById, getContractTypeById } from './contractTypeModel';
@@ -53,12 +52,17 @@ function _setReleased(poolLock: PoolLock, client: PoolClient) {
 async function _releasePoolLockFees(poolLock: PoolLock, client: PoolClient) {
   if (poolLock.released) throw new Error('Pool lock has already been released');
   let pool = await getPoolById(poolLock.poolId, client);
+  let fees = Number(poolLock.premiumFees) + Number(poolLock.reserveAmount) - Number(poolLock.reserveCredit);
+  // console.log('poolLock.premiumFees', poolLock.premiumFees); // DEBUG
+  // console.log('poolLock.reserveAmount', poolLock.reserveAmount); // DEBUG
+  // console.log('poolLock.reserveCredit', poolLock.reserveCredit); // DEBUG
+  // console.log('fees', fees); // DEBUG
   return Promise.all([
     client.query(`
       UPDATE accounts
         SET paper=paper+$2
           WHERE account_id=$1
-    `, [pool.accountId, Number(poolLock.premiumFees) + Number(poolLock.reserveAmount) - Number(poolLock.reserveCredit)]),
+    `, [pool.accountId, fees]),
     _setReleased(poolLock, client)
   ]);
 }
@@ -178,12 +182,16 @@ export async function _getActivePoolLocksByContractId(contractId: number, client
 }
 
 /** Called when a contract expires or is exercised */
-export async function _addToPoolLockPremium(contractId: number, premiumFees: number, client: PoolClient) {
+export async function _addToPoolLockPremium(contract: Contract, client: PoolClient, totalAssetAmount?: number) {
+  if (!totalAssetAmount) {
+    let contractType = await getContractTypeById(contract.typeId);
+    let asset = await getAssetById(contractType.assetId);
+    totalAssetAmount = Number(asset.assetAmount);
+  }
   let feePromises = [];
-  let poolLocks = await _getActivePoolLocksByContractId(contractId, client);
-  let totalAssetAmount = await _getLockedAmountSumByContractId(contractId, client);
+  let poolLocks = await _getActivePoolLocksByContractId(contract.contractId, client);
   for (let poolLock of poolLocks) {
-    let fee = premiumFees * (Number(poolLock.contractAssetAmount) / totalAssetAmount);
+    let fee = Number(contract.premiumFees) * (Number(poolLock.contractAssetAmount) / totalAssetAmount);
     feePromises.push(
       client.query(`
         UPDATE pool_locks
@@ -227,7 +235,6 @@ export async function _takeFromPoolLockReserve(contractId: number, strikePrice: 
   let poolLocks = await _getPoolLocksByContractId(contractId, client);
   for (let pool of poolLocks) {
     let reserveAmount = strikePrice * Number(pool.contractAssetAmount);
-    console.log('reserveAmount:', reserveAmount)
     reservePromises.push(
       client.query(`
         UPDATE pool_locks
@@ -487,8 +494,7 @@ export function _createPoolLock(
       pool_id,
       contract_id,
       asset_amount,
-      contract_asset_amount,
-
+      contract_asset_amount
     ) VALUES ($1, $2, $3, $4)
   `,
   [

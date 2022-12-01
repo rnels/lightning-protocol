@@ -235,7 +235,7 @@ router.post('/pool/lock/assign', (req, res, next) => {
   if (!req.body.poolLockId) {
     return res.status(400).send({ message: 'Missing or invalid body parameter: poolLockId' });
   }
-  pools.reassignPoolLock(req.body.poolId, req.user!.id)
+  pools.reassignPoolLock(req.body.poolLockId, req.user!.id)
     .then(() => {
       res.status(201).send({ message: 'Pool lock successfully reassigned' });
     })

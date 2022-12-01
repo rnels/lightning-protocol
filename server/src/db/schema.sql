@@ -42,7 +42,6 @@ CREATE TABLE asset_prices (
 
 CREATE INDEX asset_prices_asset_id_idx ON asset_prices(asset_id);
 
-
 -- Represents the pools which exist for an asset
 -- NOTE: With the flat out deletion of account_assets there's now no balance for a user's
 -- assets outside of pools, but when this is translated to the bc/wallet model that should be alright
@@ -64,7 +63,7 @@ CREATE TABLE contract_types (
 	asset_id INTEGER NOT NULL,
 	direction BOOLEAN NOT NULL, -- true for 'up / call', false for 'down / put'
 	strike_price DECIMAL NOT NULL,
-	expires_at TIMESTAMP NOT NULL, -- TODO: Create constraint, max 2 weeks out from creation
+	expires_at TIMESTAMP NOT NULL,
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
 
@@ -79,7 +78,7 @@ CREATE TABLE contracts (
 	type_id INTEGER NOT NULL,
 	owner_id INTEGER DEFAULT NULL, -- Can be NULL on creation, TODO: Do I need to say "Default NULL" here?
 	ask_price DECIMAL DEFAULT NULL, -- Can be NULL if not being actively offered
-	premium_fees DECIMAL NOT NULL DEFAULT 0 CHECK (premium_fees>=0),, -- Amount offered to pool providers on exercise / expiry, set by the sale from writer to first buyer
+	premium_fees DECIMAL NOT NULL DEFAULT 0 CHECK (premium_fees>=0), -- Amount offered to pool providers on exercise / expiry, set by the sale from writer to first buyer
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	exercised BOOLEAN DEFAULT false,
 	exercised_amount DECIMAL DEFAULT NULL,
