@@ -12,7 +12,7 @@ import {
   _addToPoolLockReserve,
   _takeFromPoolLockReserve,
   _getPoolsByAssetIdForUpdate,
-  _addToLockPremium
+  _addToPoolLockPremium
 } from './poolModel';
 import { getTradesByContractIdAccountId, _createTrade } from './tradeModel';
 import { getAssetPriceFromAPI } from '../assets/price';
@@ -113,6 +113,9 @@ export async function _writerUpdateAskPrice(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+    if (!(await isContractActive(contractId, client))) {
+      throw new Error('Contract is inactive');
+    }
     const contract = (await client.query(`
       UPDATE contracts
       SET ask_price=$2
@@ -177,6 +180,54 @@ async function _getContractById(id: string | number, client?: PoolClient): Promi
       WHERE contract_id=$1
   `, [id]);
   return res.rows[0];
+}
+
+// TODO: Ensure that I don't need to parse this to Date()
+async function _getLastCheckedContractExpiry(client?: PoolClient): Promise<string> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  let lastChecked = (await query(`
+    SELECT
+      last_checked as "lastChecked"
+    FROM contract_expiry_checks
+      ORDER BY expiry_check_id DESC
+        LIMIT 1
+  `)).rows[0].lastChecked as string;
+  return lastChecked;
+}
+
+function _createLastCheckedContractExpiry(client?: PoolClient) {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  return query(`
+    INSERT INTO contract_expiry_checks (
+      last_checked
+    )
+    VALUES (
+      NOW()
+    )
+  `);
+}
+
+/** Returns an array of unchecked (type expires between NOW() and last_checked) expired contracts */
+export async function _getUncheckedExpiredContracts(client?: PoolClient): Promise<Contract[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  let lastChecked = await _getLastCheckedContractExpiry(client);
+  let contracts = (await query(`
+    SELECT
+      contracts.contract_id as "contractId",
+      contracts.type_id as "typeId",
+      contracts.owner_id as "ownerId",
+      contracts.ask_price as "askPrice",
+      contracts.created_at as "createdAt",
+      contracts.exercised as "exercised",
+      contracts.exercised_amount as "exercisedAmount",
+      contracts.premium_fees as "premiumFees"
+    FROM contracts, contract_types
+      WHERE contracts.type_id=contract_types.contract_type_id
+        AND contract_types.expires_at < NOW()
+        AND contract_types.expires_at > $1
+  `, [lastChecked])).rows as Contract[];
+  await _createLastCheckedContractExpiry(client);
+  return contracts;
 }
 
 export async function isContractActive(id: string | number, client?: PoolClient): Promise<boolean> {
@@ -413,6 +464,9 @@ export async function updateAskPrice(contractId: string | number, askPrice: numb
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+    if (!(await isContractActive(contractId, client))) {
+      throw new Error('Contract is inactive');
+    }
     const contract = (await client.query(`
       UPDATE contracts
       SET ask_price=$2
@@ -478,17 +532,15 @@ export async function _tradeContract(
   if (!askPrice) throw new Error('I\'m afraid that just isn\'t possible'); // DEBUG
   let contractType = await getActiveContractTypeById(contract.typeId, client);
   let asset = await getAssetById(contractType.assetId, client);
-  let saleCost = Number(askPrice) * Number(asset.assetAmount);
-  let tradeFee = contract.ownerId ? // If the contract is being purchased from the AI, there are no trade fees
-    saleCost * poolFee : 0;
   let buyerId = bid.accountId;
   let sellerId = contract.ownerId;
+  let saleCost = Number(askPrice) * Number(asset.assetAmount);
+  let tradeFee = sellerId ? // If the contract is being purchased from the AI, there are no trade fees
+    saleCost * poolFee : 0;
   return Promise.all([
     withdrawPaper(buyerId, saleCost, client),
     sellerId && depositPaper(sellerId, saleCost - tradeFee, client),
-    sellerId ?
-    _addToPremium(contract, tradeFee, client) :
-    _addToPremium(contract, saleCost, client),
+    _addToPremium(contract, sellerId ? tradeFee : saleCost, client),
     _createTrade(
       contract.contractId,
       contract.typeId,
@@ -552,11 +604,33 @@ export async function exerciseContract(
       saleProfits = poolReserves - (assetPrice * assetAmount);
       await _takeFromPoolLockReserve(contract.contractId, strikePrice, client);
     }
-    await _addToLockPremium(contract.contractId, contract.premiumFees as number, client); // NOTE: Must always do this this before release
+    await _addToPoolLockPremium(contract.contractId, contract.premiumFees as number, client); // NOTE: Must always do this this before release
     await _releasePoolLockFeesByContractId(contract.contractId, client);
     await depositPaper(contract.ownerId, saleProfits, client);
     if (contract.askPrice) { await _removeAskPrice(contract.contractId, client); }
     await _setExercised(contract, saleProfits, client);
+    await client.query('COMMIT');
+    client.release();
+  } catch (e: any) {
+    console.log(e); // DEBUG
+    await client.query('ROLLBACK');
+    client.release();
+    throw new Error(e);
+  }
+}
+
+/** Should be called as often as possible to release fees from expired contracts */
+// TODO: Hook this somewhere to be called
+export async function releaseExpiredContracts() {
+  let client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    let contracts = await _getUncheckedExpiredContracts(client);
+    for (let contract of contracts) {
+      // NOTE: These must be in order, can't release before adding premium
+      await _addToPoolLockPremium(contract.contractId, contract.premiumFees as number, client);
+      await _releasePoolLockFeesByContractId(contract.contractId, client);
+    }
     await client.query('COMMIT');
     client.release();
   } catch (e: any) {

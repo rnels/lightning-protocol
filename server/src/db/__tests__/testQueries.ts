@@ -111,12 +111,6 @@ import { QueryResult } from 'pg';
   console.log(result);
 });
 
-// GET ALL POOLS
-(async () => {
-  let result = await pools.getAllPools();
-  console.log(result);
-});
-
 // GET POOL BY ID
 (async () => {
   let poolId = 1;

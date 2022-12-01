@@ -40,14 +40,7 @@ import { getActiveContractTypeById, getContractTypeById } from './contractTypeMo
 //   }
 // }
 
-/**
- * BIG TODO: RELEASE POOL LOCKS FOR EXPIRED CONTRACTS, INVOKE _releasePoolLockFeesByContractId()
- * Method of doing this should be to keep track of the last time expired contracts were checked for
- * And only remove the contracts corresponding to the contract_types (and release locks) with expiry between NOW() and the last time checked
- * This saves us from having to remove the contracts from the table, which we don't want to do
- */
-
-/** Removes lock by setting released to true */
+/** "Removes" poolLock by setting released to true */
 function _setReleased(poolLock: PoolLock, client: PoolClient) {
   return client.query(`
     UPDATE pool_locks
@@ -56,6 +49,7 @@ function _setReleased(poolLock: PoolLock, client: PoolClient) {
   `, [poolLock.poolLockId]);
 }
 
+/** Releases pool lock premium fees and reserve amounts to pool provider's account */
 async function _releasePoolLockFees(poolLock: PoolLock, client: PoolClient) {
   if (poolLock.released) throw new Error('Pool lock has already been released');
   let pool = await getPoolById(poolLock.poolId, client);
@@ -183,20 +177,18 @@ export async function _getActivePoolLocksByContractId(contractId: number, client
   return res.rows;
 }
 
-// TODO: Have this called when a contract expires
 /** Called when a contract expires or is exercised */
-export async function _addToLockPremium(contractId: number, premiumFees: number, client: PoolClient) {
+export async function _addToPoolLockPremium(contractId: number, premiumFees: number, client: PoolClient) {
   let feePromises = [];
-  let poolLocks = await _getPoolLocksByContractId(contractId, client);
+  let poolLocks = await _getActivePoolLocksByContractId(contractId, client);
   let totalAssetAmount = await _getLockedAmountSumByContractId(contractId, client);
   for (let poolLock of poolLocks) {
     let fee = premiumFees * (Number(poolLock.contractAssetAmount) / totalAssetAmount);
-    let pool = await getPoolById(poolLock.poolId);
     feePromises.push(
       client.query(`
         UPDATE pool_locks
-        SET premium_fees=premium_fees+$2
-          WHERE pool_lock_id=$1
+          SET premium_fees=premium_fees+$2
+            WHERE pool_lock_id=$1
       `, [poolLock.poolLockId, fee])
     );
   }
@@ -207,7 +199,7 @@ export async function _addToLockPremium(contractId: number, premiumFees: number,
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
 export async function _addToPoolLockReserve(contractId: number, strikePrice: number, client: PoolClient) {
   let reservePromises = [];
-  let poolLocks = await _getPoolLocksByContractId(contractId, client);
+  let poolLocks = await _getActivePoolLocksByContractId(contractId, client);
   for (let poolLock of poolLocks) {
     let reserveAmount = strikePrice * Number(poolLock.assetAmount);
     reservePromises.push(
@@ -271,20 +263,6 @@ export async function getUnlockedAmountByAssetId(assetId: string | number, clien
   let lockedAmount = results[0];
   let totalAmount = results[1];
   return totalAmount - lockedAmount;
-}
-
-export async function getAllPools(sort='pool_id ASC', client?: PoolClient): Promise<Pool[]> {
-  let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT
-      pool_id as "poolId",
-      account_id as "accountId",
-      asset_id as "assetId",
-      asset_amount as "assetAmount"
-    FROM pools
-      ORDER BY $1
-  `, [sort]);
-  return res.rows;
 }
 
 // NOTE: Changed to return pool locks as well
