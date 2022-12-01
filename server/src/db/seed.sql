@@ -31,13 +31,17 @@ INSERT INTO assets (
 	asset_amount,
 	name,
 	symbol,
-	price_api_id
+	last_price,
+	price_api_id,
+	icon_url
 ) VALUES (
 	'crypto',
 	0.1,
 	'Bitcoin',
 	'BTC',
-	1
+	0,
+	1,
+	'https://1000logos.net/wp-content/uploads/2018/05/Bitcoin-Logo.png'
 );
 
 INSERT INTO assets (
@@ -45,13 +49,35 @@ INSERT INTO assets (
 	asset_amount,
 	name,
 	symbol,
-	price_api_id
+	last_price,
+	price_api_id,
+	icon_url
 ) VALUES (
 	'crypto',
 	1,
 	'Ethereum',
 	'ETH',
-	1027
+	0,
+	1027,
+	'https://blog.logomyway.com/wp-content/uploads/2021/11/Ethereum-logo.png'
+);
+
+INSERT INTO assets (
+	asset_type,
+	asset_amount,
+	name,
+	symbol,
+	last_price,
+	price_api_id,
+	icon_url
+) VALUES (
+	'crypto',
+	1,
+	'Binance Coin',
+	'BNB',
+	0,
+	1839,
+	'https://icons.iconarchive.com/icons/cjdowner/cryptocurrency-flat/1024/Binance-Coin-BNB-icon.png'
 );
 
 INSERT INTO pools (

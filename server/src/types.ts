@@ -51,7 +51,9 @@ export type PoolLock = {
 	reserveAmount: string | number,
 	reserveCredit: string | number,
 	expiresAt: string,
-	tradeFees: string | number
+	tradeFees: string | number,
+	premiumFee: string | number,
+	released: boolean
 };
 
 export type ContractType = {

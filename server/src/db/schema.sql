@@ -108,15 +108,15 @@ CREATE TABLE pool_locks (
 	contract_asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (contract_asset_amount>=0),
 	reserve_amount DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_amount>=0), -- Stores liquidity to trade if put option is exercised
 	reserve_credit DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_credit>=0), -- Compensates in case put covering does not happen at a high enough price to cover strike
-	expires_at TIMESTAMP NOT NULL,
-	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Amount provided by contract trading fees, able to be withdrawn into account balance
+	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Read-only indicator of amount provided by contract trading fees
+	premium_fee DECIMAL NOT NULL DEFAULT 0 CHECK (premium_fee>=0),
+	released BOOLEAN NOT NULL DEFAULT FALSE, -- Set to true on reassignment or release of reserve_amount
 	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id),
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id)
 );
 
 CREATE INDEX pool_locks_pool_id_idx ON pool_locks(pool_id);
 CREATE INDEX pool_locks_contract_id_idx ON pool_locks(contract_id);
-CREATE INDEX pool_locks_expires_at_idx ON pool_locks(expires_at);
 
 -- We are referencing contract types in order to keep bidding organized to specific configurations of contracts
 CREATE TABLE bids (

@@ -197,39 +197,39 @@ router.post('/pool/asset/withdraw', (req, res, next) => {
     });
 });
 
-// Withdraw trade fees from all pool locks into account balance
-// Expects in req.body:
-//  poolId (Integer) - pool_id to withdraw from
-router.post('/pool/fees/withdraw', (req, res, next) => {
-  if (!req.body.poolId) {
-    return res.status(400).send({ message: 'Missing or invalid body parameter: poolId' });
-  }
-  pools.withdrawAllPoolLockFees(req.body.poolId, req.user!.id)
-    .then(() => {
-      res.status(201).send({ message: 'Fees successfully withdrawn from pool and deposited to account' });
-    })
-    .catch((error: any) => {
-      console.log('Error withdrawing pool fees:', error);
-      res.status(400).send({ message: 'Error withdrawing fees from pool' });
-    });
-});
+// // Withdraw trade fees from all pool locks into account balance
+// // Expects in req.body:
+// //  poolId (Integer) - pool_id to withdraw from
+// router.post('/pool/fees/withdraw', (req, res, next) => {
+//   if (!req.body.poolId) {
+//     return res.status(400).send({ message: 'Missing or invalid body parameter: poolId' });
+//   }
+//   pools.withdrawAllPoolLockFees(req.body.poolId, req.user!.id)
+//     .then(() => {
+//       res.status(201).send({ message: 'Fees successfully withdrawn from pool and deposited to account' });
+//     })
+//     .catch((error: any) => {
+//       console.log('Error withdrawing pool fees:', error);
+//       res.status(400).send({ message: 'Error withdrawing fees from pool' });
+//     });
+// });
 
-// Withdraw trade fees from specific pool lock into account balance
-// Expects in req.body:
-//  poolLockId (Integer) - pool_lock_id to withdraw from
-router.post('/pool/lock/fees/withdraw', (req, res, next) => {
-  if (!req.body.poolLockId) {
-    return res.status(400).send({ message: 'Missing or invalid body parameter: poolLockId' });
-  }
-  pools.withdrawPoolLockFees(req.body.poolLockId, req.user!.id)
-    .then(() => {
-      res.status(201).send({ message: 'Fees successfully withdrawn from pool lock and deposited to account' });
-    })
-    .catch((error: any) => {
-      console.log('Error withdrawing pool fees:', error);
-      res.status(400).send({ message: 'Error withdrawing fees from pool' });
-    });
-});
+// // Withdraw trade fees from specific pool lock into account balance
+// // Expects in req.body:
+// //  poolLockId (Integer) - pool_lock_id to withdraw from
+// router.post('/pool/lock/fees/withdraw', (req, res, next) => {
+//   if (!req.body.poolLockId) {
+//     return res.status(400).send({ message: 'Missing or invalid body parameter: poolLockId' });
+//   }
+//   pools.withdrawPoolLockFees(req.body.poolLockId, req.user!.id)
+//     .then(() => {
+//       res.status(201).send({ message: 'Fees successfully withdrawn from pool lock and deposited to account' });
+//     })
+//     .catch((error: any) => {
+//       console.log('Error withdrawing pool fees:', error);
+//       res.status(400).send({ message: 'Error withdrawing fees from pool' });
+//     });
+// });
 
 router.post('/pool/lock/assign', (req, res, next) => {
   if (!req.body.poolLockId) {

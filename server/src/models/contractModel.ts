@@ -9,10 +9,11 @@ import {
   _addToLockTradeFees,
   getUnlockedAmountByAssetId,
   getUnlockedAmountByPoolId,
-  _deletePoolLocksByContractId,
+  _releasePoolLockFeesByContractId,
   _addToPoolLockReserve,
   _takeFromPoolLockReserve,
-  _getPoolsByAssetIdForUpdate
+  _getPoolsByAssetIdForUpdate,
+  _addToLockPremium
 } from './poolModel';
 import { getTradesByContractIdAccountId, _createTrade } from './tradeModel';
 import { getAssetPriceFromAPI } from '../assets/price';
@@ -178,6 +179,21 @@ async function _getContractById(id: string | number, client?: PoolClient): Promi
       WHERE contract_id=$1
   `, [id]);
   return res.rows[0];
+}
+
+export async function isContractActive(id: string | number, client?: PoolClient): Promise<boolean> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
+    SELECT
+      contracts.contract_id as "contractId"
+    FROM contracts, contract_types
+      WHERE contracts.contract_id=$1
+        AND contracts.type_id=contract_types.contract_type_id
+        AND contract_types.expires_at > NOW()
+        AND contracts.exercised=false
+  `, [id]);
+  if (res.rows.length > 0) return true;
+  return false;
 }
 
 async function _getContractByIdForUpdate(id: string | number, client?: PoolClient): Promise<Contract> {
@@ -370,7 +386,6 @@ export async function createContract(
             pool.poolId,
             contract.contractId,
             allocatedAmount,
-            contractType.expiresAt,
             client
           )
         );
@@ -538,7 +553,8 @@ export async function exerciseContract(
       saleProfits = poolReserves - (assetPrice * assetAmount);
       await _takeFromPoolLockReserve(contract.contractId, strikePrice, client);
     }
-    await _deletePoolLocksByContractId(contract.contractId, client);
+    await _addToLockPremium(contract.contractId, contract.premiumFee as number, client);
+    await _releasePoolLockFeesByContractId(contract.contractId, client);
     await depositPaper(contract.ownerId, saleProfits, client);
     if (contract.askPrice) { await _removeAskPrice(contract.contractId, client); }
     await _setExercised(contract, saleProfits, client);
