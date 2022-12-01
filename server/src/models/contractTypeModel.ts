@@ -3,7 +3,7 @@ import db from '../db/db';
 import { ContractType } from '../types';
 import { getAssetPriceById } from './assetModel';
 import { getActiveContractsByTypeId } from './contractModel';
-import { _getLockedPoolsByContractId } from './poolModel';
+import { _getPoolLocksByContractId } from './poolModel';
 
 /** Used when put option is approaching strike price, converts assets to reserved liquidity equating to asset value at strikePrice x assetAmount, can be used to pay contract owner if they choose to exercise contract.
  * The first part simulates a stop loss / limit order.
@@ -36,7 +36,7 @@ export async function _convertActivePutContractTypesNearStrike(assetId: number, 
       if (priceDif < 0.05) { // If difference is less than 5%, time to put into the reserves
         let contracts = await getActiveContractsByTypeId(contractType.contractTypeId, client);
         for (let contract of contracts) {
-          let poolLocks = await _getLockedPoolsByContractId(contract.contractId, client);
+          let poolLocks = await _getPoolLocksByContractId(contract.contractId, client);
           for (let poolLock of poolLocks) {
             // Represents selling at the assetPrice, implied that there's a limit order
             // This is something that will be expressed much differently in the blockchain application
