@@ -51,8 +51,6 @@ CREATE TABLE pools (
 	account_id INTEGER NOT NULL,
 	asset_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
-	reserve_amount DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_amount>=0), -- Stores liquidity to trade if put option is exercised
-	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Amount provided by contract trading fees, able to be withdrawn into account balance
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
@@ -81,6 +79,7 @@ CREATE TABLE contracts (
 	type_id INTEGER NOT NULL,
 	owner_id INTEGER DEFAULT NULL, -- Can be NULL on creation, TODO: Do I need to say "Default NULL" here?
 	ask_price DECIMAL DEFAULT NULL, -- Can be NULL if not being actively offered
+	premium_fee DECIMAL DEFAULT NULL, -- Amount offered to pool providers on exercise / expiry, set by the sale from writer to first buyer
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	exercised BOOLEAN DEFAULT false,
 	exercised_amount DECIMAL DEFAULT NULL,
@@ -110,7 +109,7 @@ CREATE TABLE pool_locks (
 	reserve_amount DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_amount>=0), -- Stores liquidity to trade if put option is exercised
 	reserve_credit DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_credit>=0), -- Compensates in case put covering does not happen at a high enough price to cover strike
 	expires_at TIMESTAMP NOT NULL,
-	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Read-only amount provided by contract trade fees
+	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Amount provided by contract trading fees, able to be withdrawn into account balance
 	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id),
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id)
 );

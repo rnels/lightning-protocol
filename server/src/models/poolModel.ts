@@ -2,8 +2,9 @@ import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
 import { Pool, PoolLock } from '../types';
 import { depositPaper } from './accountModel';
+import { getAssetById, getAssetPriceById } from './assetModel';
 import { getContractById } from './contractModel';
-import { getContractTypeById } from './contractTypeModel';
+import { getActiveContractTypeById, getContractTypeById } from './contractTypeModel';
 
 // TODO: Set this up to be called by a listener periodically
 // TODO: Consider setting up a new state where pools are unlocked but also can not be re-assigned to within a "cooldown" window
@@ -12,7 +13,6 @@ async function _removeExpiredPoolLocks() {
   let client = await db.connect();
   try {
     await client.query('BEGIN')
-    // TODO: Be sure this works with the returning statement and all
     let deletePoolLocks = (await client.query(`
       DELETE FROM pool_locks
         WHERE expires_at <= NOW()
@@ -22,12 +22,13 @@ async function _removeExpiredPoolLocks() {
             reserve_credit as "reserveCredit"
     `)).rows;
     for (let poolLock of deletePoolLocks) {
+      let pool = await getPoolById(poolLock.poolId, client);
       feePromises.push(
         client.query(`
-          UPDATE pools
-          SET reserve_amount=reserve_amount+$2
-            WHERE pool_id=$1
-        `, [poolLock.poolId, poolLock.reserveAmount - poolLock.reserveCredit])
+          UPDATE accounts
+          SET paper=paper+$2
+            WHERE account_id=$1
+        `, [pool.accountId, Number(poolLock.tradeFees) + Number(poolLock.reserveAmount) - Number(poolLock.reserveCredit)])
       );
     }
     await Promise.all(feePromises);
@@ -37,6 +38,21 @@ async function _removeExpiredPoolLocks() {
   } finally {
     client.release();
   }
+}
+
+/** Removes lock, withdraws fees and reserve amounts to pool provider's account */
+async function _removePoolLock(poolLock: PoolLock, client: PoolClient) {
+  let pool = await getPoolById(poolLock.poolId, client);
+  client.query(`
+    DELETE FROM pool_locks
+      WHERE pool_lock_id=$1
+  `, [poolLock.poolLockId]);
+  client.query(`
+    UPDATE accounts
+    SET paper=paper+$2
+      WHERE account_id=$1
+  `, [pool.accountId, Number(poolLock.tradeFees) + Number(poolLock.reserveAmount) - Number(poolLock.reserveCredit)]);
+  // TODO: Send poolLock.reserveCredit somewhere
 }
 
 // TODO: It's possible that if I set an incremented period from expires_at when comparing to NOW(), I can create a buffer where the lock has expired, but new contract creation still considers it locked since there's that incremental period between expiry and NOW(). For example, saying AND expires_at + (PERIOD) > NOW() means they will be left out of the "locked amount". If I allow users to claim locked_pools which have gone past their expiry but remain within this period, this also gives us a manual way to clear out pool locks, by having users "claim" the locked amounts to add them back to their pool (given the option to either return the assets to their pool or withdraw them completely), deleting the lock in the process. In order to clear out pools that have gone past the cooldown however, this still requires some kind of automated cleaning process. Since the locks are being reviewed at the time of contract creation, perhaps ones that are past expiry + interval can just be deleted. This can piggyback the creation contracts. In fact, it basically just means calling _deleteExpiredLocks right before a contract is to be created. I just need to add that period / interval buffer once I decide on it, so it works properly (and anywhere else which compares expires_at to NOW())
@@ -97,16 +113,6 @@ async function _doesPoolExist(accountId: number, assetId: number, client?: PoolC
   return Boolean(res.rows[0].exists);
 }
 
-async function _getTradeFeesByPoolId(poolId: number, client?: PoolClient): Promise<number> {
-  let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT trade_fees as "tradeFees"
-      FROM pools
-        WHERE pool_id=$1
-  `,[poolId])
-  return Number(res.rows[0].tradeFees);
-}
-
 export async function _getLockedPoolsByContractId(contractId: number, client?: PoolClient): Promise<PoolLock[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
@@ -117,8 +123,8 @@ export async function _getLockedPoolsByContractId(contractId: number, client?: P
       asset_amount as "assetAmount",
       reserve_amount as "reserveAmount",
       contract_asset_amount as "contractAssetAmount",
-      expires_at as "expiresAt",
-      trade_fees as "tradeFees"
+      reserve_credit as "reserveCredit",
+      expires_at as "expiresAt"
     FROM pool_locks
       WHERE contract_id=$1
   `, [contractId]);
@@ -138,12 +144,7 @@ export async function _addToLockTradeFees(contractId: number, tradeFee: number, 
         UPDATE pool_locks
         SET trade_fees=trade_fees+$2
           WHERE pool_lock_id=$1
-      `, [pool.poolLockId, fee]),
-      client.query(`
-        UPDATE pools
-        SET trade_fees=trade_fees+$2
-          WHERE pool_id=$1
-      `, [pool.poolId, fee])
+      `, [pool.poolLockId, fee])
     );
   }
   return Promise.all(feePromises);
@@ -154,8 +155,8 @@ export async function _addToLockTradeFees(contractId: number, tradeFee: number, 
 export async function _addToPoolLockReserve(contractId: number, strikePrice: number, client: PoolClient) {
   let reservePromises = [];
   let poolLocks = await _getLockedPoolsByContractId(contractId, client);
-  for (let pool of poolLocks) {
-    let reserveAmount = strikePrice * Number(pool.assetAmount);
+  for (let poolLock of poolLocks) {
+    let reserveAmount = strikePrice * Number(poolLock.assetAmount);
     reservePromises.push(
       client.query(`
         UPDATE pool_locks
@@ -163,12 +164,12 @@ export async function _addToPoolLockReserve(contractId: number, strikePrice: num
           reserve_amount=reserve_amount+$2,
           asset_amount=0
         WHERE pool_lock_id=$1
-      `, [pool.poolLockId, reserveAmount]),
+      `, [poolLock.poolLockId, reserveAmount]),
       client.query(`
         UPDATE pools
           SET asset_amount=asset_amount-$2
             WHERE pool_id=$1
-      `,[pool.poolId, pool.assetAmount])
+      `,[poolLock.poolId, poolLock.assetAmount])
     );
   }
   return Promise.all(reservePromises);
@@ -226,9 +227,7 @@ export async function getAllPools(sort='pool_id ASC', client?: PoolClient): Prom
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount",
-      reserve_amount as "reserveAmount",
-      trade_fees as "tradeFees"
+      asset_amount as "assetAmount"
     FROM pools
     ORDER BY $1
   `, [sort]);
@@ -245,9 +244,7 @@ export async function getPoolById(id: string | number, client?: PoolClient): Pro
         pool_id as "poolId",
         account_id as "accountId",
         asset_id as "assetId",
-        asset_amount as "assetAmount",
-        reserve_amount as "reserveAmount",
-        trade_fees as "tradeFees"
+        asset_amount as "assetAmount"
       FROM pools
       WHERE pool_id=$1
     `, [id]);
@@ -260,6 +257,36 @@ export async function getPoolById(id: string | number, client?: PoolClient): Pro
   return pool;
 }
 
+export async function getPoolLockById(id: string | number, accountId: string | number, client?: PoolClient): Promise<PoolLock> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  let res: QueryResult;
+  try {
+    res = await query(`
+      SELECT
+        pool_locks.pool_lock_id as "poolLockId",
+        pool_locks.pool_id as "poolId",
+        pool_locks.contract_id as "contractId",
+        pool_locks.asset_amount as "assetAmount",
+        pool_locks.contract_asset_amount as "contractAssetAmount",
+        pool_locks.reserve_amount as "reserveAmount",
+        pool_locks.reserve_credit as "reserveCredit",
+        pool_locks.expires_at as "expiresAt",
+        pool_locks.trade_fees as "tradeFees"
+      FROM pool_locks, pools
+        WHERE
+          pool_locks.pool_lock_id=$1
+        AND
+          pools.account_id=$2
+
+    `, [id, accountId]);
+  } catch {
+    throw new Error('There was an error retrieving the pool lock');
+  }
+  if (res.rows.length === 0) throw new Error(`Pool lock with poolLockId ${id} does not exist`);
+  let poolLock: PoolLock = res.rows[0];
+  return poolLock;
+}
+
 export async function getPoolByAccountAssetIds(accountId: string | number, assetId: string | number, client?: PoolClient): Promise<Pool> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   let res: QueryResult;
@@ -269,9 +296,7 @@ export async function getPoolByAccountAssetIds(accountId: string | number, asset
         pool_id as "poolId",
         account_id as "accountId",
         asset_id as "assetId",
-        asset_amount as "assetAmount",
-        reserve_amount as "reserveAmount",
-        trade_fees as "tradeFees"
+        asset_amount as "assetAmount"
       FROM pools
         WHERE account_id=$1
           AND asset_id=$2
@@ -292,9 +317,7 @@ export async function getPoolsByAssetId(assetId: string | number, client?: PoolC
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount",
-      reserve_amount as "reserveAmount",
-      trade_fees as "tradeFees"
+      asset_amount as "assetAmount"
     FROM pools
       WHERE asset_id=$1
   `, [assetId]);
@@ -308,9 +331,7 @@ export async function _getPoolsByAssetIdForUpdate(assetId: string | number, clie
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount",
-      reserve_amount as "reserveAmount",
-      trade_fees as "tradeFees"
+      asset_amount as "assetAmount"
     FROM pools
       WHERE asset_id=$1
     FOR UPDATE
@@ -335,9 +356,7 @@ export async function getPoolsByAccountId(accountId: string | number, client?: P
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount",
-      reserve_amount as "reserveAmount",
-      trade_fees as "tradeFees"
+      asset_amount as "assetAmount"
     FROM pools
       WHERE account_id=$1
   `, [accountId]);
@@ -355,6 +374,7 @@ export async function getPoolLocksByPoolId(id: string | number, client?: PoolCli
       asset_amount as "assetAmount",
       contract_asset_amount as "contractAssetAmount",
       reserve_amount as "reserveAmount",
+      reserve_credit as "reserveCredit",
       expires_at as "expiresAt",
       trade_fees as "tradeFees"
     FROM pool_locks
@@ -375,6 +395,7 @@ export async function getPoolLocksByAccountId(accountId: string | number, client
       pool_locks.asset_amount as "assetAmount",
       pool_locks.contract_asset_amount as "contractAssetAmount",
       pool_locks.reserve_amount as "reserveAmount",
+      pool_locks.reserve_credit as "reserveCredit",
       pool_locks.expires_at as "expiresAt",
       pool_locks.trade_fees as "tradeFees"
     FROM pools, pool_locks
@@ -461,15 +482,18 @@ export async function _deletePoolLocksByContractId(contractId: number, client: P
       WHERE contract_id=$1
         RETURNING
           pool_id as "poolId",
-          reserve_amount as "reserveAmount"
+          reserve_amount as "reserveAmount",
+          reserve_credit as "reserveCredit",
+          trade_fees as "tradeFees"
   `, [contractId])).rows;
   for (let poolLock of deletePoolLocks) {
+    let pool = await getPoolById(poolLock.poolId, client);
     feePromises.push(
       client.query(`
-        UPDATE pools
-        SET reserve_amount=reserve_amount+$2
-          WHERE pool_id=$1
-      `, [poolLock.poolId, poolLock.reserveAmount])
+        UPDATE accounts
+        SET paper=paper+$2
+          WHERE account_id=$1
+      `, [pool.accountId, Number(poolLock.tradeFees) + Number(poolLock.reserveAmount) - Number(poolLock.reserveCredit)])
     );
   }
   return Promise.all(feePromises);
@@ -519,25 +543,22 @@ export function depositPoolAssets(
   ]);
 }
 
-export async function withdrawPoolFees(
-  poolId: string | number,
-  feeAmount: number,
+export async function withdrawPoolLockFees(
+  poolLockId: string | number,
   accountId: string | number
 ) {
-  let tradeFees = await _getTradeFeesByPoolId(poolId as number);
-  if (tradeFees < feeAmount) throw new Error('Fee balance is not enough to withdraw this amount'); // TODO: Is this needed? May be fine if it doesn't allow us to withdraw an amount that leaves it less than 0
   let client = await db.connect();
   try {
     await client.query('BEGIN');
+    let poolLock = await getPoolLockById(poolLockId as number, accountId, client);
     await Promise.all([
-      // TODO: Ensure this query does not complete if it's not updating any tables (given a poolId for a different owner)
       client.query(`
-        UPDATE pools
-        SET trade_fees=trade_fees-$2
-          WHERE pool_id=$1
-            AND account_id=$3
-      `, [poolId, feeAmount, accountId]),
-      depositPaper(accountId, feeAmount, client)
+        UPDATE pool_locks
+        SET trade_fees=0
+          WHERE pool_lock_id=$1
+            AND account_id=$2
+      `, [poolLock.poolLockId, accountId]),
+      depositPaper(accountId, poolLock.tradeFees as number, client)
     ])
     await client.query('COMMIT');
     client.release();
@@ -546,5 +567,76 @@ export async function withdrawPoolFees(
     await client.query('ROLLBACK');
     client.release();
     throw new Error('There was an error withdrawing pool fees');
+  }
+}
+
+export async function withdrawAllPoolLockFees(
+  poolId: string | number,
+  accountId: string | number
+) {
+  let poolLocks = await getPoolLocksByPoolId(poolId);
+  let withdrawPromises = [];
+  for (let lock of poolLocks) {
+    withdrawPromises.push(
+      withdrawPoolLockFees(lock.poolLockId, accountId)
+    );
+  }
+  return Promise.all(withdrawPromises);
+}
+
+// TODO: Restrict the ability to re-assign to self
+export async function reassignPoolLock(
+  poolLockId: string | number,
+  accountId: string | number
+) {
+  const client = await db.connect()
+  try {
+    await client.query('BEGIN');
+    let poolLock = await getPoolLockById(poolLockId, accountId, client);
+    let contract = await getContractById(poolLock.contractId, client);
+    let contractType = await getActiveContractTypeById(contract.typeId, client);
+    let asset = await getAssetById(contractType.assetId, client);
+    let assetPrice = await getAssetPriceById(asset.assetId, client);
+    let strikePrice = Number(contractType.strikePrice);
+    let priceDif = (assetPrice - strikePrice) / strikePrice; // Decimal representing difference between asset price and strike
+    if ((contractType.direction === false && priceDif < 0.05) || (contractType.direction === true && priceDif > 0.05)) {
+      throw new Error('Can\'t reassign pool lock at this asset price');
+    }
+    let unallocatedAmount = Number(poolLock.contractAssetAmount);
+    // TODO: Consolidate this logic into a shared function, currently re-using code from _createContract
+    let unlockedPoolAssetTotal = await getUnlockedAmountByAssetId(asset.assetId, client);
+    if (unlockedPoolAssetTotal < unallocatedAmount) throw new Error('Not enough unlocked assets to reassign lock');
+    let pools = await _getPoolsByAssetIdForUpdate(asset.assetId, client);
+    let poolLockPromises = [];
+    // Okay, so this should create a pool lock for all pools with
+    // unlocked assets, cascading down until the contract is spent on locks
+    for (let pool of pools) {
+      let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId, client);
+      if (unlockedAmount > 0) {
+        let allocatedAmount = unallocatedAmount >= unlockedAmount ? unlockedAmount : unallocatedAmount;
+        poolLockPromises.push(
+          _createPoolLock(
+            pool.poolId,
+            contract.contractId,
+            allocatedAmount,
+            contractType.expiresAt,
+            client
+          )
+        );
+        unallocatedAmount -= allocatedAmount;
+        // NOTE: Using this small amount to prevent rounding errors
+        if (unallocatedAmount <= 0.0000001) break; // Stops creating new pools when amount hits 0
+      }
+    }
+    if (unallocatedAmount > 0.0000001) throw new Error('Not enough unlocked assets to reassign lock'); // NOTE: Not strictly needed, mostly for debugging, but can stop a contract from being created without enough backing assets if pool amounts were withdrawn during the course of this (though I've locked pools for update so it can't happen now)
+    await Promise.all(poolLockPromises);
+    await _removePoolLock(poolLock, client);
+    await client.query('COMMIT');
+    client.release();
+  } catch (e) {
+    await client.query('ROLLBACK');
+    client.release();
+    console.log(e); // DEBUG
+    throw new Error('There was an error reassigning the pool lock'); // TODO: Create detailed error messages
   }
 }

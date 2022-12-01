@@ -39,8 +39,6 @@ export type Pool = {
 	accountId: number,
 	assetId: number,
 	assetAmount: string | number,
-	reserveAmount: string | number,
-	tradeFees: string | number,
 	poolLocks?: PoolLock[]
 };
 
@@ -51,6 +49,7 @@ export type PoolLock = {
 	assetAmount: string | number,
 	contractAssetAmount: string | number,
 	reserveAmount: string | number,
+	reserveCredit: string | number,
 	expiresAt: string,
 	tradeFees: string | number
 };
@@ -70,6 +69,7 @@ export type Contract = {
 	typeId: number,
 	createdAt: string,
 	exercised: boolean,
+	premiumFee?: string | number,
 	exercisedAmount?: string | number,
 	ownerId?: number,
 	askPrice?: string | number,
