@@ -282,7 +282,8 @@ export async function getPoolById(id: string | number, client?: PoolClient): Pro
         pool_id as "poolId",
         account_id as "accountId",
         asset_id as "assetId",
-        asset_amount as "assetAmount"
+        asset_amount as "assetAmount",
+        last_lock_created as "lastLockCreated"
       FROM pools
         WHERE pool_id=$1
     `, [id]);
@@ -334,7 +335,8 @@ export async function getPoolByAccountAssetIds(accountId: string | number, asset
         pool_id as "poolId",
         account_id as "accountId",
         asset_id as "assetId",
-        asset_amount as "assetAmount"
+        asset_amount as "assetAmount",
+        last_lock_created as "lastLockCreated"
       FROM pools
         WHERE account_id=$1
           AND asset_id=$2
@@ -355,13 +357,16 @@ export async function getPoolsByAssetId(assetId: string | number, client?: PoolC
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount"
+      asset_amount as "assetAmount",
+      last_lock_created as "lastLockCreated"
     FROM pools
       WHERE asset_id=$1
   `, [assetId]);
   return res.rows;
 }
 
+/** Returns pools in chronological order of last_lock_created, used to round robin the assignment of pool locks. */
+// TODO: Consider replacing this system with one that looks for the least amount locked instead
 export async function _getPoolsByAssetIdForUpdate(assetId: string | number, client?: PoolClient): Promise<Pool[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
@@ -369,10 +374,12 @@ export async function _getPoolsByAssetIdForUpdate(assetId: string | number, clie
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount"
+      asset_amount as "assetAmount",
+      last_lock_created as "lastLockCreated"
     FROM pools
       WHERE asset_id=$1
-    FOR UPDATE
+    ORDER BY last_lock_created ASC
+      FOR UPDATE
   `, [assetId]);
   return res.rows;
 }
@@ -394,7 +401,8 @@ export async function getPoolsByAccountId(accountId: string | number, client?: P
       pool_id as "poolId",
       account_id as "accountId",
       asset_id as "assetId",
-      asset_amount as "assetAmount"
+      asset_amount as "assetAmount",
+      last_lock_created as "lastLockCreated"
     FROM pools
       WHERE account_id=$1
   `, [accountId]);
@@ -489,7 +497,7 @@ export function _createPoolLock(
   assetAmount: number,
   client: PoolClient
 ) {
-  return client.query(`
+  client.query(`
     INSERT INTO pool_locks (
       pool_id,
       contract_id,
@@ -502,6 +510,14 @@ export function _createPoolLock(
     contractId,
     assetAmount,
     assetAmount
+  ]);
+  client.query(`
+    UPDATE pools
+      SET last_lock_created=NOW()
+    WHERE pool_id=$1
+  `,
+  [
+    poolId
   ]);
 }
 

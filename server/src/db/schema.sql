@@ -50,6 +50,7 @@ CREATE TABLE pools (
 	account_id INTEGER NOT NULL,
 	asset_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
+	last_lock_created TIMESTAMP DEFAULT to_timestamp(0), -- NOTE: Using default 0 because otherwise ordering by this will display null values last when ordering by last_lock_created ASC (meant to show in chronological order)
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );

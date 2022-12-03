@@ -39,6 +39,7 @@ export type Pool = {
 	accountId: number,
 	assetId: number,
 	assetAmount: string | number,
+	lastLockCreated: string,
 	poolLocks?: PoolLock[]
 };
 
