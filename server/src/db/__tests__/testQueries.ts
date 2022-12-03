@@ -93,21 +93,21 @@ import { QueryResult } from 'pg';
   console.log(result);
 });
 
-// DEPOSIT POOL ASSETS
+// BUY POOL ASSETS
 (async () => {
   let poolId = 4;
   let assetAmount = 20.1;
   let ownerId = 1;
-  let result = await pools.depositPoolAssets(poolId, assetAmount, ownerId);
+  let result = await pools.buyPoolAssets(poolId, assetAmount, ownerId);
   console.log(result);
 });
 
-// WITHDRAW POOL ASSETS
+// SELL POOL ASSETS
 (async () => {
   let poolId = 4;
   let assetAmount = 10.2;
   let ownerId = 1;
-  let result = await pools.withdrawPoolAssets(poolId, assetAmount, ownerId);
+  let result = await pools.sellPoolAssets(poolId, assetAmount, ownerId);
   console.log(result);
 });
 

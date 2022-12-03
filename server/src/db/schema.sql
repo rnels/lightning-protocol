@@ -124,6 +124,18 @@ CREATE TABLE pool_locks (
 CREATE INDEX pool_locks_pool_id_idx ON pool_locks(pool_id);
 CREATE INDEX pool_locks_contract_id_idx ON pool_locks(contract_id);
 
+CREATE TABLE pool_asset_sales (
+	pool_asset_sales_id SERIAL NOT NULL PRIMARY KEY,
+	pool_id INTEGER NOT NULL,
+	asset_amount DECIMAL NOT NULL,
+	paper_amount DECIMAL NOT NULL,
+	sale_type BOOLEAN NOT NULL, -- True for pool buy, false for pool sale
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id)
+);
+
+CREATE INDEX pool_asset_sales_pool_id_idx ON pool_asset_sales(pool_id);
+
 -- We are referencing contract types in order to keep bidding organized to specific configurations of contracts
 CREATE TABLE bids (
 	bid_id SERIAL NOT NULL PRIMARY KEY,

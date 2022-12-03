@@ -26,7 +26,6 @@ export default function NavBar() {
         <Link href="/profile" id={activeLink === 'profile' ? styles.currentPage : undefined}>Profile</Link>
       </div>
       {`${Math.trunc(account.paper * 100) / 100} 💵`}
-      {path}
       </>
       :
       <>

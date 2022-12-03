@@ -1,6 +1,7 @@
 import { PoolClient, QueryResult } from 'pg';
 import db from '../db/db';
 import { Contract, Pool, PoolLock } from '../types';
+import { depositPaper, withdrawPaper } from './accountModel';
 import { getAssetById, getAssetPriceById } from './assetModel';
 import { getContractById, isContractActive } from './contractModel';
 import { getActiveContractTypeById, getContractTypeById } from './contractTypeModel';
@@ -133,8 +134,8 @@ async function _doesPoolExist(accountId: number, assetId: number, client?: PoolC
     SELECT EXISTS(
       SELECT pool_id
         FROM pools
-        WHERE account_id=$1
-          AND asset_id=$2
+      WHERE account_id=$1
+        AND asset_id=$2
     )
   `, [accountId, assetId]);
   return Boolean(res.rows[0].exists);
@@ -543,26 +544,104 @@ export async function withdrawPoolAssets(
   return res.rows[0];
 }
 
-// TODO: Create pool if it doesn't yet exist, change createPool to be internal
-// TODO: Hook this method with contract writer to attempt to write new contracts from the queue on the depositing of pool assets
-// NOTE: As of now there's no limit on depositing assets, you can just define a number of assets to deposit
-// This is for the paper model, for the bc model it will be wallet based
-export function depositPoolAssets(
+export async function buyPoolAssets(
   poolId: string | number,
   assetAmount: number,
   accountId: string | number
 ) {
-  return db.query(`
-    UPDATE pools
-    SET asset_amount=asset_amount+$2
-      WHERE pool_id=$1
-        AND account_id=$3
-  `,
-  [
-    poolId,
-    assetAmount,
-    accountId
-  ]);
+  let client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    let pool = await getPoolById(poolId, client);
+    let assetPrice = await getAssetPriceById(pool.assetId, client);
+    let purchaseCost = assetAmount * assetPrice;
+    await Promise.all([
+      client.query(`
+        UPDATE pools
+        SET asset_amount=asset_amount+$2
+          WHERE pool_id=$1
+            AND account_id=$3
+      `,
+      [
+        poolId,
+        assetAmount,
+        accountId
+      ]),
+      client.query(`
+        INSERT INTO pool_asset_sales (
+          pool_id,
+          asset_amount,
+          paper_amount,
+          sale_type
+        ) VALUES ($1, $2, $3, $4)
+      `,
+      [
+        poolId,
+        assetAmount,
+        purchaseCost,
+        true
+      ]),
+      withdrawPaper(accountId, purchaseCost, client)
+    ]);
+    await client.query('COMMIT');
+    client.release();
+  } catch(e) {
+    console.log(e); // DEBUG
+    await client.query('ROLLBACK');
+    client.release();
+    throw new Error('There was an error purchasing pool assets');
+  }
+}
+
+export async function sellPoolAssets(
+  poolId: string | number,
+  assetAmount: number,
+  accountId: string | number
+) {
+  let client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    let pool = await getPoolById(poolId, client);
+    let assetPrice = await getAssetPriceById(pool.assetId, client);
+    let saleCost = assetAmount * assetPrice;
+    let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId);
+    if (unlockedAmount < assetAmount) throw new Error('Not enough unlocked assets to sell this amount');
+    await Promise.all([
+      client.query(`
+        UPDATE pools
+        SET asset_amount=asset_amount-$2
+          WHERE pool_id=$1
+            AND account_id=$3
+      `,
+      [
+        poolId,
+        assetAmount,
+        accountId
+      ]),
+      client.query(`
+        INSERT INTO pool_asset_sales (
+          pool_id,
+          asset_amount,
+          paper_amount,
+          sale_type
+        ) VALUES ($1, $2, $3, $4)
+      `,
+      [
+        poolId,
+        assetAmount,
+        saleCost,
+        false
+      ]),
+      depositPaper(accountId, saleCost, client)
+    ]);
+    await client.query('COMMIT');
+    client.release();
+  } catch(e) {
+    console.log(e); // DEBUG
+    await client.query('ROLLBACK');
+    client.release();
+    throw new Error('There was an error selling pool assets');
+  }
 }
 
 // export async function withdrawPoolLockFees(

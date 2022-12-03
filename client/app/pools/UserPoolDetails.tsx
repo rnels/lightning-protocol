@@ -1,10 +1,9 @@
 'use client';
 
 import * as api from '../../lib/api';
-import { Asset, Pool } from '../../lib/types';
+import { Pool } from '../../lib/types';
 import PoolAssetAmount from './PoolAssetAmount';
 // import PoolLockList from './PoolLock/PoolLockList';
-import PoolTradeFees from './PoolTradeFees';
 import PoolAssetModal from './PoolAssetModal';
 
 import { useState } from 'react';
@@ -32,16 +31,11 @@ export default function UserPoolDetails(props: { pool: Pool }) {
     })
     .reduce((sum, a=0) => sum + a) : 0;
 
-  // TODO: Create option to withdraw unlocked reserve amount
-  // Could probably just undo my deletes on the feesWithdrawModel and build from there
-  const unlockedReserve = pool.poolLocks!.length > 0 ? pool.poolLocks!.map(
-    (poolLock) => {
-      if (!poolLock.released) return 0;
-      return Number(poolLock.reserveAmount)}
-    )
+  const lockReserves = pool.poolLocks!.length > 0 ? pool.poolLocks!.map(
+    (poolLock) => Number(poolLock.reserveAmount))
     .reduce((sum, a=0) => sum + a) : 0;
 
-  const poolLockpremiumFeess = pool.poolLocks!.length > 0 ? pool.poolLocks!.map(
+  const poolLockPremiumFees = pool.poolLocks!.length > 0 ? pool.poolLocks!.map(
     (poolLock) => Number(poolLock.premiumFees))
     .reduce((sum, a=0) => sum + a) : 0;
 
@@ -54,24 +48,24 @@ export default function UserPoolDetails(props: { pool: Pool }) {
         setShowAssetModal(true);
         setModalType(true);
       }}>
-        Deposit
+        Buy
       </button>
       {pool.assetAmount > 0 &&
-        <button onClick={() => {
-          setShowAssetModal(true);
-          setModalType(false);
-        }}>
-          Withdraw
-        </button>
+      <button onClick={() => {
+        setShowAssetModal(true);
+        setModalType(false);
+      }}>
+        Sell
+      </button>
       }
       <PoolReserveAmount
-        reserveAmount={unlockedReserve}
+        reserveAmount={lockReserves}
       />
       <div>
         {`Locked: ${lockedAmount ? `${lockedAmount.toFixed(2)} (${(lockedAmount / Number(pool.assetAmount) * 100).toFixed(2)}%)` : 0}`}
       </div>
       <div>
-        {`Premium Fees: $${poolLockpremiumFeess.toFixed(2)}`}
+        {`Premium Fees: $${poolLockPremiumFees.toFixed(2)}`}
       </div>
       {showAssetModal &&
       <PoolAssetModal

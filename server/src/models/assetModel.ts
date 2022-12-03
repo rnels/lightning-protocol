@@ -107,7 +107,7 @@ export async function getAssetPriceById(id: string | number, client?: PoolClient
       lastPrice = asset.lastPrice; // Probably not needed
     }
   }
-  let exists = await _checkIfAssetPriceHistoryExists(asset.assetId, Date.now());
+  let exists = await _checkIfAssetPriceHistoryExists(asset.assetId, Date.now()); // Checks that asset price history has an entry for today's date
   if (!exists) {
     await updateCryptoPriceHistory(asset);
   }

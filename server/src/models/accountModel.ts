@@ -5,9 +5,10 @@ import { Account } from '../types';
 // TODO: Get rid of any route response that exposes account_id
 // Bids, contracts, pools, etc should be anonymous
 
-// TODO: Be aware of how / when to cast numeric types, since it appears as if decimals return as strings on query
-// Currently conflicts with Account type specifying paper as a string, for example
-export async function getAccountInfoById(id: string | number, client?: PoolClient): Promise<Account> {
+export async function getAccountInfoById(
+  id: string | number,
+  client?: PoolClient
+): Promise<Account> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
     SELECT
@@ -23,7 +24,12 @@ export async function getAccountInfoById(id: string | number, client?: PoolClien
 };
 
 // INTERNAL METHOD: DATA NOT TO BE RETURNED TO CLIENT
-export async function _getAccountAuthByEmail(email: string): Promise<{accountId: number, email: string, passwordHash: string}>{
+export async function _getAccountAuthByEmail(email: string)
+ : Promise<{
+  accountId: number,
+  email: string,
+  passwordHash: string
+}>{
   const res = await db.query(`
     SELECT
       account_id as "accountId",
@@ -40,20 +46,31 @@ export async function _getAccountAuthByEmail(email: string): Promise<{accountId:
 // account.firstName
 // account.lastName
 // account.paper
-export async function createAccount(email: string, passwordHash: string, firstName: string, lastName: string): Promise<{accountId: number}>{
+export async function createAccount(
+  email: string,
+  passwordHash: string,
+  firstName: string,
+  lastName: string
+): Promise<{accountId: number}>{
+  const startingPaper = 10000; // Gives people 10K paper on signup
   const res = await db.query(`
     INSERT INTO accounts(
       email,
       pw_hash,
       first_name,
-      last_name
-    ) VALUES ($1, $2, $3, $4)
+      last_name,
+      paper
+    ) VALUES ($1, $2, $3, $4, $5)
     RETURNING account_id as accountId
-  `, [email, passwordHash, firstName, lastName]);
+  `, [email, passwordHash, firstName, lastName, startingPaper]);
   return res.rows[0];
 };
 
-export function depositPaper(accountId: string | number, amount: number, client?: PoolClient) {
+export function depositPaper(
+  accountId: string | number,
+  amount: number,
+  client?: PoolClient
+) {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   return query(`
     UPDATE accounts
@@ -66,7 +83,11 @@ export function depositPaper(accountId: string | number, amount: number, client?
   ]);
 };
 
-export async function withdrawPaper(accountId: string | number, amount: number, client?: PoolClient) {
+export async function withdrawPaper(
+  accountId: string | number,
+  amount: number,
+  client?: PoolClient
+) {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   try {
     return await query(`

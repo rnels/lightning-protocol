@@ -7,18 +7,18 @@ import {
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
-import Modal from '@mui/material/Modal';
 import { FormEvent, useState } from 'react';
+import Modal from '@mui/material/Modal';
 
 const minAmount = 0.001;
 
-export default function PoolAssetDepositModal(props: {pool: Pool, onClose: Function}) {
+export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: number, onClose: Function}) {
 
-  const [amount, setAmount] = useState<number>(minAmount);
+  const [amount, setAmount] = useState<number>(props.unlockedAmount);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    api.depositPoolAssets(props.pool.poolId, amount)
+    api.sellPoolAssets(props.pool.poolId, amount)
       .then(() => props.onClose())
       .catch((error) => console.log(error)); // TODO: Error handling
   };
@@ -29,20 +29,22 @@ export default function PoolAssetDepositModal(props: {pool: Pool, onClose: Funct
       onClose={(e) => props.onClose()}
     >
     <div className={modalStyle}>
-      <h2 className={modalHeaderStyle}>Deposit Assets</h2>
+      <h2 className={modalHeaderStyle}>Sell Assets</h2>
       <form
-        className='pool-asset-deposit-form'
+        className='pool-asset-sell-form'
         onSubmit={handleSubmit}
       >
-        <label className='pool-asset-deposit-amount'>
+        <label className='pool-asset-sell-amount'>
           Amount
           <input
             type='number'
             min={minAmount} // TODO: May need to adjust for different types of assets
+            max={props.unlockedAmount}
             step={minAmount}
             value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            onChange={(e) => setAmount(Math.min(props.unlockedAmount, Number(e.target.value)))}
           />
+        <small>{`Unlocked Asset Amount: ${props.unlockedAmount}`}</small>
         </label>
         <input
           type='submit'

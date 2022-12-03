@@ -1,7 +1,6 @@
 import { PoolLock } from "../../lib/types";
 import PoolLockAssetAmount from "./PoolLockAssetAmount";
-import PoolLockTradeFees from "./PoolLockTradeFees";
-import PoolLockExpiresAt from "./PoolLockExpiresAt";
+import PoolLockPremiumFees from "./PoolLockPremiumFees";
 
 // TODO: Display contract type information
 export default function PoolLockDetails(props: {poolLock: PoolLock}) {
@@ -11,11 +10,8 @@ export default function PoolLockDetails(props: {poolLock: PoolLock}) {
       <PoolLockAssetAmount
         assetAmount={props.poolLock.assetAmount}
       />
-      <PoolLockTradeFees
-        tradeFees={props.poolLock.tradeFees}
-      />
-      <PoolLockExpiresAt
-        expiresAt={props.poolLock.expiresAt}
+      <PoolLockPremiumFees
+        premiumFees={props.poolLock.premiumFees}
       />
     </div>
   );

@@ -200,6 +200,7 @@ export function getContractType(typeId: string | number, cookie?: string): Promi
   //   .then((response) => response.data.contractType);
 }
 
+// NOTE: Only gets active contractTypes
 export function getContractTypesByAssetId(assetId: string | number, cookie?: string): Promise<ContractType[]> {
   var url = new URL(`${serverURL}/contract/type/list`);
   url.searchParams.append('assetId', assetId as string);
@@ -686,26 +687,18 @@ export function createPool(assetId: number, assetAmount=0) {
     .then((response) => response.data);
 }
 
-export function depositPoolAssets(poolId: number, assetAmount: number) {
-  return axios.post(`${serverURL}/pool/asset/deposit`, {
+export function buyPoolAssets(poolId: number, assetAmount: number) {
+  return axios.post(`${serverURL}/pool/asset/buy`, {
     poolId,
     assetAmount
   })
     .then((response) => response.data);
 }
 
-export function withdrawPoolAssets(poolId: number, assetAmount: number) {
-  return axios.post(`${serverURL}/pool/asset/withdraw`, {
+export function sellPoolAssets(poolId: number, assetAmount: number) {
+  return axios.post(`${serverURL}/pool/asset/sell`, {
     poolId,
     assetAmount
-  })
-    .then((response) => response.data);
-}
-
-export function withdrawPoolFees(poolId: number, feeAmount: number) {
-  return axios.post(`${serverURL}/pool/fees/withdraw`, {
-    poolId,
-    feeAmount
   })
     .then((response) => response.data);
 }
