@@ -15,7 +15,7 @@ import { AccountContext } from '../AccountContext';
 const minAmount = 0.001;
 
 // TODO: Display cost of purchase (assetPrice * amount)
-export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function}) {
+export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function, onSubmit: Function}) {
 
   const [amount, setAmount] = useState<number>(minAmount);
   const { account, getAccountInfo }: any = useContext(AccountContext);
@@ -25,6 +25,7 @@ export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function}
     api.buyPoolAssets(props.pool.poolId, amount)
       .then(() => {
         getAccountInfo();
+        props.onSubmit();
         props.onClose();
       })
       .catch((error) => console.log(error)); // TODO: Error handling

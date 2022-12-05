@@ -10,7 +10,8 @@ export default function PoolAssetModal(
     pool: Pool,
     unlockedAmount: number,
     modalType: boolean,
-    onClose: Function
+    onClose: Function,
+    onSubmit: Function
   }
 ) {
 
@@ -19,12 +20,14 @@ export default function PoolAssetModal(
       <PoolAssetBuyModal
         pool={props.pool}
         onClose={props.onClose}
+        onSubmit={props.onSubmit}
       />
       :
       <PoolAssetSellModal
         pool={props.pool}
         unlockedAmount={props.unlockedAmount}
         onClose={props.onClose}
+        onSubmit={props.onSubmit}
       />
   );
 

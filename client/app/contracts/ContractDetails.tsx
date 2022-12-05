@@ -9,22 +9,33 @@ import ContractExercised from "./ContractExercised";
 import { useState } from 'react';
 import ContractUpdateAskPriceModal from './ContractUpdateAskPriceModal';
 import ContractExerciseModal from './ContractExerciseModal';
+import { getContract } from '../../lib/swr';
 
 export default function ContractDetails(props: { contract: Contract }) {
 
-  const [contract, setContract] = useState<Contract>(props.contract);
+  const [useProps, setUseProps] = useState<boolean>(true);
   const [showAskModal, setShowAskModal] = useState<boolean>(false);
   const [showExerciseModal, setShowExerciseModal] = useState<boolean>(false);
 
-  function getContractDetails() {
-    api.getContractExt(contract.contractId)
-      .then((contract) => setContract(contract))
-      .catch((error) => console.log(error));
+  const { contract, updateContract } = getContract(props.contract.contractId, useProps ? props.contract : undefined);
+
+  // useEffect(() => {
+  //   if (useProps) {
+
+  //   }
+  // }, [useProps]);
+
+  if (!contract) return null;
+
+  function fetchContract() {
+    if (useProps) setUseProps(false);
+    else updateContract();
   }
 
   function deleteAsk() {
+    if (!contract) return;
     api.removeAskPrice(contract.contractId)
-      .then(() => getContractDetails())
+      .then(() => fetchContract())
       .catch((error) => console.log(error));
   }
 
@@ -66,7 +77,9 @@ export default function ContractDetails(props: { contract: Contract }) {
         contract={contract}
         onClose={() => {
           setShowAskModal(false);
-          getContractDetails();
+        }}
+        onSubmit={() => {
+          fetchContract();
         }}
       />}
       {/* <ContractCreatedAt
@@ -86,7 +99,9 @@ export default function ContractDetails(props: { contract: Contract }) {
         contract={contract}
         onClose={() => {
           setShowExerciseModal(false);
-          getContractDetails();
+        }}
+        onSubmit={() => {
+          fetchContract();
         }}
         />}
       </>

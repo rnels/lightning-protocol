@@ -13,7 +13,7 @@ import { FormEvent, useContext, useState } from 'react';
 import Modal from '@mui/material/Modal';
 import { AccountContext } from '../AccountContext';
 
-export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}) {
+export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function, onSubmit: Function}) {
 
   const [price, setPrice] = useState<string | number>(props.bid.bidPrice || 0);
   const [error, setError] = useState('');
@@ -25,6 +25,7 @@ export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function}
     api.updateBidPrice(props.bid.bidId, Number(price))
       .then(() => {
         getAccountInfo();
+        props.onSubmit();
         props.onClose();
       })
       .catch((errorRes) => {

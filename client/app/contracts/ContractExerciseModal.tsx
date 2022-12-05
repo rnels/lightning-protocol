@@ -12,14 +12,17 @@ import { Contract } from '../../lib/types';
 import { FormEvent, useState } from 'react';
 import Modal from '@mui/material/Modal';
 
-export default function ContractExerciseModal(props: {contract: Contract, onClose: Function}) {
+export default function ContractExerciseModal(props: {contract: Contract, onClose: Function, onSubmit: Function}) {
 
   const [error, setError] = useState('');
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.exerciseContract(props.contract.contractId)
-      .then(() => props.onClose())
+      .then(() => {
+        props.onSubmit();
+        props.onClose();
+      })
       .catch((errorRes) => {
         console.log(errorRes);
         if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {

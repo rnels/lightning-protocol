@@ -1,12 +1,12 @@
 'use client';
 
-import * as api from '../../lib/api';
+import React from 'react';
 import ContractDetails from './ContractDetails';
-
-import React, { useEffect, useState } from 'react';
 import ContractTypeDetails from './ContractTypeDetails';
 import Link from 'next/link';
-import { Asset } from '../../lib/types';
+import { getAssetListOwnedExt } from '../../lib/swr';
+
+// const { url, fetcher, options } = getAssetListOwnedExt();
 
 // TODO: Create an 'event log' view
 // Convert events (sells, buys, exercises, etc.) into human-readable messages
@@ -17,14 +17,9 @@ export default function UserContractsPage() {
   // TODO: Group contracts by ask price
   // TODO: Allow people to exercise and change ask of multiple contracts of the same type
 
-  const [assets, setAssets] = useState<Asset[]>();
+  const { assets } = getAssetListOwnedExt();
 
-  useEffect(() => {
-    api.getAssetListOwnedExt()
-      .then((assetList) => setAssets(assetList)); // TODO: Implement useSWR
-  }, []);
-
-  if (!assets) return null;
+  if (!assets) return null; // NOTE: Ideally I want this to return an error, but pre-flight on build gives me a problem when I do that
 
   // Stops us from rendering any assets that don't contain contractTypes with contracts
   let renderAssets: any = {};

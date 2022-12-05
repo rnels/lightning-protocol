@@ -274,6 +274,7 @@ export async function getUnlockedAmountByAssetId(assetId: string | number, clien
 }
 
 // NOTE: Changed to return pool locks as well
+/** Also returns pool locks */
 export async function getPoolById(id: string | number, client?: PoolClient): Promise<Pool> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   let res: QueryResult;

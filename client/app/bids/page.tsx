@@ -1,24 +1,17 @@
 'use client';
 
-import * as api from '../../lib/api';
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import BidDetails from './BidDetails';
 import ContractTypeDetails from '../contracts/ContractTypeDetails';
 import Link from 'next/link';
-import { Asset } from '../../lib/types';
+import { getAssetListOwnedExt } from '../../lib/swr';
 
 /** Renders a list of bids for the logged in user */
 export default function UserBidsPage() {
 
-  const [assets, setAssets] = useState<Asset[]>();
+  const { assets, updateAssetListOwnedExt } = getAssetListOwnedExt();
 
-  useEffect(() => {
-    api.getAssetListOwnedExt()
-      .then((assetList) => setAssets(assetList)); // TODO: Implement useSWR
-  }, []);
-
-  if (!assets) return null;
+  if (!assets) return null; // NOTE: Ideally I want this to return an error, but pre-flight on build gives me a problem when I do that
 
   // Stops us from rendering any assets that don't contain contractTypes with bids
   let renderAssets: any = {};

@@ -5,7 +5,7 @@ const router = Router();
 
 // GET REQUESTS //
 
-// Get pool info by pool ID
+// Get pool info (and pool locks) by pool ID
 // Expects in req.query:
 //  id - pool_id to retrieve details of
 // Successful response data:
@@ -15,6 +15,7 @@ const router = Router();
 //   assetId
 //   assetAmount
 //   tradeFees
+//   poolLocks: poolLock[]
 // }
 router.get('/pool', (req, res, next) => {
   if (!req.query.id) {

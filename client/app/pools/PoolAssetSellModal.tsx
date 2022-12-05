@@ -14,7 +14,7 @@ import { AccountContext } from '../AccountContext';
 
 const minAmount = 0.001;
 
-export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: number, onClose: Function}) {
+export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: number, onClose: Function, onSubmit: Function}) {
 
   const [amount, setAmount] = useState<number>(props.unlockedAmount);
   const { getAccountInfo }: any = useContext(AccountContext);
@@ -24,6 +24,7 @@ export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: n
     api.sellPoolAssets(props.pool.poolId, amount)
       .then(() => {
         getAccountInfo();
+        props.onSubmit();
         props.onClose();
       })
       .catch((error) => console.log(error)); // TODO: Error handling
