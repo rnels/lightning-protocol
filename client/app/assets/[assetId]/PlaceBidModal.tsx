@@ -1,10 +1,11 @@
 'use client';
 
-import {
-  modal as modalStyle,
-  modalHeader as modalHeaderStyle,
-  errorMessage as errorMessageStyle
-} from '../../styles.module.scss';
+// import {
+//   modal as modalStyle,
+//   modalHeader as modalHeaderStyle,
+//   errorMessage as errorMessageStyle
+// } from '../../styles.module.scss';
+import styles from '../../styles.module.scss';
 import * as api from '../../../lib/api';
 import { Asset, ContractType } from '../../../lib/types';
 
@@ -55,8 +56,8 @@ export default function PlaceBidModal(props: {
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className={modalStyle}>
-      <h2 className={modalHeaderStyle}>Place Bid</h2>
+    <div className={styles.modal}>
+      <h2 className={styles.modalHeader}>Place Bid</h2>
       <form
         className='place-bid-form'
         onSubmit={handleSubmit}
@@ -89,7 +90,7 @@ export default function PlaceBidModal(props: {
           disabled={price < 0.01 || amount < 1}
           value='Submit'
         />
-        {error && <label className={errorMessageStyle}>{error}</label>}
+        {error && <label className={styles.errorMessage}>{error}</label>}
       </form>
       {/* <button
         onClick={(e) => props.onClose()}

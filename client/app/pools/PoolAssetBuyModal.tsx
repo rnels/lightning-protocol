@@ -1,25 +1,32 @@
 'use client';
 
-import {
-  modal as modalStyle,
-  modalHeader as modalHeaderStyle
-} from '../styles.module.scss';
+// import {
+//   modal as modalStyle,
+//   modalHeader as modalHeaderStyle
+// } from '../styles.module.scss';
+import styles from '../styles.module.scss';
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
 import Modal from '@mui/material/Modal';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
+import { AccountContext } from '../AccountContext';
 
 const minAmount = 0.001;
 
+// TODO: Display cost of purchase (assetPrice * amount)
 export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function}) {
 
   const [amount, setAmount] = useState<number>(minAmount);
+  const { account, getAccountInfo }: any = useContext(AccountContext);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.buyPoolAssets(props.pool.poolId, amount)
-      .then(() => props.onClose())
+      .then(() => {
+        getAccountInfo();
+        props.onClose();
+      })
       .catch((error) => console.log(error)); // TODO: Error handling
   };
 
@@ -28,8 +35,8 @@ export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function}
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className={modalStyle}>
-      <h2 className={modalHeaderStyle}>Buy Assets</h2>
+    <div className={styles.modal}>
+      <h2 className={styles.modalHeader}>Buy Assets</h2>
       <form
         className='pool-asset-buy-form'
         onSubmit={handleSubmit}
@@ -43,11 +50,12 @@ export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function}
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
           />
+          <small>{`${Math.trunc(account.paper * 100) / 100} 💵`}</small>
         </label>
         <input
           type='submit'
           disabled={amount < minAmount}
-          value='Submit'
+          value='Buy'
         />
       </form>
     </div>

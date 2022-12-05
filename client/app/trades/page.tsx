@@ -5,6 +5,7 @@ import TradeDetails from './TradeDetails';
 import { cookies } from 'next/headers';
 
 /** Renders a list of trades for the logged in user */
+// TODO: Convert this to a client component, use getAssetListOwnedExt() instead of getTrades() and getContractType()
 export default async function UserTradesPage() {
 
   const trades = await getTrades();

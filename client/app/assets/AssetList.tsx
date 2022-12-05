@@ -9,6 +9,7 @@ export default function AssetList(props: { assetList: Asset[] }) {
     <div className={styles.assetList}>
       {props.assetList.map((asset) => (
         <AssetDetails
+          key={asset.assetId}
           asset={asset}
         />
       ))}

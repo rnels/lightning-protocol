@@ -2,7 +2,7 @@
 
 import styles from './nav.module.scss';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { AccountContext } from './AccountContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -11,7 +11,8 @@ export default function NavBar() {
 
   const { account }: any = useContext(AccountContext);
   const path = usePathname();
-  const activeLink = path?.split('/')[1];
+  let splitPath = path!.split('/');
+  const activeLink = splitPath[1];
 
   return (
     <div className={styles.navBar}>
@@ -28,10 +29,10 @@ export default function NavBar() {
       {`${Math.trunc(account.paper * 100) / 100} 💵`}
       </>
       :
-      <>
+      <div>
         <Link href="/login" id={activeLink === 'login' ? styles.currentPage : undefined}>Login</Link>
         <Link href="/register" id={activeLink === 'register' ? styles.currentPage : undefined}>Register</Link>
-      </>
+      </div>
       }
     </div>
   );

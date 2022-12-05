@@ -7,7 +7,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Asset } from '../../lib/types';
 import { useRouter } from 'next/navigation';
-import { errorMessage as errorMessageStyle } from '../styles.module.scss';
+// import { errorMessage as errorMessageStyle } from '../styles.module.scss';
+import styles from '../styles.module.scss';
 
 /** Renders a list of pools for the logged in user */
 export default function UserPoolList(props: {assets: Asset[]}) {
@@ -19,16 +20,16 @@ export default function UserPoolList(props: {assets: Asset[]}) {
   async function createPool(assetId: number) {
     try {
       await api.createPool(assetId);
-      router.refresh();
+      router.refresh(); // TODO: Switch to invalidating cache to force a new fetch(?)
     } catch (e) {
       console.log(e);
-      setError('Could not create pool')
+      setError('Could not create pool');
     }
   }
 
   return (
     <div className='user-pool-list'>
-      {error && <div className={errorMessageStyle}>{`Error: ${error}`}</div>}
+      {error && <div className={styles.errorMessage}>{`Error: ${error}`}</div>}
       {props.assets.length > 0 &&
         props.assets.map((asset) =>
         <div key={asset.assetId}>

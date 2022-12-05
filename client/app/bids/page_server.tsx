@@ -1,24 +1,15 @@
-'use client';
-
 import * as api from '../../lib/api';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import BidDetails from './BidDetails';
 import ContractTypeDetails from '../contracts/ContractTypeDetails';
 import Link from 'next/link';
-import { Asset } from '../../lib/types';
+import { cookies } from 'next/headers';
 
 /** Renders a list of bids for the logged in user */
-export default function UserBidsPage() {
+export default async function UserBidsPage() {
 
-  const [assets, setAssets] = useState<Asset[]>();
-
-  useEffect(() => {
-    api.getAssetListOwnedExt()
-      .then((assetList) => setAssets(assetList)); // TODO: Implement useSWR
-  }, []);
-
-  if (!assets) return null;
+  const assets = await getAssets();
 
   // Stops us from rendering any assets that don't contain contractTypes with bids
   let renderAssets: any = {};
@@ -58,4 +49,10 @@ export default function UserBidsPage() {
     </div>
   );
 
+}
+
+async function getAssets() {
+  let cookie = cookies().get('lightning-app-cookie');
+  let assetList = await api.getAssetListOwnedExt(cookie!.value);
+  return assetList;
 }

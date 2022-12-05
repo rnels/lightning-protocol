@@ -35,6 +35,7 @@ router.get('/group/asset/id', (req, res, next) => {
 // Successful response data:
 // Includes contractTypes, pools
 router.get('/group/asset/owned', (req, res, next) => {
+  console.log('req');
   groups.getAssetGroupOwned(req.user!.id)
     .then((assets) => {
       res.status(200).send({assets});

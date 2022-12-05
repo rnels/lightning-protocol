@@ -1,5 +1,3 @@
-'use client';
-
 import * as api from '../../lib/api';
 import ContractDetails from './ContractDetails';
 
@@ -12,7 +10,7 @@ import { Asset } from '../../lib/types';
 // Convert events (sells, buys, exercises, etc.) into human-readable messages
 
 /** Renders a list of contracts for the logged in user */
-export default function UserContractsPage() {
+export default async function UserContractsPage() {
 
   // TODO: Group contracts by ask price
   // TODO: Allow people to exercise and change ask of multiple contracts of the same type

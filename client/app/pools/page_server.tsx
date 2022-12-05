@@ -1,15 +1,8 @@
-'use client';
+import * as api from '../../lib/api';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { cookies } from 'next/headers';
 import UserPoolList from './UserPoolList';
-import { Asset } from '../../lib/types';
-
-import useSWR from 'swr';
-import { getAssetListOwnedExt } from '../../lib/swr';
-
-const { url, fetcher, options } = getAssetListOwnedExt();
-
-console.log('ee');
 
 // TODO: Switch to dynamic rendering. Currently this page uses static rendering on the first visit, and will continue to show the cached page (this affects all pages with server rendering) https://beta.nextjs.org/docs/rendering/static-and-dynamic-rendering
 
@@ -17,14 +10,9 @@ console.log('ee');
 // So the page fetching must always be dynamic, but I should still be able to cache fetch results from the API(?)
 
 // I could also build some kind of authentication layer on the app where it treats all requests by logged in users the same, like caching at a higher level which doesn't consider the value of the cookie.
-export default function UserPoolsPage() {
+export default async function UserPoolsPage() {
 
-  const { data, error } = useSWR(url, fetcher, options);
-  let assets: Asset[];
-  if (error || !data) assets = [];
-  else assets = data;
-
-  if (assets.length === 0) return null; // NOTE: Ideally I want this to return an error, but pre-flight on build gives me a problem when I do that
+  const assets = await getAssets();
 
   return (
     <div className='user-pools-page'>
@@ -37,3 +25,8 @@ export default function UserPoolsPage() {
 
 }
 
+async function getAssets() {
+  let cookie = cookies().get('lightning-app-cookie');
+  let assetList = await api.getAssetListOwnedExt(cookie!.value);
+  return assetList;
+}

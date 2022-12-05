@@ -4,13 +4,12 @@ import { Account, Asset, Bid, Contract, ContractType, Pool, PoolLock, Trade } fr
 
 // ACCOUNTS //
 
-export function getAccount(cookie?: string): Promise<Account> {
-  return fetch(`${serverURL}/account`, {
+export function getAccount(cookie: string) : Promise<Account> | Account {
+  var url = new URL(`${serverURL}/account`);
+  return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include',
-    cache: 'no-store',
-    next: {}
+    headers: { Cookie: `lightning-app-cookie=${cookie}` },
+    credentials: 'include'
   })
     .then((result) => result.json())
     .then((json) => json.account);

@@ -1,34 +1,29 @@
 'use client';
 
 import './global.scss';
-import { app as appStyle } from './styles.module.scss'
-import * as api from '../lib/api';
+import styles from './styles.module.scss'
 import NavBar from './NavBar';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { AccountContext } from './AccountContext';
 import { Account } from '../lib/types';
+import useSWR from 'swr';
+import { getAccount } from '../lib/swr';
+
+const { url, fetcher } = getAccount();
 
 export default function RootLayout({ children }: { children: React.ReactNode } ) {
 
-  const [account, setAccount] = useState<Account>();
-
-  function getAccountInfo(): void {
-    api.getAccount()
-      .then((account) => setAccount(account))
-      .catch((errorRes) => {
-        console.log(errorRes);
-      });
-  }
-
-  useEffect(() => {
-    getAccountInfo();
-  }, []);
+  const { data, error, mutate } = useSWR(url, fetcher);
+  const getAccountInfo = mutate.bind(mutate, data);
+  let account: Account | null;
+  if (error || !data) account = null;
+  else account = data;
 
   return (
     <html lang='en'>
       <body>
-      <div className={appStyle}>
+      <div className={styles.app}>
         <AccountContext.Provider value={{account, getAccountInfo}}>
           <NavBar/>
           {children}
@@ -36,5 +31,6 @@ export default function RootLayout({ children }: { children: React.ReactNode } )
         </div>
       </body>
     </html>
-  )
+  );
+
 }

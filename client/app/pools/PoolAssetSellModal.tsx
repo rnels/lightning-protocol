@@ -1,25 +1,31 @@
 'use client';
 
-import {
-  modal as modalStyle,
-  modalHeader as modalHeaderStyle
-} from '../styles.module.scss';
+// import {
+//   modal as modalStyle,
+//   modalHeader as modalHeaderStyle
+// } from '../styles.module.scss';
+import styles from '../styles.module.scss';
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 import Modal from '@mui/material/Modal';
+import { AccountContext } from '../AccountContext';
 
 const minAmount = 0.001;
 
 export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: number, onClose: Function}) {
 
   const [amount, setAmount] = useState<number>(props.unlockedAmount);
+  const { getAccountInfo }: any = useContext(AccountContext);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.sellPoolAssets(props.pool.poolId, amount)
-      .then(() => props.onClose())
+      .then(() => {
+        getAccountInfo();
+        props.onClose();
+      })
       .catch((error) => console.log(error)); // TODO: Error handling
   };
 
@@ -28,8 +34,8 @@ export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: n
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className={modalStyle}>
-      <h2 className={modalHeaderStyle}>Sell Assets</h2>
+    <div className={styles.modal}>
+      <h2 className={styles.modalHeader}>Sell Assets</h2>
       <form
         className='pool-asset-sell-form'
         onSubmit={handleSubmit}
@@ -44,12 +50,12 @@ export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: n
             value={amount}
             onChange={(e) => setAmount(Math.min(props.unlockedAmount, Number(e.target.value)))}
           />
-        <small>{`Unlocked Asset Amount: ${props.unlockedAmount}`}</small>
+          <small>{`Unlocked Assets: ${props.unlockedAmount}`}</small>
         </label>
         <input
           type='submit'
           disabled={amount < minAmount}
-          value='Submit'
+          value='Sell'
         />
       </form>
     </div>

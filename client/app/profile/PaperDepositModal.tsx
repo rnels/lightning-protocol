@@ -1,9 +1,10 @@
 'use client';
 
-import {
-  modal as modalStyle,
-  modalHeader as modalHeaderStyle
-} from '../styles.module.scss';
+// import {
+//   modal as modalStyle,
+//   modalHeader as modalHeaderStyle
+// } from '../styles.module.scss';
+import styles from '../styles.module.scss';
 import * as api from '../../lib/api';
 import Modal from '@mui/material/Modal';
 import React, { useState, FormEvent } from 'react';
@@ -26,8 +27,8 @@ export default function PaperDepositModal(props: { onClose: Function }) {
       open={true}
       onClose={(e) => props.onClose()}
     >
-    <div className={modalStyle}>
-      <h2 className={modalHeaderStyle}>Deposit Paper</h2>
+    <div className={styles.modal}>
+      <h2 className={styles.modalHeader}>Deposit Paper</h2>
       <form
         className='paper-deposit-form'
         onSubmit={handleSubmit}

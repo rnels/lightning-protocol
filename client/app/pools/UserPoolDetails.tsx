@@ -6,10 +6,11 @@ import PoolAssetAmount from './PoolAssetAmount';
 // import PoolLockList from './PoolLock/PoolLockList';
 import PoolAssetModal from './PoolAssetModal';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
 import PoolReserveAmount from './PoolReserveAmount';
 
+// TODO: Fix the bug where changing pool details (like buying assets) still shows a cached value when navigating away and back. This affects anything that uses client components I believe due to the server using static data fetching on page load (cache: 'force-cache' is the default). Aka we need to invalidate the cache or force a refresh. https://beta.nextjs.org/docs/data-fetching/fetching
 export default function UserPoolDetails(props: { pool: Pool }) {
 
   const [pool, setPool] = useState<Pool>(props.pool);
