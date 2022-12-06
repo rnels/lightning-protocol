@@ -9,8 +9,8 @@ import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
 import Modal from '@mui/material/Modal';
-import { FormEvent, useContext, useState } from 'react';
-import { AccountContext } from '../AccountContext';
+import { FormEvent, useState } from 'react';
+import { getAccount } from '../../lib/swr';
 
 const minAmount = 0.001;
 
@@ -18,13 +18,13 @@ const minAmount = 0.001;
 export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function, onSubmit: Function}) {
 
   const [amount, setAmount] = useState<number>(minAmount);
-  const { account, getAccountInfo }: any = useContext(AccountContext);
+  const { account, updateAccount } = getAccount();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.buyPoolAssets(props.pool.poolId, amount)
       .then(() => {
-        getAccountInfo();
+        updateAccount();
         props.onSubmit();
         props.onClose();
       })
@@ -51,7 +51,7 @@ export default function PoolAssetBuyModal(props: {pool: Pool, onClose: Function,
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
           />
-          <small>{`${Math.trunc(account.paper * 100) / 100} 💵`}</small>
+          <small>{`${Math.trunc(Number(account!.paper) * 100) / 100} 💵`}</small>
         </label>
         <input
           type='submit'

@@ -56,9 +56,6 @@ export default function BidDetails(props: { bid: Bid }) {
           setShowBidModal(false);
         }}
       />}
-      {/* {contractType && <ContractTypeDetails // COMMENTED OUT FOR NOW
-        contractType={contractType}
-      />} */}
     </div>
   );
 

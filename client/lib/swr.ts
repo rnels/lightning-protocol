@@ -3,6 +3,26 @@ import useSWR from 'swr';
 import { serverURL } from '../config';
 import { Account, Asset, Bid, Contract, ContractType, Pool, PoolLock, Trade } from './types';
 
+// ASSETS //
+
+export function getAssetListOwnedExt() {
+  let fetchUrl = new URL(`${serverURL}/group/asset/owned`);
+  let fetcher = (url: string) =>
+    axios.get(url)
+      .then((response) => response.data.assets as Asset[]);
+  let url = fetchUrl.toString();
+  let options = { // When navigating away and back to the page
+    revalidateIfStale: true,
+    revalidateOnFocus: true
+  }
+  const { data, error, mutate } = useSWR(url, fetcher, options);
+  return {
+    assets: error ? undefined : data,
+    error,
+    updateAssetListOwnedExt: mutate.bind(mutate, data)
+  };
+}
+
 // ACCOUNTS //
 
 export function getAccount() {
@@ -15,7 +35,12 @@ export function getAccount() {
     revalidateIfStale: false,
     revalidateOnFocus: false
   }
-  return { url, fetcher, options };
+  const { data, error, mutate } = useSWR(url, fetcher, options);
+  return {
+    account: error ? undefined : data,
+    error,
+    updateAccount: mutate.bind(mutate, data)
+  };
 }
 
 // CONTRACTS //
@@ -32,7 +57,7 @@ export function getContract(contractId: string | number, initialData?: Contract)
   }
   const { data, error, mutate } = useSWR(initialData ? null : url, fetcher, options);
   return {
-    contract: data,
+    contract: error ? undefined : data,
     error,
     updateContract: mutate.bind(mutate, data)
   };
@@ -52,29 +77,9 @@ export function getBid(bidId: string | number, initialData?: Bid){
   }
   const { data, error, mutate } = useSWR(initialData ? null : url, fetcher, options);
   return {
-    bid: data,
+    bid: error ? undefined : data,
     error,
     updateBid: mutate.bind(mutate, data)
-  };
-}
-
-// ASSETS //
-
-export function getAssetListOwnedExt() {
-  let fetchUrl = new URL(`${serverURL}/group/asset/owned`);
-  let fetcher = (url: string) =>
-    axios.get(url)
-      .then((response) => response.data.assets as Asset[]);
-  let url = fetchUrl.toString();
-  let options = { // When navigating away and back to the page
-    revalidateIfStale: true,
-    revalidateOnFocus: true
-  }
-  const { data, error, mutate } = useSWR(url, fetcher, options);
-  return {
-    assets: data,
-    error,
-    updateAssetListOwnedExt: mutate.bind(mutate, data)
   };
 }
 
@@ -92,7 +97,7 @@ export function getPool(poolId: string | number, initialData?: Pool) {
   }
   const { data, error, mutate } = useSWR(initialData ? null : url, fetcher, options);
   return {
-    pool: data,
+    pool: error ? undefined : data,
     error,
     updatePool: mutate.bind(mutate, data)
   };

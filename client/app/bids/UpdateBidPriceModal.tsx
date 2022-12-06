@@ -9,22 +9,22 @@ import styles from '../styles.module.scss';
 import * as api from '../../lib/api';
 import { Bid } from '../../lib/types';
 
-import { FormEvent, useContext, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import Modal from '@mui/material/Modal';
-import { AccountContext } from '../AccountContext';
+import { getAccount } from '../../lib/swr';
 
 export default function UpdateBidPriceModal(props: {bid: Bid, onClose: Function, onSubmit: Function}) {
 
   const [price, setPrice] = useState<string | number>(props.bid.bidPrice || 0);
   const [error, setError] = useState('');
 
-  const { getAccountInfo }: any = useContext(AccountContext);
+  const { account, updateAccount } = getAccount();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.updateBidPrice(props.bid.bidId, Number(price))
       .then(() => {
-        getAccountInfo();
+        updateAccount();
         props.onSubmit();
         props.onClose();
       })

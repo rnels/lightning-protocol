@@ -9,9 +9,9 @@ import styles from '../../styles.module.scss';
 import * as api from '../../../lib/api';
 import { Asset, ContractType } from '../../../lib/types';
 
-import { FormEvent, useState, useContext } from 'react';
+import { FormEvent, useState } from 'react';
 import Modal from '@mui/material/Modal';
-import { AccountContext } from '../../AccountContext';
+import { getAccount } from '../../../lib/swr';
 
 export default function PlaceBidModal(props: {
   contractType: ContractType,
@@ -24,7 +24,7 @@ export default function PlaceBidModal(props: {
   const [amount, setAmount] = useState<number>(1);
   const [error, setError] = useState('');
 
-  const { getAccountInfo }: any = useContext(AccountContext);
+  const { account, updateAccount } = getAccount();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,7 +43,7 @@ export default function PlaceBidModal(props: {
       );
     }
     await Promise.all(createBidPromises);
-    getAccountInfo();
+    updateAccount();
     props.onClose();
   };
 

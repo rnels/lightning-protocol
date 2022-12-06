@@ -8,22 +8,22 @@ import styles from '../styles.module.scss';
 import * as api from '../../lib/api';
 import { Pool } from '../../lib/types';
 
-import { FormEvent, useContext, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import Modal from '@mui/material/Modal';
-import { AccountContext } from '../AccountContext';
+import { getAccount } from '../../lib/swr';
 
 const minAmount = 0.001;
 
 export default function PoolAssetSellModal(props: {pool: Pool, unlockedAmount: number, onClose: Function, onSubmit: Function}) {
 
   const [amount, setAmount] = useState<number>(props.unlockedAmount);
-  const { getAccountInfo }: any = useContext(AccountContext);
+  const { account, updateAccount } = getAccount();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.sellPoolAssets(props.pool.poolId, amount)
       .then(() => {
-        getAccountInfo();
+        updateAccount();
         props.onSubmit();
         props.onClose();
       })

@@ -19,12 +19,6 @@ export default function ContractDetails(props: { contract: Contract }) {
 
   const { contract, updateContract } = getContract(props.contract.contractId, useProps ? props.contract : undefined);
 
-  // useEffect(() => {
-  //   if (useProps) {
-
-  //   }
-  // }, [useProps]);
-
   if (!contract) return null;
 
   function fetchContract() {

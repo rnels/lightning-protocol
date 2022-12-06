@@ -41,7 +41,6 @@ router.get('/contract', (req, res, next) => {
 //   trades: Trade[]
 // }
 router.get('/contract/ext', (req, res, next) => {
-  console.log('req contract, id:', req.query.id);
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }

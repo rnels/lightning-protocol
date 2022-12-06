@@ -3,8 +3,8 @@
 // import { errorMessage as errorMessageStyle } from '../styles.module.scss';
 import styles from '../styles.module.scss';
 import * as api from '../../lib/api';
-import React, { FormEvent, useContext, useState } from 'react';
-import { AccountContext } from '../AccountContext';
+import React, { FormEvent, useState } from 'react';
+import { getAccount } from '../../lib/swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -14,14 +14,14 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const { getAccountInfo }: any = useContext(AccountContext);
+  const { updateAccount } = getAccount();
   const router = useRouter();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api.loginAccount(email, password)
       .then(() => {
-        getAccountInfo()
+        updateAccount();
         router.push('/profile');
       })
       .catch((errorRes) => {

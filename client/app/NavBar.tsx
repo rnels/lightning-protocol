@@ -2,14 +2,14 @@
 
 import styles from './nav.module.scss';
 
-import { useContext } from 'react';
-import { AccountContext } from './AccountContext';
+import { getAccount } from '../lib/swr';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export default function NavBar() {
 
-  const { account }: any = useContext(AccountContext);
+  const { account } = getAccount();
+
   const path = usePathname();
   let splitPath = path!.split('/');
   const activeLink = splitPath[1];
@@ -27,7 +27,7 @@ export default function NavBar() {
         <Link href="/trades" id={activeLink === 'trades' ? styles.currentPage : undefined}>Trades</Link>
         <Link href="/profile" id={activeLink === 'profile' ? styles.currentPage : undefined}>Profile</Link>
       </div>
-      {`${Math.trunc(account.paper * 100) / 100} 💵`}
+      {`${Math.trunc(Number(account.paper) * 100) / 100} 💵`}
       </>
       :
       <div>

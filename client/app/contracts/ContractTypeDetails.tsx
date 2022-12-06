@@ -3,6 +3,7 @@ import ContractTypeDirection from "./ContractTypeDirection";
 import ContractTypeStrikePrice from "./ContractTypeStrikePrice";
 import ContractTypeExpiresAt from "./ContractTypeExpiresAt";
 
+// NOTE: This doesn't require SWR since the type details should be static
 export default function ContractTypeDetails(props: {contractType: ContractType}) {
 
   return (

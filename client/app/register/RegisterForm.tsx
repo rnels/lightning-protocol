@@ -4,14 +4,15 @@
 import styles from '../styles.module.scss';
 import * as api from '../../lib/api';
 
-import React, { FormEvent, useContext, useState } from 'react';
-import { AccountContext } from '../AccountContext';
+import React, { FormEvent, useState } from 'react';
+import { getAccount } from '../../lib/swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function RegisterForm() {
 
-  const { getAccountInfo }: any = useContext(AccountContext);
+  const { updateAccount } = getAccount();
+
   const router = useRouter();
 
   const [firstName, setFirstName] = useState('');
@@ -24,7 +25,7 @@ export default function RegisterForm() {
     e.preventDefault();
     api.registerAccount(email, password, firstName, lastName)
       .then(() => {
-        getAccountInfo()
+        updateAccount()
         router.push('/profile');
       })
       .catch((errorRes) => {

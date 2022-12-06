@@ -9,7 +9,7 @@ import { getAssetListOwnedExt } from '../../lib/swr';
 /** Renders a list of bids for the logged in user */
 export default function UserBidsPage() {
 
-  const { assets, updateAssetListOwnedExt } = getAssetListOwnedExt();
+  const { assets } = getAssetListOwnedExt();
 
   if (!assets) return null; // NOTE: Ideally I want this to return an error, but pre-flight on build gives me a problem when I do that
 
