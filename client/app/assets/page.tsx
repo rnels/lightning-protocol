@@ -11,7 +11,7 @@ export default async function AssetsPage() {
 
   return (
     <div className={styles.assetPage}>
-      <h2>Assets</h2>
+      <h2>All Assets</h2>
       <AssetList
         assetList={assetList}
       />

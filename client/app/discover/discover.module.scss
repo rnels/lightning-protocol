@@ -1,0 +1,49 @@
+$positive-price-color: #63E163;
+$negative-price-color: #D43F3F;
+
+.discoverFormComponent button {
+  width: auto;
+}
+
+.discoverForm {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.discoverForm label {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.discoverForm input, .discoverForm select {
+  padding: 3px 5px;
+}
+
+#discoverFormSearch input {
+  width: 150px;
+}
+
+#discoverFormSearch ul {
+  position: absolute;
+  z-index: 999;
+  text-align: left;
+  list-style: none;
+  padding: 0;
+  margin-top: 0px;
+  color: #232323;
+  background-color: #ececec;
+  width: 150px;
+}
+
+#discoverFormSearch li {
+  padding: 5px 10px;
+}
+
+#discoverFormSearch li:hover{
+  background-color: #c9c9c9;
+}
+
+

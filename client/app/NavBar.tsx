@@ -20,6 +20,7 @@ export default function NavBar() {
       <>
       <div className={styles.navBarLeft}>
         <Link href="/" id={activeLink === '' ? styles.currentPage : undefined}>Home</Link>
+        <Link href="/discover" id={activeLink === 'discover' ? styles.currentPage : undefined}>Discover</Link>
         <Link href="/assets" id={activeLink === 'assets' ? styles.currentPage : undefined}>Assets</Link>
         <Link href="/pools" id={activeLink === 'pools' ? styles.currentPage : undefined}>Pools</Link>
         <Link href="/contracts" id={activeLink === 'contracts' ? styles.currentPage : undefined}>Contracts</Link>
