@@ -73,6 +73,26 @@ router.get('/contract/type', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract type info' }));
 });
 
+// Get badged contract types by assetId and direction
+// Expects in req.query:
+//  assetId - Asset ID to retrieve contractTypes of
+//  direction - Call or put direction for contractTypes
+// Successful response data:
+// contractTypes: ContractType[] (+ badge)
+router.get('/contract/type/badged', (req, res, next) => {
+  if (!req.query.assetId || !req.query.direction) {
+    return res.status(400).send({ message: 'Missing query parameter(s)' });
+  }
+  let direction: boolean;
+  if ((req.query.direction as string).toLowerCase() === 'true') direction = true;
+  else direction = false;
+  contractTypes.getBadgedTypesForAssetAndDirection(req.query.assetId as string, direction)
+    .then((contractTypes) => {
+      res.status(200).send({contractTypes});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract types' }));
+});
+
 // Retrieve active contracts for a given contract type ID
 // Expects in req.query:
 //  typeId - ID to retrieve contracts of
