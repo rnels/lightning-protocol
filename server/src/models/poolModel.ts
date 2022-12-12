@@ -138,7 +138,8 @@ async function _doesPoolExist(accountId: number, assetId: number, client?: PoolC
         AND asset_id=$2
     )
   `, [accountId, assetId]);
-  return Boolean(res.rows[0].exists);
+  if (res.rows[0].exists.toLowerCase() === 'true') return true;
+  else return false;
 }
 
 /** NOTE: Gets all locks, including released */
