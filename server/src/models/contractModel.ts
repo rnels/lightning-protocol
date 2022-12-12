@@ -141,7 +141,7 @@ export async function _writerUpdateAskPrice(
     }
     await client.query('COMMIT');
   } catch (e) {
-    console.log(e) // DEBUG
+    console.log(e); // DEBUG
     await client.query('ROLLBACK');
   } finally {
     client.release();
