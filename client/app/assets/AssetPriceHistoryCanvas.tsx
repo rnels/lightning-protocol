@@ -33,8 +33,8 @@ export default function AssetPriceHistoryCanvas(
     let step = Math.floor((canvas.width - marginOffset) / (props.priceHistory.length - 1));
     // Given a value p (price) in the range A (minPrice) to B (maxPrice), calculate a point q (height / y) in the range C (0) to D (maxHeight) that is in the same relative place
     let heightArray = priceArray.map((price, i) => {
-      let scale = ((maxHeight - marginOffset) - marginOffset) / (maxPrice - minPrice);
-      let offset = -minPrice * ((maxHeight - marginOffset) - marginOffset) / (maxPrice - minPrice) + marginOffset;
+      let scale = (maxHeight - (marginOffset * 2)) / (maxPrice - minPrice);
+      let offset = -minPrice * scale + marginOffset;
       return (price * scale) + offset;
     });
     let preP = {

@@ -76,7 +76,7 @@ router.get('/contract/type', (req, res, next) => {
 // Get badged contract types by assetId and direction
 // Expects in req.query:
 //  assetId - Asset ID to retrieve contractTypes of
-//  direction - Call or put direction for contractTypes
+//  direction - Call or put direction for contractTypes ('true' or 'false')
 // Successful response data:
 // contractTypes: ContractType[] (+ badge)
 router.get('/contract/type/badged', (req, res, next) => {

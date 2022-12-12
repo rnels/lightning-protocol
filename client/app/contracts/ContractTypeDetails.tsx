@@ -17,6 +17,7 @@ export default function ContractTypeDetails(props: {contractType: ContractType})
       <ContractTypeExpiresAt
         expiresAt={props.contractType.expiresAt}
       />
+      {props.contractType.badge && props.contractType.badge}
     </div>
   );
 

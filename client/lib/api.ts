@@ -217,6 +217,19 @@ export function getContractTypesByAssetId(assetId: string | number, cookie?: str
   //   .then((response) => response.data.contractTypes);
 }
 
+export function getBadgedContractTypes(assetId: string | number, direction: boolean, cookie?: string): Promise<ContractType[]> {
+  var url = new URL(`${serverURL}/contract/type/badged`);
+  url.searchParams.append('assetId', assetId as string);
+  url.searchParams.append('direction', direction.toString());
+  return fetch(url, {
+    method: 'GET',
+    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    credentials: 'include'
+  })
+    .then((result) => result.json())
+    .then((json) => json.contractTypes);
+}
+
 export function getContractTypesByAssetIdExt(assetId: string | number, cookie?: string): Promise<ContractType[]> {
   var url = new URL(`${serverURL}/group/contract/type`);
   url.searchParams.append('assetId', assetId as string);

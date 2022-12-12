@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Geo&display=swap');
-
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -52,6 +50,10 @@ form {
 
 form a {
   font-size: calc(12px + 1vmin);
+}
+
+li {
+  font-size: calc(8px + 1vmin);
 }
 
 label {

@@ -4,14 +4,13 @@ import React from 'react';
 import styles from './discover.module.scss';
 import DiscoverForm from './DiscoverForm';
 
-// TODO: This will be the page where users are recommended contracts based on their sentiment
 export default async function DiscoverPage() {
 
   const assetList = await getAssetList();
 
   return (
     <div className='discover-page'>
-      <h2>Discover</h2>
+      <h2>Discover Contracts</h2>
       <DiscoverForm
         assets={assetList}
       />

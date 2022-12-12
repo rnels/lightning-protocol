@@ -14,7 +14,6 @@ export default function DiscoverForm(props: {assets: Asset[]}) {
   const [assetList, setAssetList] = useState<Asset[]>([]);
   const [listVisible, setListVisible] = useState<boolean>(false);
   const [selectedDirection, setSelectedDirection] = useState<string>('');
-  const [selectedAmount, setSelectedAmount] = useState<string>('');
 
   const router = useRouter();
 
@@ -24,14 +23,19 @@ export default function DiscoverForm(props: {assets: Asset[]}) {
     if (e.target.value.length === 0) return setAssetList([]);
     if (!listVisible) setListVisible(true);
     let searchInput = e.target.value.toLowerCase();
-    let matchedAssets = props.assets.filter((asset) => asset.name.toLowerCase().includes(searchInput));
+    let matchedAssets = props.assets.filter((asset) => {
+      if (
+        asset.name.toLowerCase().includes(searchInput) ||
+        asset.symbol.toLowerCase().includes(searchInput)
+      ) { return true; }
+    });
     setAssetList(matchedAssets);
   }
 
   function handleSubmit() {
     // TODO: Placeholder functionality until new page is created
     if (!selectedAsset) return;
-    router.push(`/assets/${selectedAsset.assetId}`)
+    router.push(`/discover/results?asset=${selectedAsset.assetId}&d=${selectedDirection}`);
   }
 
   let assetListElements = assetList.map((asset) =>
@@ -43,7 +47,7 @@ export default function DiscoverForm(props: {assets: Asset[]}) {
         setListVisible(false);
       }}
     >
-      {asset.name}
+      {`${asset.name} (${asset.symbol})`}
     </li>
   );
 
@@ -52,7 +56,7 @@ export default function DiscoverForm(props: {assets: Asset[]}) {
       <form className={styles.discoverForm}>
         <label>
           The price of
-          <div id={styles.discoverFormSearch}>
+          <span id={styles.discoverFormSearch}>
             <input
               type='search'
               value={searchInput}
@@ -66,7 +70,7 @@ export default function DiscoverForm(props: {assets: Asset[]}) {
             >
               {assetListElements}
             </ul>
-          </div>
+          </span>
         </label>
         <label>
           will go
@@ -83,26 +87,11 @@ export default function DiscoverForm(props: {assets: Asset[]}) {
             <option value='down'>down</option>
           </select>
         </label>
-        <label>
-          by a
-          <select
-            value={selectedAmount}
-            onChange={(e) => setSelectedAmount(e.target.value)}
-          >
-            <option
-              value=''
-              key='default-option'
-              disabled
-            />
-            <option value='little'>little</option>
-            <option value='lot'>lot</option>
-          </select>
-        </label>
       </form>
       <button
         onClick={(e) => handleSubmit()}
-        disabled={!selectedAsset || selectedDirection.length === 0 || selectedAmount.length === 0}
-      >Discover Options</button>
+        disabled={!selectedAsset || selectedDirection === ''}
+      >View Contracts</button>
     </div>
   );
 
