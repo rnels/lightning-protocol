@@ -198,26 +198,26 @@ export async function createContractType(
   return res.rows[0];
 }
 
-/** Represents "Highest potential" for calls: Far (highest) strike, far time to expiry */
-export async function getHighestPotentialCallTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType> {
+/** Ranked by highest strike, far time to expiry */
+async function getHighStrikeFarExpiryTypes(assetId: string | number, direction: boolean, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
     SELECT *
       FROM contract_types
     WHERE
-      asset_id=$1 AND direction=true
+      asset_id=$1 AND direction=$2
     ORDER BY
     (
       (
         extract(epoch from expires_at)
         -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
       )
       /
       (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
         -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
       )
     )
     +
@@ -225,235 +225,225 @@ export async function getHighestPotentialCallTypeForAssetId(assetId: string | nu
       (
         strike_price
         -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
       )
       /
       (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
         -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
       )
     )
     DESC
-      LIMIT 1
-  `, [assetId]);
-  return res.rows[0];
+  `, [assetId, direction]);
+  return res.rows;
+}
+
+/** Ranked by lowest strike, far time to expiry */
+async function getLowStrikeFarExpiryTypes(assetId: string | number, direction: boolean, client?: PoolClient): Promise<ContractType[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
+    SELECT *
+      FROM contract_types
+    WHERE
+      asset_id=$1 AND direction=$2
+    ORDER BY
+    (
+      (
+        extract(epoch from expires_at)
+        -
+        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
+      )
+      /
+      (
+        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
+        -
+        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
+      )
+    )
+    -
+    (
+      (
+        strike_price
+        -
+        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
+      )
+      /
+      (
+        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
+        -
+        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
+      )
+    )
+    DESC
+  `, [assetId, direction]);
+  return res.rows;
+}
+
+/** Represents "Highest potential" for calls: Far (highest) strike, far time to expiry */
+export async function getHighestPotentialCallTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType | void> {
+  let res = await Promise.all([
+      getHighStrikeFarExpiryTypes(assetId, true, client),
+      getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  let assetPrice = res[1];
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice > assetPrice) {
+      return contractType;
+    }
+  }
 }
 
 /** Represents "Highest potential" for puts: Far (lowest) strike, far time to expiry */
-// NOTE: This query is the same as getSafestBetCallTypeForAssetId
-// with the exception of direction=false, TODO: find out a way to consolidate
-export async function getHighestPotentialPutTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType> {
-  let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT *
-      FROM contract_types
-    WHERE
-      asset_id=$1 AND direction=false
-    ORDER BY
-    (
-      (
-        extract(epoch from expires_at)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-      /
-      (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-    )
-    -
-    (
-      (
-        strike_price
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-      /
-      (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-    )
-    DESC
-      LIMIT 1
-  `, [assetId]);
-  return res.rows[0];
+export async function getHighestPotentialPutTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType | void> {
+  let res = await Promise.all([
+      getLowStrikeFarExpiryTypes(assetId, false, client),
+      getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  let assetPrice = res[1];
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice < assetPrice) {
+      return contractType;
+    }
+  }
 }
 
 /** Represents "Safest bet" for calls: Close (lowest) strike, far time to expiry */
-export async function getSafestBetCallTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType> {
-  let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT *
-      FROM contract_types
-    WHERE
-      asset_id=$1 AND direction=true
-    ORDER BY
-    (
-      (
-        extract(epoch from expires_at)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-      )
-      /
-      (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-      )
-    )
-    -
-    (
-      (
-        strike_price
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-      )
-      /
-      (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-      )
-    )
-    DESC
-      LIMIT 1
-  `, [assetId]);
-  return res.rows[0];
+export async function getSafestBetCallTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType | void> {
+  let res = await Promise.all([
+      getLowStrikeFarExpiryTypes(assetId, true, client),
+      getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  let assetPrice = res[1];
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice > assetPrice) {
+      return contractType;
+    }
+  }
 }
 
 /** Represents "Safest bet" for puts: Close (highest) strike, far time to expiry */
-// NOTE: This query is the same as getHighestPotentialCallTypeForAssetId
-// with the exception of direction=false, TODO: find out a way to consolidate
-export async function getSafestBetPutTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType> {
-  let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT *
-      FROM contract_types
-    WHERE
-      asset_id=$1 AND direction=false
-    ORDER BY
-    (
-      (
-        extract(epoch from expires_at)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-      /
-      (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-    )
-    +
-    (
-      (
-        strike_price
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-      /
-      (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-    )
-    DESC
-      LIMIT 1
-  `, [assetId]);
-  return res.rows[0];
+export async function getSafestBetPutTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType | void> {
+  let res = await Promise.all([
+      getHighStrikeFarExpiryTypes(assetId, false, client),
+      getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  let assetPrice = res[1];
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice < assetPrice) {
+      return contractType;
+    }
+  }
 }
 
 /** Represents "Wildcard" for calls: Far (highest) strike, close time to expiry */
 // TODO: Put higher weight on expires_at
-export async function getWildcardCallTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType> {
+export async function getWildcardCallTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType | void> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT *
-      FROM contract_types
-    WHERE
-      asset_id=$1 AND direction=true
-    ORDER BY
-    (
+  let res = await Promise.all([
+    query(`
+      SELECT *
+        FROM contract_types
+      WHERE
+        asset_id=$1 AND direction=true
+      ORDER BY
       (
-        strike_price
+        1
         -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (
+          extract(epoch from expires_at)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
+        /
+        (
+          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
       )
-      /
+      +
       (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        (
+          strike_price
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
+        /
+        (
+          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
       )
-    )
-    -
-    (
-      (
-        extract(epoch from expires_at)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-      )
-      /
-      (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-      )
-    )
-    DESC
-      LIMIT 1
-  `, [assetId]);
-  return res.rows[0];
+      DESC
+        LIMIT 1
+    `, [assetId]),
+    getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0].rows;
+  let assetPrice = res[1];
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice > assetPrice) {
+      return contractType;
+    }
+  }
 }
 
 /** Represents "Wildcard" for puts: Far (lowest) strike, close time to expiry */
 // TODO: Put higher weight on expires_at
-export async function getWildcardPutTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType> {
+export async function getWildcardPutTypeForAssetId(assetId: string | number, client?: PoolClient): Promise<ContractType | void> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
-  const res = await query(`
-    SELECT *
-      FROM contract_types
-    WHERE
-      asset_id=$1 AND direction=false
-    ORDER BY
-    (
-      1
+  let res = await Promise.all([
+    query(`
+      SELECT *
+        FROM contract_types
+      WHERE
+        asset_id=$1 AND direction=false
+      ORDER BY
+      (
+        1
+        -
+        (
+          extract(epoch from expires_at)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
+        /
+        (
+          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
+      )
       -
       (
-        strike_price
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        (
+          strike_price
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
+        /
+        (
+          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
       )
-      /
-      (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-    )
-    -
-    (
-      (
-        extract(epoch from expires_at)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-      /
-      (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-      )
-    )
-    DESC
-      LIMIT 1
-  `, [assetId]);
-  return res.rows[0];
+      DESC
+        LIMIT 1
+    `, [assetId]),
+    getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0].rows;
+  let assetPrice = res[1];
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice < assetPrice) {
+      return contractType;
+    }
+  }
 }
