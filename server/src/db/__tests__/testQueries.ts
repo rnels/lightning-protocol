@@ -8,7 +8,6 @@ import * as contracts from '../../models/contractModel';
 import * as bids from '../../models/bidModel';
 import * as trades from '../../models/tradeModel';
 import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } from '../../types';
-import { QueryResult } from 'pg';
 
 // Will eventually replace this with jest testing in queries.test.js, but for now...
 
@@ -271,4 +270,19 @@ import { QueryResult } from 'pg';
   let accountId = 1;
   let result = await trades.getTradesByAccountId(accountId);
   console.log(result);
+});
+
+
+(async () => {
+  let typeIds = [206,171,179,187,193,197,202];
+  let types = [];
+  for (let typeId of typeIds) {
+    types.push(
+      await contractTypes.getContractTypeById(typeId)
+    );
+  }
+  let assetId = 4;
+  let direction = true;
+  let res = await contractTypes.setBadgesOnContractTypeList(assetId, direction, types);
+  console.log(res);
 });

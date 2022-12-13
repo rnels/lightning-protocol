@@ -199,7 +199,7 @@ export async function createContractType(
 }
 
 /** Ranked by highest strike, far time to expiry */
-async function getHighStrikeFarExpiryTypes(assetId: string | number, direction: boolean, client?: PoolClient): Promise<ContractType[]> {
+async function getHighStrikeFarExpiryTypes(assetId: string | number, direction: boolean, limitDivisor=1, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
     SELECT
@@ -240,12 +240,13 @@ async function getHighStrikeFarExpiryTypes(assetId: string | number, direction: 
       )
     )
     DESC
-  `, [assetId, direction]);
+      LIMIT (SELECT COUNT(*) / $3 from contract_types)
+  `, [assetId, direction, limitDivisor]);
   return res.rows;
 }
 
 /** Ranked by lowest strike, far time to expiry */
-async function getLowStrikeFarExpiryTypes(assetId: string | number, direction: boolean, client?: PoolClient): Promise<ContractType[]> {
+async function getLowStrikeFarExpiryTypes(assetId: string | number, direction: boolean, limitDivisor=1, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
     SELECT
@@ -286,72 +287,177 @@ async function getLowStrikeFarExpiryTypes(assetId: string | number, direction: b
       )
     )
     DESC
-  `, [assetId, direction]);
+      LIMIT (SELECT COUNT(*) / $3 from contract_types)
+  `, [assetId, direction, limitDivisor]);
   return res.rows;
 }
 
 /** Represents "Highest potential" for calls: Far (highest) strike, far time to expiry */
 export async function getHighestPotentialCallTypeForAssetId(assetId: string | number, assetPrice?: number, client?: PoolClient): Promise<ContractType | void> {
   let res = await Promise.all([
-      getHighStrikeFarExpiryTypes(assetId, true, client),
+      getHighStrikeFarExpiryTypes(assetId, true, 1, client),
       assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0];
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      contractType.badge = 'potential';
+      if (!contractType.badges) {
+        contractType.badges = [];
+      }
+      contractType.badges.push('potential');
       return contractType;
     }
   }
+}
+
+export async function getTPHighestPotentialCallTypeForTypeIds(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, client?: PoolClient): Promise<ContractType[]> {
+  let res = await Promise.all([
+      getHighStrikeFarExpiryTypes(assetId, true, 4, client),
+      assetPrice || getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  assetPrice = res[1];
+  let checkTypeIds = checkTypes.map((type) => type.contractTypeId);
+  for (let contractType of contractTypes) { // Works its way down sequentially
+    if (contractType.strikePrice > assetPrice) {
+      let index = checkTypeIds.indexOf(contractType.contractTypeId);
+      if (index !== -1) {
+        if (!checkTypes[index].badges) {
+          checkTypes[index].badges = [];
+        }
+        checkTypes[index].badges!.push('potential');
+        return checkTypes;
+      }
+    }
+  }
+  return checkTypes;
 }
 
 /** Represents "Highest potential" for puts: Far (lowest) strike, far time to expiry */
 export async function getHighestPotentialPutTypeForAssetId(assetId: string | number, assetPrice?: number, client?: PoolClient): Promise<ContractType | void> {
   let res = await Promise.all([
-      getLowStrikeFarExpiryTypes(assetId, false, client),
+      getLowStrikeFarExpiryTypes(assetId, false, 1, client),
       assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0];
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      contractType.badge = 'potential';
+      if (!contractType.badges) {
+        contractType.badges = [];
+      }
+      contractType.badges.push('potential');
       return contractType;
     }
   }
 }
 
+export async function getTPHighestPotentialPutTypeForTypeIds(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, client?: PoolClient): Promise<ContractType[]> {
+  let res = await Promise.all([
+      getHighStrikeFarExpiryTypes(assetId, false, 4, client),
+      assetPrice || getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  assetPrice = res[1];
+  let checkTypeIds = checkTypes.map((type) => type.contractTypeId);
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice < assetPrice) {
+      let index = checkTypeIds.indexOf(contractType.contractTypeId);
+      if (index !== -1) {
+        if (!checkTypes[index].badges) {
+          checkTypes[index].badges = [];
+        }
+        checkTypes[index].badges!.push('potential');
+        return checkTypes;
+      }
+    }
+  }
+  return checkTypes;
+}
+
 /** Represents "Safest bet" for calls: Close (lowest) strike, far time to expiry */
 export async function getSafestBetCallTypeForAssetId(assetId: string | number, assetPrice?: number, client?: PoolClient): Promise<ContractType | void> {
   let res = await Promise.all([
-      getLowStrikeFarExpiryTypes(assetId, true, client),
+      getLowStrikeFarExpiryTypes(assetId, true, 1, client),
       assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0];
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      contractType.badge = 'safe';
+      if (!contractType.badges) {
+        contractType.badges = [];
+      }
+      contractType.badges.push('safe');
       return contractType;
     }
   }
 }
 
+export async function getTPSafestBetCallTypeForAssetId(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, client?: PoolClient): Promise<ContractType[]> {
+  let res = await Promise.all([
+      getLowStrikeFarExpiryTypes(assetId, true, 10, client),
+      assetPrice || getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  assetPrice = res[1];
+  let checkTypeIds = checkTypes.map((type) => type.contractTypeId);
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice > assetPrice) {
+      let index = checkTypeIds.indexOf(contractType.contractTypeId);
+      if (index !== -1) {
+        if (!checkTypes[index].badges) {
+          checkTypes[index].badges = [];
+        }
+        checkTypes[index].badges!.push('safe');
+        return checkTypes;
+      }
+    }
+  }
+  return checkTypes;
+}
+
 /** Represents "Safest bet" for puts: Close (highest) strike, far time to expiry */
 export async function getSafestBetPutTypeForAssetId(assetId: string | number, assetPrice?: number, client?: PoolClient): Promise<ContractType | void> {
   let res = await Promise.all([
-      getHighStrikeFarExpiryTypes(assetId, false, client),
+      getHighStrikeFarExpiryTypes(assetId, false, 1, client),
       assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0];
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      contractType.badge = 'safe';
+      if (!contractType.badges) {
+        contractType.badges = [];
+      }
+      contractType.badges.push('safe');
       return contractType;
     }
   }
+}
+
+export async function getTPSafestBetPutTypeForAssetId(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, client?: PoolClient): Promise<ContractType[]> {
+  let res = await Promise.all([
+      getHighStrikeFarExpiryTypes(assetId, false, 4, client),
+      assetPrice || getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0];
+  assetPrice = res[1];
+  let checkTypeIds = checkTypes.map((type) => type.contractTypeId);
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice < assetPrice) {
+      let index = checkTypeIds.indexOf(contractType.contractTypeId);
+      if (index !== -1) {
+        if (!checkTypes[index].badges) {
+          checkTypes[index].badges = [];
+        }
+        checkTypes[index].badges!.push('safe');
+        return checkTypes;
+      }
+    }
+  }
+  return checkTypes;
 }
 
 /** Represents "Wildcard" for calls: Far (highest) strike, close time to expiry */
@@ -400,18 +506,86 @@ export async function getWildcardCallTypeForAssetId(assetId: string | number, as
         )
       )
       DESC
-        LIMIT 1
     `, [assetId]),
     assetPrice || getAssetPriceById(assetId, client)
   ]);
-  let contractTypes = res[0].rows;
+  let contractTypes = res[0].rows as ContractType[];
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      contractType.badge = 'wild';
+      if (!contractType.badges) {
+        contractType.badges = [];
+      }
+      contractType.badges.push('wild');
       return contractType;
     }
   }
+}
+
+export async function getTPWildcardCallTypeForAssetId(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, limitDivisor=4, client?: PoolClient): Promise<ContractType[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  let res = await Promise.all([
+    query(`
+      SELECT
+        contract_type_id as "contractTypeId",
+        asset_id as "assetId",
+        direction,
+        strike_price as "strikePrice",
+        expires_at as "expiresAt"
+      FROM contract_types
+        WHERE
+          asset_id=$1 AND direction=true
+      ORDER BY
+      (
+        1
+        -
+        (
+          extract(epoch from expires_at)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
+        /
+        (
+          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
+      )
+      +
+      (
+        (
+          strike_price
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
+        /
+        (
+          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
+        )
+      )
+      DESC
+        LIMIT (SELECT COUNT(*) / $2 from contract_types)
+    `, [assetId, limitDivisor]),
+    assetPrice || getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0].rows as ContractType[];
+  assetPrice = res[1];
+  let checkTypeIds = checkTypes.map((type) => type.contractTypeId);
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice > assetPrice) {
+      let index = checkTypeIds.indexOf(contractType.contractTypeId);
+      if (index !== -1) {
+        if (!checkTypes[index].badges) {
+          checkTypes[index].badges = [];
+        }
+        checkTypes[index].badges!.push('wild');
+        return checkTypes;
+      }
+    }
+  }
+  return checkTypes;
 }
 
 /** Represents "Wildcard" for puts: Far (lowest) strike, close time to expiry */
@@ -460,20 +634,91 @@ export async function getWildcardPutTypeForAssetId(assetId: string | number, ass
         )
       )
       DESC
-        LIMIT 1
     `, [assetId]),
     assetPrice || getAssetPriceById(assetId, client)
   ]);
-  let contractTypes = res[0].rows;
+  let contractTypes = res[0].rows as ContractType[];
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      contractType.badge = 'wild';
+      if (!contractType.badges) {
+        contractType.badges = [];
+      }
+      contractType.badges.push('wild');
       return contractType;
     }
   }
 }
 
+/** Represents "Wildcard" for puts: Far (lowest) strike, close time to expiry */
+// TODO: Put higher weight on expires_at
+export async function getTPWildcardPutTypeForAssetId(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, limitDivisor=4, client?: PoolClient): Promise<ContractType[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  let res = await Promise.all([
+    query(`
+      SELECT
+        contract_type_id as "contractTypeId",
+        asset_id as "assetId",
+        direction,
+        strike_price as "strikePrice",
+        expires_at as "expiresAt"
+      FROM contract_types
+        WHERE
+          asset_id=$1 AND direction=false
+      ORDER BY
+      (
+        1
+        -
+        (
+          extract(epoch from expires_at)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
+        /
+        (
+          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
+          -
+          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
+      )
+      -
+      (
+        (
+          strike_price
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
+        /
+        (
+          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
+          -
+          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
+        )
+      )
+      DESC
+        LIMIT (SELECT COUNT(*) / $2 from contract_types)
+    `, [assetId, limitDivisor]),
+    assetPrice || getAssetPriceById(assetId, client)
+  ]);
+  let contractTypes = res[0].rows;
+  assetPrice = res[1];
+  let checkTypeIds = checkTypes.map((type) => type.contractTypeId);
+  for (let contractType of contractTypes) {
+    if (contractType.strikePrice < assetPrice) {
+      let index = checkTypeIds.indexOf(contractType.contractTypeId);
+      if (index !== -1) {
+        if (!checkTypes[index].badges) {
+          checkTypes[index].badges = [];
+        }
+        checkTypes[index].badges!.push('wild');
+        return checkTypes;
+      }
+    }
+  }
+  return checkTypes;
+}
+
+// TODO: Have this add multiple badges for a contractType rather than returning multiple badged contractTypes
 export async function getBadgedTypesForAssetAndDirection(assetId: string | number, direction: boolean): Promise<ContractType | any[]> {
   let assetPrice = await getAssetPriceById(assetId);
   return Promise.all(
@@ -490,4 +735,40 @@ export async function getBadgedTypesForAssetAndDirection(assetId: string | numbe
       getWildcardPutTypeForAssetId(assetId, assetPrice)
     ]
   );
+}
+
+/**
+ * Well I just blew through creaing this without any kind of documentation of anything and it's messy and there's duped code
+ * everywhere but whatever. This gives us up to 1 badge of each type if one of the contractTypes
+ * in the types arg show up in the top 25th percentile. This means that in a given batch of contractTypes,
+ * a badge can only show up once (but may not show up at all). This system is for displaying a set of contractTypes and allocating
+ * badges where appropriate to that specific batch. I.e. I have a batch of 6 that I want to show to the end user, up to 3 badges can
+ * be awarded across them (at this time, until I come up with more badges).
+ * Also keep in mind, this function (and the functions it passes the types arg to) is intended to mutate the types array and return it, returning the same array as input by types, but with badges awarded.
+ * TODO: Allow contractTypes to have multiple badges by changing the badge type: string => string[]
+ * Also figure out if I want to keep the other system at all, which just returns the top contract types by badge type
+ * */
+export async function setBadgesOnContractTypeList(assetId: number, direction: boolean, types: ContractType[]): Promise<ContractType[]> {
+  types.forEach((type) => {
+    if (type.assetId !== assetId || type.direction !== direction) {
+      // Bandaid solution
+      throw new Error('Can\'t mix contract types of different asset or direction');
+    }
+  });
+  let assetPrice = await getAssetPriceById(assetId);
+  await Promise.all( // Mutate the types array objects with badges
+    direction ?
+    [
+      getTPHighestPotentialCallTypeForTypeIds(assetId, types, assetPrice),
+      getTPSafestBetCallTypeForAssetId(assetId, types, assetPrice),
+      getTPWildcardCallTypeForAssetId(assetId, types, assetPrice)
+    ]
+    :
+    [
+      getTPHighestPotentialPutTypeForTypeIds(assetId, types, assetPrice),
+      getTPSafestBetPutTypeForAssetId(assetId, types, assetPrice),
+      getTPWildcardPutTypeForAssetId(assetId, types, assetPrice)
+    ]
+  );
+  return types;
 }
