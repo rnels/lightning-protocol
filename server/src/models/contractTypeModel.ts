@@ -332,7 +332,7 @@ export async function getSafestBetCallTypeForAssetId(assetId: string | number, a
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      contractType.badge = 'safest';
+      contractType.badge = 'safe';
       return contractType;
     }
   }
@@ -348,7 +348,7 @@ export async function getSafestBetPutTypeForAssetId(assetId: string | number, as
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      contractType.badge = 'safest';
+      contractType.badge = 'safe';
       return contractType;
     }
   }
@@ -408,7 +408,7 @@ export async function getWildcardCallTypeForAssetId(assetId: string | number, as
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      contractType.badge = 'wildcard';
+      contractType.badge = 'wild';
       return contractType;
     }
   }
@@ -468,7 +468,7 @@ export async function getWildcardPutTypeForAssetId(assetId: string | number, ass
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      contractType.badge = 'wildcard';
+      contractType.badge = 'wild';
       return contractType;
     }
   }

@@ -1,0 +1,76 @@
+.badgedTypeResultsComponent {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 30px;
+}
+
+.resultsComponent {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 50vh;
+  width: 300px;
+  margin: 20px 0px;
+  padding: 10px;
+  color: #232323;
+  background-color: #ffffff;
+  border-width: 0.3em;
+  border-radius: 1em;
+  border-style: solid;
+  gap: 20px;
+  font-weight: 300;
+  font-size: calc(10px + 1.5vmin)
+}
+
+.resultsComponentHeaders {
+  font-size: 36px;
+}
+
+.resultsComponentHeaders h3 {
+  font-weight: 300;
+  margin: 0px;
+}
+
+.resultsComponentBubbles {
+  width: 80%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#priceBubble, #daysBubble {
+  padding: 10px 20px;
+  border-radius: 1em;
+}
+
+#priceBubble {
+  background-color: #DDFFC9;
+}
+
+#daysBubble {
+  background-color: #C9F2FF;
+}
+
+.resultsComponentBadge {
+  width: 80%;
+  font-weight: bold;
+  padding: 10px 0px;
+  border-radius: 1em;
+}
+
+.resultsComponent button {
+  width: 80%;
+  font-size: 48px;
+  font-weight: bold;
+  padding: 10px 20px;
+  background: linear-gradient(240deg, #F4E3A6, #f4e3a655);
+  border-radius: 0.5em;
+}
+
+
+
