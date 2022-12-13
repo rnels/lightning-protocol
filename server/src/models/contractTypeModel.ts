@@ -242,6 +242,34 @@ async function getActiveContractTypesByLeastTraded(assetId: string | number, dir
 /** Ranked by highest strike, far time to expiry */
 async function getHighStrikeFarExpiryTypes(assetId: string | number, direction: boolean, limitDivisor=1, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
+  const epochMin = Number((await query(`
+    SELECT
+      MIN(extract(epoch from expires_at)) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].min);
+  const epochMax = Number((await query(`
+    SELECT
+      MAX(extract(epoch from expires_at)) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].max);
+  let epochDif = epochMax - epochMin;
+  if (epochDif === 0) epochDif = epochMax; // Prevents dividing by 0 if there's only one expires_at across contractTypes
+  const strikeMin = Number((await query(`
+    SELECT
+      MIN(strike_price) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].min);
+  const strikeMax = Number((await query(`
+    SELECT
+      MAX(strike_price) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].max);
+  let strikeDif = strikeMax - strikeMin;
+  if (strikeDif === 0) strikeDif = strikeMax; // Prevents dividing by 0 if there's only one strike_price across contractTypes
   const res = await query(`
     SELECT
       contract_type_id as "contractTypeId",
@@ -253,42 +281,46 @@ async function getHighStrikeFarExpiryTypes(assetId: string | number, direction: 
       WHERE
         asset_id=$1 AND direction=$2
     ORDER BY
-    (
-      (
-        extract(epoch from expires_at)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-      /
-      (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-    )
+    ((extract(epoch from expires_at) - $4) / $5)
     +
-    (
-      (
-        strike_price
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-      /
-      (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-    )
+    ((strike_price - $6) / $7)
     DESC
       LIMIT (SELECT COUNT(*) / $3 from contract_types)
-  `, [assetId, direction, limitDivisor]);
+  `, [assetId, direction, limitDivisor, epochMin, epochDif, strikeMin, strikeDif]);
   return res.rows;
 }
 
 /** Ranked by lowest strike, far time to expiry */
 async function getLowStrikeFarExpiryTypes(assetId: string | number, direction: boolean, limitDivisor=1, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
+  const epochMin = Number((await query(`
+    SELECT
+      MIN(extract(epoch from expires_at)) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].min);
+  const epochMax = Number((await query(`
+    SELECT
+      MAX(extract(epoch from expires_at)) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].max);
+  let epochDif = epochMax - epochMin;
+  if (epochDif === 0) epochDif = epochMax; // Prevents dividing by 0 if there's only one expires_at across contractTypes
+  const strikeMin = Number((await query(`
+    SELECT
+      MIN(strike_price) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].min);
+  const strikeMax = Number((await query(`
+    SELECT
+      MAX(strike_price) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, direction])).rows[0].max);
+  let strikeDif = strikeMax - strikeMin;
+  if (strikeDif === 0) strikeDif = strikeMax; // Prevents dividing by 0 if there's only one strike_price across contractTypes
   const res = await query(`
     SELECT
       contract_type_id as "contractTypeId",
@@ -300,36 +332,12 @@ async function getLowStrikeFarExpiryTypes(assetId: string | number, direction: b
       WHERE
         asset_id=$1 AND direction=$2
     ORDER BY
-    (
-      (
-        extract(epoch from expires_at)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-      /
-      (
-        (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-        -
-        (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-    )
+    ((extract(epoch from expires_at) - $4) / $5)
     -
-    (
-      (
-        strike_price
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-      /
-      (
-        (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-        -
-        (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=$2)
-      )
-    )
+    ((strike_price - $6) / $7)
     DESC
       LIMIT (SELECT COUNT(*) / $3 from contract_types)
-  `, [assetId, direction, limitDivisor]);
+  `, [assetId, direction, limitDivisor, epochMin, epochDif, strikeMin, strikeDif]);
   return res.rows;
 }
 
@@ -505,6 +513,34 @@ export async function getTPSafestBetPutTypeForAssetId(assetId: string | number, 
 // TODO: Put higher weight on expires_at
 export async function getWildcardCallTypeForAssetId(assetId: string | number, assetPrice?: number, client?: PoolClient): Promise<ContractType | void> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
+  const epochMin = Number((await query(`
+    SELECT
+      MIN(extract(epoch from expires_at)) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].min);
+  const epochMax = Number((await query(`
+    SELECT
+      MAX(extract(epoch from expires_at)) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].max);
+  let epochDif = epochMax - epochMin;
+  if (epochDif === 0) epochDif = epochMax; // Prevents dividing by 0 if there's only one expires_at across contractTypes
+  const strikeMin = Number((await query(`
+    SELECT
+      MIN(strike_price) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].min);
+  const strikeMax = Number((await query(`
+    SELECT
+      MAX(strike_price) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].max);
+  let strikeDif = strikeMax - strikeMin;
+  if (strikeDif === 0) strikeDif = strikeMax; // Prevents dividing by 0 if there's only one strike_price across contractTypes
   let res = await Promise.all([
     query(`
       SELECT
@@ -517,37 +553,11 @@ export async function getWildcardCallTypeForAssetId(assetId: string | number, as
         WHERE
           asset_id=$1 AND direction=true
       ORDER BY
-      (
-        1
-        -
-        (
-          extract(epoch from expires_at)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-        /
-        (
-          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-      )
+      (1 - (extract(epoch from expires_at) - $2) / $3)
       +
-      (
-        (
-          strike_price
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-        /
-        (
-          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-      )
+      ((strike_price - $4) / $5)
       DESC
-    `, [assetId]),
+    `, [assetId, epochMin, epochDif, strikeMin, strikeDif]),
     assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0].rows as ContractType[];
@@ -565,6 +575,34 @@ export async function getWildcardCallTypeForAssetId(assetId: string | number, as
 
 export async function getTPWildcardCallTypeForAssetId(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, limitDivisor=4, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
+  const epochMin = Number((await query(`
+    SELECT
+      MIN(extract(epoch from expires_at)) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].min);
+  const epochMax = Number((await query(`
+    SELECT
+      MAX(extract(epoch from expires_at)) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].max);
+  let epochDif = epochMax - epochMin;
+  if (epochDif === 0) epochDif = epochMax; // Prevents dividing by 0 if there's only one expires_at across contractTypes
+  const strikeMin = Number((await query(`
+    SELECT
+      MIN(strike_price) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].min);
+  const strikeMax = Number((await query(`
+    SELECT
+      MAX(strike_price) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, true])).rows[0].max);
+  let strikeDif = strikeMax - strikeMin;
+  if (strikeDif === 0) strikeDif = strikeMax; // Prevents dividing by 0 if there's only one strike_price across contractTypes
   let res = await Promise.all([
     query(`
       SELECT
@@ -577,38 +615,12 @@ export async function getTPWildcardCallTypeForAssetId(assetId: string | number, 
         WHERE
           asset_id=$1 AND direction=true
       ORDER BY
-      (
-        1
-        -
-        (
-          extract(epoch from expires_at)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-        /
-        (
-          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-      )
+      (1 - (extract(epoch from expires_at) - $2) / $3)
       +
-      (
-        (
-          strike_price
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-        /
-        (
-          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=true)
-        )
-      )
+      ((strike_price - $4) / $5)
       DESC
-        LIMIT (SELECT COUNT(*) / $2 from contract_types)
-    `, [assetId, limitDivisor]),
+        LIMIT (SELECT COUNT(*) / $6 from contract_types)
+    `, [assetId, epochMin, epochDif, strikeMin, strikeDif, limitDivisor]),
     assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0].rows as ContractType[];
@@ -633,6 +645,34 @@ export async function getTPWildcardCallTypeForAssetId(assetId: string | number, 
 // TODO: Put higher weight on expires_at
 export async function getWildcardPutTypeForAssetId(assetId: string | number, assetPrice?: number, client?: PoolClient): Promise<ContractType | void> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
+  const epochMin = Number((await query(`
+    SELECT
+      MIN(extract(epoch from expires_at)) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].min);
+  const epochMax = Number((await query(`
+    SELECT
+      MAX(extract(epoch from expires_at)) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].max);
+  let epochDif = epochMax - epochMin;
+  if (epochDif === 0) epochDif = epochMax; // Prevents dividing by 0 if there's only one expires_at across contractTypes
+  const strikeMin = Number((await query(`
+    SELECT
+      MIN(strike_price) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].min);
+  const strikeMax = Number((await query(`
+    SELECT
+      MAX(strike_price) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].max);
+  let strikeDif = strikeMax - strikeMin;
+  if (strikeDif === 0) strikeDif = strikeMax; // Prevents dividing by 0 if there's only one strike_price across contractTypes
   let res = await Promise.all([
     query(`
       SELECT
@@ -645,37 +685,11 @@ export async function getWildcardPutTypeForAssetId(assetId: string | number, ass
         WHERE
           asset_id=$1 AND direction=false
       ORDER BY
-      (
-        1
-        -
-        (
-          extract(epoch from expires_at)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-        /
-        (
-          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-      )
+      (1 - (extract(epoch from expires_at) - $2) / $3)
       -
-      (
-        (
-          strike_price
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-        /
-        (
-          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-      )
+      ((strike_price - $4) / $5)
       DESC
-    `, [assetId]),
+    `, [assetId, epochMin, epochDif, strikeMin, strikeDif]),
     assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0].rows as ContractType[];
@@ -695,6 +709,34 @@ export async function getWildcardPutTypeForAssetId(assetId: string | number, ass
 // TODO: Put higher weight on expires_at
 export async function getTPWildcardPutTypeForAssetId(assetId: string | number, checkTypes: ContractType[], assetPrice?: number, limitDivisor=4, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
+  const epochMin = Number((await query(`
+    SELECT
+      MIN(extract(epoch from expires_at)) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].min);
+  const epochMax = Number((await query(`
+    SELECT
+      MAX(extract(epoch from expires_at)) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].max);
+  let epochDif = epochMax - epochMin;
+  if (epochDif === 0) epochDif = epochMax; // Prevents dividing by 0 if there's only one expires_at across contractTypes
+  const strikeMin = Number((await query(`
+    SELECT
+      MIN(strike_price) as "min"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].min);
+  const strikeMax = Number((await query(`
+    SELECT
+      MAX(strike_price) as "max"
+    FROM contract_types
+      WHERE asset_id=$1 AND direction=$2
+  `, [assetId, false])).rows[0].max);
+  let strikeDif = strikeMax - strikeMin;
+  if (strikeDif === 0) strikeDif = strikeMax; // Prevents dividing by 0 if there's only one strike_price across contractTypes
   let res = await Promise.all([
     query(`
       SELECT
@@ -707,38 +749,12 @@ export async function getTPWildcardPutTypeForAssetId(assetId: string | number, c
         WHERE
           asset_id=$1 AND direction=false
       ORDER BY
-      (
-        1
-        -
-        (
-          extract(epoch from expires_at)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-        /
-        (
-          (SELECT MAX(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-          -
-          (SELECT MIN(extract(epoch from expires_at)) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-      )
+      (1 - (extract(epoch from expires_at) - $2) / $3)
       -
-      (
-        (
-          strike_price
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-        /
-        (
-          (SELECT MAX(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-          -
-          (SELECT MIN(strike_price) FROM contract_types WHERE asset_id=$1 AND direction=false)
-        )
-      )
+      ((strike_price - $4) / $5)
       DESC
-        LIMIT (SELECT COUNT(*) / $2 from contract_types)
-    `, [assetId, limitDivisor]),
+        LIMIT (SELECT COUNT(*) / $6 from contract_types)
+    `, [assetId, epochMin, epochDif, strikeMin, strikeDif, limitDivisor]),
     assetPrice || getAssetPriceById(assetId, client)
   ]);
   let contractTypes = res[0].rows;

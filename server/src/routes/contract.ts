@@ -111,7 +111,7 @@ router.get('/contract/type/featured', (req, res, next) => {
       res.status(200).send({contractTypes});
     })
     .catch((error: any) => {
-      console.log(error);
+      console.log('Error retrieving featured contract types', error);
       res.status(404).send({ message: 'Error retrieving featured contract types' });
     });
 });
