@@ -10,7 +10,7 @@ export default async function DiscoverPage() {
 
   return (
     <div className='discover-page'>
-      <h2>Discover Contracts</h2>
+      <h2>Discover</h2>
       <DiscoverForm
         assets={assetList}
       />

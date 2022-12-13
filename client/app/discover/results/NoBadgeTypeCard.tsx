@@ -4,44 +4,18 @@ import styles from './results.module.scss';
 import { ContractType } from '../../../lib/types';
 import { cookies } from 'next/headers';
 
-const badgeMap: any = {
-  potential: {
-    text: '👀 High Potential',
-    color: '#C9FFD8'
-  },
-  safe: {
-    text: '🔒 Safe Bet',
-    color: '#C9FFF8'
-  },
-  wild: {
-    text: '🃏 Wildcard',
-    color: '#E1C9FF'
-  }
-};
-
-export default async function BadgedTypeCard(props: {contractType: ContractType}) {
+export default async function NoBadgeTypeCard(props: {contractType: ContractType}) {
 
   const assetPrice = await getAssetPrice(props.contractType.assetId);
   let priceDif = (Number(props.contractType.strikePrice) - assetPrice) / assetPrice;
   let daysDif = Math.trunc((new Date(props.contractType.expiresAt).getTime() - Date.now()) / 86400000);
 
+    // console.log(props.contractType);
+
   return (
     <div
       className={styles.resultsComponent}
-      style={{ // TODO: Set a conditional if badges && badges.length > 1, create a gradient color between badge colors (need to check how to set a border gradient)
-        boxShadow: `0px 0px 0px 0.3em ${badgeMap[props.contractType.badges![0] as string].color} inset`
-      }}
     >
-      <div className={styles.resultsComponentBadgesTopArea}>
-        {props.contractType.badges?.map((badge) =>
-          <div
-          className={styles.resultsComponentBadgeAlt}
-          style={{
-            backgroundColor: badgeMap[badge].color
-          }}
-          >{badgeMap[badge].text}</div>
-        )}
-      </div>
       <div className={styles.resultsComponentInner}>
         <div className={styles.resultsComponentHeaders}>
           <h3
@@ -60,14 +34,6 @@ export default async function BadgedTypeCard(props: {contractType: ContractType}
           >{`${props.contractType.direction ? '📈' : '📉'} ${Math.trunc(priceDif * 100)}%`}</div>
           <div id={styles.daysBubble}>{`🕑 ${daysDif}d`}</div>
         </div>
-        {/* {props.contractType.badges?.map((badge) =>
-          <div
-          className={styles.resultsComponentBadge}
-          style={{
-            backgroundColor: badgeMap[badge].color
-          }}
-          >{badgeMap[badge].text}</div>
-        )} */}
         <button>Add</button>
       </div>
     </div>

@@ -198,6 +198,47 @@ export async function createContractType(
   return res.rows[0];
 }
 
+async function getActiveContractTypesByAssetAndDirection(assetId: string | number, direction: boolean, client?: PoolClient): Promise<ContractType[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
+    SELECT
+      contract_type_id as "contractTypeId",
+      asset_id as "assetId",
+      direction,
+      strike_price as "strikePrice",
+      expires_at as "expiresAt"
+    FROM contract_types
+      WHERE
+        asset_id=$1 AND
+        direction=$2 AND
+        expires_at > NOW()
+  `, [assetId, direction]);
+  return res.rows;
+}
+
+/** Used for generating featured contract types */
+async function getActiveContractTypesByLeastTraded(assetId: string | number, direction: boolean, limit=6, client?: PoolClient): Promise<ContractType[]> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  const res = await query(`
+    SELECT
+      contract_types.contract_type_id as "contractTypeId",
+      contract_types.asset_id as "assetId",
+      contract_types.direction as "direction",
+      contract_types.strike_price as "strikePrice",
+      contract_types.expires_at as "expiresAt"
+    FROM contract_types, trades
+      WHERE
+        contract_types.asset_id=$1 AND
+        contract_types.direction=$2 AND
+        contract_types.expires_at > NOW() AND
+        trades.type_id=contract_types.contract_type_id
+    GROUP BY contract_types.contract_type_id
+      ORDER BY COUNT(trades.trade_id)
+    LIMIT $3
+  `, [assetId, direction, limit]);
+  return res.rows;
+}
+
 /** Ranked by highest strike, far time to expiry */
 async function getHighStrikeFarExpiryTypes(assetId: string | number, direction: boolean, limitDivisor=1, client?: PoolClient): Promise<ContractType[]> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
@@ -748,13 +789,13 @@ export async function getBadgedTypesForAssetAndDirection(assetId: string | numbe
  * TODO: Allow contractTypes to have multiple badges by changing the badge type: string => string[]
  * Also figure out if I want to keep the other system at all, which just returns the top contract types by badge type
  * */
-export async function setBadgesOnContractTypeList(assetId: number, direction: boolean, types: ContractType[]): Promise<ContractType[]> {
-  types.forEach((type) => {
-    if (type.assetId !== assetId || type.direction !== direction) {
-      // Bandaid solution
-      throw new Error('Can\'t mix contract types of different asset or direction');
-    }
-  });
+export async function setBadgesOnContractTypeList(assetId: string | number, direction: boolean, types: ContractType[]): Promise<ContractType[]> {
+  // types.forEach((type) => {
+  //   if (type.assetId !== assetId || type.direction !== direction) {
+  //     // Bandaid solution
+  //     throw new Error('Can\'t mix contract types of different asset or direction');
+  //   }
+  // });
   let assetPrice = await getAssetPriceById(assetId);
   await Promise.all( // Mutate the types array objects with badges
     direction ?
@@ -771,4 +812,10 @@ export async function setBadgesOnContractTypeList(assetId: number, direction: bo
     ]
   );
   return types;
+}
+
+/** Get least traded contract types, badge em up, return em */
+export async function getFeaturedContractTypes(assetId: string | number, direction: boolean): Promise<ContractType[]> {
+  let contractTypes = await getActiveContractTypesByLeastTraded(assetId, direction);
+  return setBadgesOnContractTypeList(assetId, direction, contractTypes);
 }

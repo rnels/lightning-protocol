@@ -1,6 +1,6 @@
 import React from 'react';
-import styles from './discover.module.scss';
-import BadgedTypeResults from './BadgedTypeResults';
+import styles from './results.module.scss';
+import FeaturedTypeResults from './FeaturedTypeResults';
 
 export default function DiscoverResultsPage({ searchParams }: {
   searchParams?: { [key: string]: string | string[] | undefined };
@@ -14,10 +14,10 @@ export default function DiscoverResultsPage({ searchParams }: {
   if (direction.toLowerCase() === 'up') boolDirection = true;
   else boolDirection = false;
   return (
-    <div className='discover-results-page'>
-      <h2>Discover Results</h2>
+    <div className={styles.discoverResultsPage}>
+      <h2>Discover</h2>
       {/* @ts-expect-error Server Component */}
-      <BadgedTypeResults
+      <FeaturedTypeResults
         assetId={assetId as string}
         direction={boolDirection}
       />
