@@ -1,0 +1,29 @@
+.navBar {
+  display: flex;
+  justify-content: space-evenly;
+  overflow: hidden;
+  background-color: #333;
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  width: 100%;
+  padding: 10px;
+  font-size: calc(12px + 1vmin);
+}
+
+.navBar a {
+  color: #ececec;
+  margin: 0px;
+  padding: 2px 10px;
+  text-align: center;
+}
+
+.navBarLeft {
+  display: flex;
+  justify-content: flex-start;
+}
+
+#currentPage {
+  color: #232323;
+  background-color: #ececec;
+}

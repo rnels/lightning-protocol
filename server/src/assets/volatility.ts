@@ -9,8 +9,9 @@ import {
   getAssetById,
   _createAssetPriceHistoryIfNotExists,
   _getAssetPriceHistoryByAssetId,
-  _getAssetPriceHistoryByAssetIdLimit
+  getAssetPriceHistoryByAssetIdLimit
 } from '../models/assetModel';
+import { updateCryptoPriceHistory } from './price';
 
 // NOTE: Known crypto asset Symbols (CC):
   // Bitcoin - BTC
@@ -42,28 +43,16 @@ function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
   }
   let volatilitySum = groupsArray.reduce((sum, a) => sum + a, 0); // Get sum of group volatility
   let volatility = volatilitySum / groupsArray.length; // Get average volatility
-  console.log('volatility:', volatility);
+  // console.log('volatility:', volatility); // DEBUG
   return volatility;
-}
-
-function getCryptoPriceHistoricalDataFromAPI(symbol: string, limit=365): Promise<any[]> {
-  // NOTE: I know this is ugly but using params / header objects doesn't work with this API for some reason
-  return axios.get(`${process.env.CC_API_URL}/data/v2/histoday?fsym=${symbol}&tsym=USD&limit=${limit}&api_key=${process.env.CC_API_KEY}`)
-    .then((result) => {
-      // console.log(result.data.Data.Data); // DEBUG
-      return result.data.Data.Data;
-    });
 }
 
 // Get a decimal representing a price volatility for the provided asset from the provided currentPrice
 export async function getAssetPriceVolatility(asset: Asset, currentPrice: number, lookback=365, window=14): Promise<number> {
   // TODO: create conditionals for the different AssetTypes
-  let priceData = await getCryptoPriceHistoricalDataFromAPI(asset.symbol, lookback);
-  for (let entry of priceData) {
-    await _createAssetPriceHistoryIfNotExists(asset.assetId, entry.close, entry.time); // TODO: Make this more efficient, use a pool client
-  }
-  let res = await _getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
-  let dbPrices = res.map((e) => parseFloat(e.price));
+  await updateCryptoPriceHistory(asset, lookback);
+  let res = await getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
+  let dbPrices = res.map((e) => parseFloat(e.price as string));
   let decimalVolatility = _getPriceVolatilityFromPrices(dbPrices, window);
   return decimalVolatility;
 }
@@ -72,8 +61,8 @@ export async function getAssetPriceVolatility(asset: Asset, currentPrice: number
 // Doesn't make an API call to update historical volatility
 export async function getAssetPriceVolatilityDebug(asset: Asset, currentPrice: number, lookback=365, window=14): Promise<number> {
   // TODO: create conditionals for the different assetTypes
-  let res = await _getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
-  let dbPrices = res.map((e) => parseFloat(e.price));
+  let res = await getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
+  let dbPrices = res.map((e) => parseFloat(e.price as string));
   let decimalVolatility = _getPriceVolatilityFromPrices(dbPrices, window);
   return decimalVolatility;
 }
@@ -82,5 +71,5 @@ export async function getAssetPriceVolatilityDebug(asset: Asset, currentPrice: n
 (async () => {
   let testAsset = await getAssetById(1);
   let vol = await getAssetPriceVolatilityDebug(testAsset, 20295.80, 365);
-  console.log(vol);
+  console.log('getAssetPriceVolatilityDebug volatility:', vol);
 });

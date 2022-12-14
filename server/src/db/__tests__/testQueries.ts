@@ -8,7 +8,6 @@ import * as contracts from '../../models/contractModel';
 import * as bids from '../../models/bidModel';
 import * as trades from '../../models/tradeModel';
 import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } from '../../types';
-import { QueryResult } from 'pg';
 
 // Will eventually replace this with jest testing in queries.test.js, but for now...
 
@@ -93,27 +92,21 @@ import { QueryResult } from 'pg';
   console.log(result);
 });
 
-// DEPOSIT POOL ASSETS
+// BUY POOL ASSETS
 (async () => {
   let poolId = 4;
   let assetAmount = 20.1;
   let ownerId = 1;
-  let result = await pools.depositPoolAssets(poolId, assetAmount, ownerId);
+  let result = await pools.buyPoolAssets(poolId, assetAmount, ownerId);
   console.log(result);
 });
 
-// WITHDRAW POOL ASSETS
+// SELL POOL ASSETS
 (async () => {
   let poolId = 4;
   let assetAmount = 10.2;
   let ownerId = 1;
-  let result = await pools.withdrawPoolAssets(poolId, assetAmount, ownerId);
-  console.log(result);
-});
-
-// GET ALL POOLS
-(async () => {
-  let result = await pools.getAllPools();
+  let result = await pools.sellPoolAssets(poolId, assetAmount, ownerId);
   console.log(result);
 });
 
@@ -145,7 +138,7 @@ import { QueryResult } from 'pg';
   let assetId = 1;
   let direction = true;
   let strikePrice = 50.54;
-  let expiresAt = 1340235435039430954309; // TODO: Redo this with epoch representation of long time out
+  let expiresAt = '1340235435039430954309';
   let result = await contractTypes.createContractType(
     assetId,
     direction,
@@ -277,4 +270,19 @@ import { QueryResult } from 'pg';
   let accountId = 1;
   let result = await trades.getTradesByAccountId(accountId);
   console.log(result);
+});
+
+
+(async () => {
+  let typeIds = [206,171,179,187,193,197,202];
+  let types = [];
+  for (let typeId of typeIds) {
+    types.push(
+      await contractTypes.getContractTypeById(typeId)
+    );
+  }
+  let assetId = 4;
+  let direction = true;
+  let res = await contractTypes.setBadgesOnContractTypeList(assetId, direction, types);
+  console.log(res);
 });

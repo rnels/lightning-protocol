@@ -13,8 +13,6 @@ const router = Router();
 //  tradeId
 //  contractId
 //  typeId
-//  buyerId
-//  sellerId
 //  salePrice
 //  saleCost
 //  tradeFee
@@ -39,8 +37,6 @@ router.get('/trade', (req, res, next) => {
 //  tradeId
 //  contractId
 //  typeId
-//  buyerId
-//  sellerId
 //  salePrice
 //  saleCost
 //  tradeFee
@@ -79,9 +75,25 @@ router.get('/trade/daily', (req, res, next) => {
     });
 });
 
+// Get all trades for an authenticated user
+// Successful response data:
+// trades: Trade[]
+router.get('/trade/owned', (req, res, next) => {
+  trades.getTradesByAccountId(req.user!.id)
+    .then((trades) => {
+      res.status(200).send({trades})
+    })
+    .catch((error: any) => {
+      res.status(404).send({ message: 'Error retrieving trade info' });
+      console.log(error);
+    });
+});
+
 // Get average price difference from last 24 hours of trades to the prior 24 hours
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve trades of
+// Successful response data:
+// priceChange: number
 router.get('/trade/daily/change', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });

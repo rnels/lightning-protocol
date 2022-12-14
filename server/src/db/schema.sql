@@ -42,7 +42,6 @@ CREATE TABLE asset_prices (
 
 CREATE INDEX asset_prices_asset_id_idx ON asset_prices(asset_id);
 
-
 -- Represents the pools which exist for an asset
 -- NOTE: With the flat out deletion of account_assets there's now no balance for a user's
 -- assets outside of pools, but when this is translated to the bc/wallet model that should be alright
@@ -51,7 +50,7 @@ CREATE TABLE pools (
 	account_id INTEGER NOT NULL,
 	asset_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
-	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Amount provided by contract trading fees, able to be withdrawn into account balance
+	last_lock_created TIMESTAMP DEFAULT to_timestamp(0), -- NOTE: Using default 0 because otherwise ordering by this will display null values last when ordering by last_lock_created ASC (meant to show in chronological order)
 	CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(account_id),
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
@@ -65,7 +64,7 @@ CREATE TABLE contract_types (
 	asset_id INTEGER NOT NULL,
 	direction BOOLEAN NOT NULL, -- true for 'up / call', false for 'down / put'
 	strike_price DECIMAL NOT NULL,
-	expires_at TIMESTAMP NOT NULL, -- TODO: Create constraint, max 2 weeks out from creation
+	expires_at TIMESTAMP NOT NULL,
 	CONSTRAINT fk_asset_id FOREIGN KEY(asset_id) REFERENCES assets(asset_id)
 );
 
@@ -80,6 +79,7 @@ CREATE TABLE contracts (
 	type_id INTEGER NOT NULL,
 	owner_id INTEGER DEFAULT NULL, -- Can be NULL on creation, TODO: Do I need to say "Default NULL" here?
 	ask_price DECIMAL DEFAULT NULL, -- Can be NULL if not being actively offered
+	premium_fees DECIMAL NOT NULL DEFAULT 0 CHECK (premium_fees>=0), -- Amount offered to pool providers on exercise / expiry, set by the sale from writer to first buyer
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	exercised BOOLEAN DEFAULT false,
 	exercised_amount DECIMAL DEFAULT NULL,
@@ -89,6 +89,13 @@ CREATE TABLE contracts (
 
 CREATE INDEX contracts_type_id_idx ON contracts(type_id);
 CREATE INDEX contracts_owner_id_idx ON contracts(owner_id);
+
+CREATE TABLE contract_expiry_checks (
+	contract_expiry_check_id SERIAL NOT NULL PRIMARY KEY,
+	last_checked TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX contract_expiry_checks_last_checked_idx ON contract_expiry_checks(last_checked);
 
 -- When a contract draws an amount from a pool, it creates a pool lock for that amount
 -- To get how much can be put into locks from pools.asset_amount, you subtract the currently locked amount, summed from
@@ -102,16 +109,32 @@ CREATE TABLE pool_locks (
 	pool_id INTEGER NOT NULL,
 	contract_id INTEGER NOT NULL,
 	asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (asset_amount>=0),
+	-- Represents originally pledged amount for contract lock, used to determine payout, is not affected by sells
+	-- Was created to combat the reserve amount bug
+	-- TODO: Make this not so janky looking
+	contract_asset_amount DECIMAL NOT NULL DEFAULT 0 CHECK (contract_asset_amount>=0),
 	reserve_amount DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_amount>=0), -- Stores liquidity to trade if put option is exercised
-	expires_at TIMESTAMP NOT NULL,
-	trade_fees DECIMAL NOT NULL DEFAULT 0 CHECK (trade_fees>=0), -- Read-only amount provided by contract trade fees
+	reserve_credit DECIMAL NOT NULL DEFAULT 0 CHECK (reserve_credit>=0), -- Compensates in case put covering does not happen at a high enough price to cover strike
+	premium_fees DECIMAL NOT NULL DEFAULT 0 CHECK (premium_fees>=0),
+	released BOOLEAN NOT NULL DEFAULT FALSE, -- Set to true on reassignment or release of reserve_amount
 	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id),
 	CONSTRAINT fk_contract_id FOREIGN KEY(contract_id) REFERENCES contracts(contract_id)
 );
 
 CREATE INDEX pool_locks_pool_id_idx ON pool_locks(pool_id);
 CREATE INDEX pool_locks_contract_id_idx ON pool_locks(contract_id);
-CREATE INDEX pool_locks_expires_at_idx ON pool_locks(expires_at);
+
+CREATE TABLE pool_asset_sales (
+	pool_asset_sales_id SERIAL NOT NULL PRIMARY KEY,
+	pool_id INTEGER NOT NULL,
+	asset_amount DECIMAL NOT NULL,
+	paper_amount DECIMAL NOT NULL,
+	sale_type BOOLEAN NOT NULL, -- True for pool buy, false for pool sale
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT fk_pool_id FOREIGN KEY(pool_id) REFERENCES pools(pool_id)
+);
+
+CREATE INDEX pool_asset_sales_pool_id_idx ON pool_asset_sales(pool_id);
 
 -- We are referencing contract types in order to keep bidding organized to specific configurations of contracts
 CREATE TABLE bids (

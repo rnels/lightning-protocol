@@ -12,7 +12,6 @@ const router = Router();
 // bid: {
 //   bidId
 //   typeId
-//   accountId
 //   bidPrice
 // }
 router.get('/bid', (req, res, next) => {
@@ -59,6 +58,7 @@ router.get('/bid/owned', (req, res, next) => {
 // Expects in req.body:
 //  typeId (Integer)
 //  bidPrice (Decimal)
+// TODO: Respond with detailed error message
 router.post('/bid', (req, res, next) => {
   if (!req.body.typeId || !req.body.bidPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });
@@ -69,7 +69,7 @@ router.post('/bid', (req, res, next) => {
     })
     .catch((error: any) => {
       console.log('There was an error creating the bid:', error);
-      res.status(400).send({ message: 'Error creating bid' });
+      res.status(400).send({ message: error.message });
     });
 });
 
@@ -79,6 +79,7 @@ router.post('/bid', (req, res, next) => {
 // Expects in req.body:
 //  bidId (Integer)
 //  bidPrice (Decimal)
+// TODO: Respond with detailed error message
 router.put('/bid/price', (req, res, next) => {
   if (!req.body.bidId || !req.body.bidPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });
@@ -87,7 +88,7 @@ router.put('/bid/price', (req, res, next) => {
     .then(() => {
       res.status(201).send({ message: 'Bid price updated' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error updating bid price' }));
+    .catch((error: any) => res.status(400).send({ message: error.message }));
 });
 
 // DELETE REQUESTS //

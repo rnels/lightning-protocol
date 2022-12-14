@@ -5,12 +5,26 @@ import dotenv from 'dotenv'; // DEBUG - Only need when running file standalone
 dotenv.config(); // DEBUG - Only need when running file standalone
 
 import axios from 'axios';
+import { getAssetById, _createAssetPriceHistoryIfNotExists } from '../models/assetModel';
+import { Asset } from '../types';
 
 // NOTE: Known crypto asset IDs (CMC):
   // Bitcoin - 1
   // Ethereum - 1027
 
 // DEBUG: Change process.env.CMC_API_* to process.env.CMC_API_SANDBOX_*
+
+// NOTE: There is an issue running this file for testing individually when also running the server dev
+// Need to shut down server dev first
+
+function _getCryptoPriceHistoricalDataFromAPI(symbol: string, limit=365): Promise<any[]> {
+  // NOTE: I know this is ugly but using params / header objects doesn't work with this API for some reason
+  return axios.get(`${process.env.CC_API_URL}/data/v2/histoday?fsym=${symbol}&tsym=USD&limit=${limit}&api_key=${process.env.CC_API_KEY}`)
+    .then((result) => {
+      // console.log(result.data.Data.Data); // DEBUG
+      return result.data.Data.Data;
+    });
+}
 
 function getCryptoPrice(priceApiId: number): Promise<number> {
   return axios.get(`${process.env.CMC_API_URL}/v2/cryptocurrency/quotes/latest`, {
@@ -22,8 +36,19 @@ function getCryptoPrice(priceApiId: number): Promise<number> {
     }
   })
     .then((result) => {
-      return result.data.data[priceApiId].quote['USD'].price;
+      return Number(result.data.data[priceApiId].quote['USD'].price);
     });
+}
+
+export async function updateCryptoPriceHistory(asset: Asset, limit=365) {
+  let priceData = await _getCryptoPriceHistoricalDataFromAPI(asset.symbol, limit);
+  let createPromises = [];
+  for (let entry of priceData) {
+    createPromises.push(
+      _createAssetPriceHistoryIfNotExists(asset.assetId, entry.close, entry.time) // TODO: Make this more efficient, use batching(?)
+    );
+  }
+  Promise.all(createPromises);
 }
 
 export function getAssetPriceFromAPI(priceApiId: number, assetType: string): Promise<number> {
@@ -33,5 +58,15 @@ export function getAssetPriceFromAPI(priceApiId: number, assetType: string): Pro
   return getCryptoPrice(priceApiId); // DEBUG: Placeholder until other financial APIs are implemented
 }
 
-// TEST
-// getAssetPriceFromAPI(1, 'crypto');
+// TESTS
+(async () => {
+  let asset = await getAssetById(1);
+  let price = await getAssetPriceFromAPI(asset.assetId, asset.assetType);
+  console.log('getAssetPriceFromAPI price:', price);
+});
+
+(async () => {
+  let asset = await getAssetById(1);
+  await updateCryptoPriceHistory(asset);
+  console.log('updateCryptoPriceHistory complete');
+});

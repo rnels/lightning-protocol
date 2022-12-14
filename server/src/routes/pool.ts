@@ -5,7 +5,7 @@ const router = Router();
 
 // GET REQUESTS //
 
-// Get pool info by pool ID
+// Get pool info (and pool locks) by pool ID
 // Expects in req.query:
 //  id - pool_id to retrieve details of
 // Successful response data:
@@ -15,6 +15,7 @@ const router = Router();
 //   assetId
 //   assetAmount
 //   tradeFees
+//   poolLocks: poolLock[]
 // }
 router.get('/pool', (req, res, next) => {
   if (!req.query.id) {
@@ -155,66 +156,87 @@ router.post('/pool', (req, res, next) => {
     });
 });
 
-// Despoit an amount of assets to a pool
+// Purchases an amount of assets for a pool
 // Expects in req.body:
 //  poolId (Integer) - pool_id to deposit into
-//  assetAmount (Decimal) - Amount to deposit into pool
-router.post('/pool/asset/deposit', (req, res, next) => {
+//  assetAmount (Decimal) - Amount to purchase into pool
+router.post('/pool/asset/buy', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing or invalid body parameters' });
   }
-  pools.depositPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
+  pools.buyPoolAssets(req.body.poolId, Number(req.body.assetAmount), req.user!.id)
     .then(() => {
-      // TODO: Currently provides a success method even if nothing is updated,
-      // in the case of a poolId passed that doesn't belong to the user
-      // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool
-      res.status(201).send({ message: 'Assets successfully deposited to pool' });
+      res.status(201).send({ message: 'Assets successfully purchased' });
     })
     .catch((error: any) => {
-      console.log('Error depositing pool assets:', error);
-      res.status(400).send({ message: 'Error depositing assets to pool' });
+      console.log('Error purchasing pool assets:', error);
+      res.status(400).send({ message: 'Error purchasing pool assets' });
     });
 });
 
-// Withdraw an amount of assets from a pool
+// Sells an amount of assets from a pool
 // Expects in req.body:
-//  poolId (Integer) - pool_id to withdraw from
-//  assetAmount (Decimal) - Amount to withdraw from pool
-router.post('/pool/asset/withdraw', (req, res, next) => {
+//  poolId (Integer) - pool_id to sell from
+//  assetAmount (Decimal) - Amount to sell from pool
+router.post('/pool/asset/sell', (req, res, next) => {
   if (!req.body.poolId || !req.body.assetAmount) {
     return res.status(400).send({ message: 'Missing or invalid body parameters' });
   }
-  pools.withdrawPoolAssets(req.body.poolId, req.body.assetAmount, req.user!.id)
-    .then(({assetId}) => {
-      // TODO: Currently provides a success method even if nothing is updated,
-      // in the case of a poolId passed that doesn't belong to the user
-      // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool
-      res.status(201).send({ message: 'Assets successfully withdrawn from pool' });
+  pools.sellPoolAssets(req.body.poolId, Number(req.body.assetAmount), req.user!.id)
+    .then(() => {
+      res.status(201).send({ message: 'Assets successfully sold from pool' });
     })
     .catch((error: any) => {
-      console.log('Error withdrawing pool assets:', error);
-      res.status(400).send({ message: 'Error withdrawing assets from pool' });
+      console.log('Error selling pool assets:', error);
+      res.status(400).send({ message: 'Error selling assets from pool' });
     });
 });
 
-// Withdraw an amount of fees from a pool into account balance
-// Expects in req.body:
-//  poolId (Integer) - pool_id to withdraw from
-//  feeAmount (Decimal) - Amount to withdraw from pool
-router.post('/pool/fees/withdraw', (req, res, next) => {
-  if (!req.body.poolId || !req.body.feeAmount) {
-    return res.status(400).send({ message: 'Missing or invalid body parameters' });
+// // Withdraw trade fees from all pool locks into account balance
+// // Expects in req.body:
+// //  poolId (Integer) - pool_id to withdraw from
+// router.post('/pool/fees/withdraw', (req, res, next) => {
+//   if (!req.body.poolId) {
+//     return res.status(400).send({ message: 'Missing or invalid body parameter: poolId' });
+//   }
+//   pools.withdrawAllPoolLockFees(req.body.poolId, req.user!.id)
+//     .then(() => {
+//       res.status(201).send({ message: 'Fees successfully withdrawn from pool and deposited to account' });
+//     })
+//     .catch((error: any) => {
+//       console.log('Error withdrawing pool fees:', error);
+//       res.status(400).send({ message: 'Error withdrawing fees from pool' });
+//     });
+// });
+
+// // Withdraw trade fees from specific pool lock into account balance
+// // Expects in req.body:
+// //  poolLockId (Integer) - pool_lock_id to withdraw from
+// router.post('/pool/lock/fees/withdraw', (req, res, next) => {
+//   if (!req.body.poolLockId) {
+//     return res.status(400).send({ message: 'Missing or invalid body parameter: poolLockId' });
+//   }
+//   pools.withdrawPoolLockFees(req.body.poolLockId, req.user!.id)
+//     .then(() => {
+//       res.status(201).send({ message: 'Fees successfully withdrawn from pool lock and deposited to account' });
+//     })
+//     .catch((error: any) => {
+//       console.log('Error withdrawing pool fees:', error);
+//       res.status(400).send({ message: 'Error withdrawing fees from pool' });
+//     });
+// });
+
+router.post('/pool/lock/assign', (req, res, next) => {
+  if (!req.body.poolLockId) {
+    return res.status(400).send({ message: 'Missing or invalid body parameter: poolLockId' });
   }
-  pools.withdrawPoolFees(req.body.poolId, req.body.feeAmount, req.user!.id)
+  pools.reassignPoolLock(req.body.poolLockId, req.user!.id)
     .then(() => {
-      // TODO: Currently provides a success method even if nothing is updated,
-      // in the case of a poolId passed that doesn't belong to the user
-      // Probably change to a system of pool_transactions to get balances rather than updating a balance of the pool
-      res.status(201).send({ message: 'Fees successfully withdrawn from pool and deposited to account' });
+      res.status(201).send({ message: 'Pool lock successfully reassigned' });
     })
     .catch((error: any) => {
-      console.log('Error withdrawing pool fees:', error);
-      res.status(400).send({ message: 'Error withdrawing fees from pool' });
+      console.log('Error reassigning pool lock:', error);
+      res.status(400).send({ message: 'Error reassigning pool lock' });
     });
 });
 

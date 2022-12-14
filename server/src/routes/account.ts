@@ -36,4 +36,13 @@ router.post('/account/paper', (req, res) => {
     .catch((error: any) => res.status(400).send({ message: 'Error depositing paper to account' }));
 });
 
+router.post('/account/paper/withdraw', (req, res) => {
+  if (!req.body.amount) {
+    return res.status(400).send({ message: 'Missing body parameter: amount' });
+  }
+  accounts.withdrawPaper(req.user!.id, req.body.amount)
+    .then(() => res.status(201).send({ message: 'Paper withdrawn from account' }))
+    .catch((error: any) => res.status(400).send({ message: error.message }));
+});
+
 export default router;

@@ -35,11 +35,8 @@ router.get('/asset', (req, res, next) => {
 // Expects in req.query:
 //  id - asset_id to retrieve price of
 // Successful response data:
-// asset: {
-//   assetId (Integer)
-//   lastPrice (Decimal)
-//   lastUpdated (string)
-// }
+// price - number (decimal)
+// TODO: Check that this doesn't get converted to string?
 router.get('/asset/price', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
@@ -51,6 +48,30 @@ router.get('/asset/price', (req, res, next) => {
     .catch((error: any) => {
       console.log('Error retreiving asset price:', error);
       res.status(404).send({ message: 'Error retrieving asset price' });
+    });
+});
+
+// Get asset info by asset ID
+// Expects in req.query:
+//  id - asset_id to retrieve details of
+//  days - number of days for which to retrieve history from
+// Successful response data:
+// prices[]:
+//  {
+//    price: string | number
+//    dataPeriod: string
+//  }[]
+router.get('/asset/price/history', (req, res, next) => {
+  if (!req.query.id || !req.query.days) {
+    return res.status(400).send({ message: 'Missing query parameter(s)' });
+  }
+  assets.getAssetPriceHistoryByAssetIdLimit(req.query.id as string, req.query.days as string)
+    .then((prices) => {
+      res.status(200).send({prices});
+    })
+    .catch((error: any) => {
+      console.log('Error retreiving asset price history:', error);
+      res.status(404).send({ message: 'Error retrieving asset price history' });
     });
 });
 

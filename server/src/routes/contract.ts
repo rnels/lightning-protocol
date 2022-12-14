@@ -28,6 +28,29 @@ router.get('/contract', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract info' }));
 });
 
+// Get extended contract info by contract ID (includes trades)
+// Expects in req.query:
+//  id - Contract ID to retrieve details of
+// Successful response data:
+// contract: {
+//   contractId
+//   typeId
+//   createdAt
+//   exercised
+//   exercisedAmount
+//   trades: Trade[]
+// }
+router.get('/contract/ext', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  contracts.getContractOwnedByIdExt(req.query.id as string, req.user!.id)
+    .then((contract) => {
+      res.status(200).send({contract});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract info' }));
+});
+
 // Get contract type info by contract type ID
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve details of
@@ -48,6 +71,49 @@ router.get('/contract/type', (req, res, next) => {
       res.status(200).send({contractType});
     })
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract type info' }));
+});
+
+// Get top badged contract types by assetId and direction
+// Expects in req.query:
+//  assetId - Asset ID to retrieve contractTypes of
+//  direction - Call or put direction for contractTypes ('true' or 'false')
+// Successful response data:
+// contractTypes: ContractType[] (+ badge)
+router.get('/contract/type/badged/top', (req, res, next) => {
+  if (!req.query.assetId || !req.query.direction) {
+    return res.status(400).send({ message: 'Missing query parameter(s)' });
+  }
+  let direction: boolean;
+  if ((req.query.direction as string).toLowerCase() === 'true') direction = true;
+  else direction = false;
+  contractTypes.getBadgedTypesForAssetAndDirection(req.query.assetId as string, direction)
+    .then((contractTypes) => {
+      res.status(200).send({contractTypes});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving top badged contract types' }));
+});
+
+// Get "featured" contract types by assetId and direction
+// Expects in req.query:
+//  assetId - Asset ID to retrieve contractTypes of
+//  direction - Call or put direction for contractTypes ('true' or 'false')
+// Successful response data:
+// contractTypes: ContractType[] (+ badge)
+router.get('/contract/type/featured', (req, res, next) => {
+  if (!req.query.assetId || !req.query.direction) {
+    return res.status(400).send({ message: 'Missing query parameter(s)' });
+  }
+  let direction: boolean;
+  if ((req.query.direction as string).toLowerCase() === 'true') direction = true;
+  else direction = false;
+  contractTypes.getFeaturedContractTypes(req.query.assetId as string, direction)
+    .then((contractTypes) => {
+      res.status(200).send({contractTypes});
+    })
+    .catch((error: any) => {
+      console.log('Error retrieving featured contract types', error);
+      res.status(404).send({ message: 'Error retrieving featured contract types' });
+    });
 });
 
 // Retrieve active contracts for a given contract type ID
@@ -114,57 +180,10 @@ router.get('/contract/type/asks', (req, res, next) => {
 
 // POST REQUESTS //
 
-// Create a contract
-// Expects in req.body:
-//  typeId (Integer) - Contract type to instantiate for contract
-//  askPrice (Decimal) [Optional - Defaults to null] - Starting price
-// TODO: Restrict this, only should be called by app not by users
-router.post('/contract', (req, res, next) => {
-  if (!req.body.typeId) {
-    return res.status(400).send({ message: 'Missing body parameter: typeId' });
-  }
-  contracts.createContract(
-    req.body.typeId,
-    req.body.askPrice
-  )
-    .then(() => {
-      res.status(201).send({ message: 'Contract created' });
-    })
-    .catch((error: any) => {
-      console.log('There was an error creating the contract:', error);
-      res.status(400).send({ message: 'Error creating contract' });
-    });
-});
-
-// Create a contract type
-// Expects in req.body:
-//   assetId (Integer)
-//   direction (Boolean)
-//   strikePrice (Decimal)
-//   expiresAt (Date) // TODO: Still need to revisit using date / time types
-// TODO: Restrict this, only should be called by app not by users
-// router.post('/contract/type', (req, res, next) => {
-//   if (!req.body.assetId || !req.body.direction || !req.body.strikePrice || !req.body.expiresAt) {
-//     return res.status(400).send({ message: 'Missing body parameters' });
-//   }
-//   contractTypes.createContractType(
-//     req.body.assetId,
-//     req.body.direction,
-//     req.body.strikePrice,
-//     req.body.expiresAt
-//   )
-//     .then(({contractTypeId}) => {
-//       res.status(201).send({ message: 'Contract type created' });
-//     })
-//     .catch((error: any) => {
-//       console.log('There was an error creating the contract type:', error);
-//       res.status(400).send({ message: 'Error creating contract type' });
-//     });
-// });
-
-// Exercises a contract type
+// Exercises a contract
 // Expects in req.body:
 //   contractId (Integer)
+// TODO: Respond with detailed error message
 router.post('/contract/exercise', (req, res, next) => {
   if (!req.body.contractId) {
     return res.status(400).send({ message: 'Missing body parameter: contractId' });
@@ -174,8 +193,8 @@ router.post('/contract/exercise', (req, res, next) => {
       res.status(201).send({ message: 'Contract exercised' });
     })
     .catch((error: any) => {
-      console.log('There was an error exercising the contract:', error);
-      res.status(400).send({ message: 'Error exercising the contract' });
+      console.log(error.message);
+      res.status(400).send({ message: error.message });
     });
 });
 
@@ -185,15 +204,30 @@ router.post('/contract/exercise', (req, res, next) => {
 // Expects in req.body:
 //  contractId - Integer
 //  askPrice - Decimal
+// TODO: Respond with detailed error message
 router.put('/contract/ask', (req, res, next) => {
   if (!req.body.contractId || !req.body.askPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   contracts.updateAskPrice(req.body.contractId, req.body.askPrice, req.user!.id)
+    .then(() => res.status(201).send({ message: 'Ask price updated' }))
+    .catch((error: any) => res.status(400).send({ message: error.message }));
+});
+
+// DELETE REQUESTS //
+
+// Remove a contract ask price
+// Expects in req.query:
+//  contractId
+router.delete('/contract/ask', (req, res, next) => {
+  if (!req.query.contractId) {
+    return res.status(400).send({ message: 'Missing query parameter: contractId' });
+  }
+  contracts.removeAskPrice(req.query.contractId as string, req.user!.id)
     .then(() => {
-      res.status(201).send({ message: 'Ask price updated' });
+      res.status(202).send({ message: 'Ask removed' });
     })
-    .catch((error: any) => res.status(400).send({ message: 'Error updating contract ask price' }));
+    .catch((error: any) => res.status(400).send({ message: 'Error removing ask price' }));
 });
 
 export default router;
