@@ -226,12 +226,14 @@ async function getActiveContractTypesByLeastTraded(assetId: string | number, dir
       contract_types.direction as "direction",
       contract_types.strike_price as "strikePrice",
       contract_types.expires_at as "expiresAt"
-    FROM contract_types, trades
-      WHERE
-        contract_types.asset_id=$1 AND
-        contract_types.direction=$2 AND
-        contract_types.expires_at > NOW() AND
-        trades.type_id=contract_types.contract_type_id
+    FROM contract_types
+      LEFT JOIN trades
+    ON
+      trades.type_id=contract_types.contract_type_id
+    WHERE
+      contract_types.asset_id=$1 AND
+      contract_types.direction=$2 AND
+      contract_types.expires_at > NOW()
     GROUP BY contract_types.contract_type_id
       ORDER BY COUNT(trades.trade_id)
     LIMIT $3
@@ -759,8 +761,7 @@ export async function getBadgedTypesForAssetAndDirection(assetId: string | numbe
 }
 
 /**
- * Well I just blew through creaing this without any kind of documentation of anything and it's messy and there's duped code
- * everywhere but whatever. This gives us up to 1 badge of each type if one of the contractTypes
+ * Well I just blew through creating this without any kind of documentation of anything and it's messy and there's duped code everywhere but whatever. This gives us up to 1 badge of each type if one of the contractTypes
  * in the types arg show up in the top 25th percentile. This means that in a given batch of contractTypes,
  * a badge can only show up once (but may not show up at all). This system is for displaying a set of contractTypes and allocating
  * badges where appropriate to that specific batch. I.e. I have a batch of 6 that I want to show to the end user, up to 3 badges can
@@ -770,6 +771,8 @@ export async function getBadgedTypesForAssetAndDirection(assetId: string | numbe
  * Also figure out if I want to keep the other system at all, which just returns the top contract types by badge type
  * */
 export async function setBadgesOnContractTypeList(assetId: string | number, direction: boolean, types: ContractType[]): Promise<ContractType[]> {
+  // TODO: Consider setting the badges syncronously in order of "priority", also consider limiting how many badges a group can receive (though this should not be confined to this function, should appear in the context of getFeaturedContractTypes)
+
   // types.forEach((type) => {
   //   if (type.assetId !== assetId || type.direction !== direction) {
   //     // Bandaid solution
