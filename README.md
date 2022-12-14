@@ -40,7 +40,6 @@ I'll leave the figuring out to you.
 3. Run `npm run dev` from the server directory
 3. Run `npm run dev` from the client directory
 4. In browser, open localhost:3001 to view client
-5. Refresh browser on file changes to update client output
 
 ## Production
 1. Why do you need to know?
@@ -71,8 +70,8 @@ I'll leave the figuring out to you.
 * `other client scripts`: Don't worry about it
 
 **Server Development**
-* `npm run dev`: [Express] Hosts express server on `SV_PORT`, fast reloads on file save
-* `other server scripts`: I'll get to it
+* `npm run dev` [Express] Hosts express server on `SV_PORT`, fast reloads on file save
+* `other server scripts` I'll get to it
 
 **Production**
 * Again, no.
