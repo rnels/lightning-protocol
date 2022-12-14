@@ -61,7 +61,7 @@ export type ContractType = {
 	direction: boolean,
 	strikePrice: string | number,
 	expiresAt: string,
-	badges?: string[],
+	badge?: string,
 	contracts?: Contract[],
 	bids?: Bid[]
 };

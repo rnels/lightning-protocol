@@ -351,10 +351,7 @@ export async function getHighestPotentialCallTypeForAssetId(assetId: string | nu
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      if (!contractType.badges) {
-        contractType.badges = [];
-      }
-      contractType.badges.push('potential');
+      contractType.badge = 'potential';
       return contractType;
     }
   }
@@ -371,11 +368,8 @@ export async function getTPHighestPotentialCallTypeForTypeIds(assetId: string | 
   for (let contractType of contractTypes) { // Works its way down sequentially
     if (contractType.strikePrice > assetPrice) {
       let index = checkTypeIds.indexOf(contractType.contractTypeId);
-      if (index !== -1) {
-        if (!checkTypes[index].badges) {
-          checkTypes[index].badges = [];
-        }
-        checkTypes[index].badges!.push('potential');
+      if (index !== -1  && !checkTypes[index].badge) {
+        checkTypes[index].badge = 'potential';
         return checkTypes;
       }
     }
@@ -393,10 +387,7 @@ export async function getHighestPotentialPutTypeForAssetId(assetId: string | num
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      if (!contractType.badges) {
-        contractType.badges = [];
-      }
-      contractType.badges.push('potential');
+      contractType.badge = 'potential';
       return contractType;
     }
   }
@@ -413,11 +404,8 @@ export async function getTPHighestPotentialPutTypeForTypeIds(assetId: string | n
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
       let index = checkTypeIds.indexOf(contractType.contractTypeId);
-      if (index !== -1) {
-        if (!checkTypes[index].badges) {
-          checkTypes[index].badges = [];
-        }
-        checkTypes[index].badges!.push('potential');
+      if (index !== -1  && !checkTypes[index].badge) {
+        checkTypes[index].badge = 'potential';
         return checkTypes;
       }
     }
@@ -435,10 +423,7 @@ export async function getSafestBetCallTypeForAssetId(assetId: string | number, a
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      if (!contractType.badges) {
-        contractType.badges = [];
-      }
-      contractType.badges.push('safe');
+      contractType.badge = 'safe';
       return contractType;
     }
   }
@@ -455,11 +440,8 @@ export async function getTPSafestBetCallTypeForAssetId(assetId: string | number,
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
       let index = checkTypeIds.indexOf(contractType.contractTypeId);
-      if (index !== -1) {
-        if (!checkTypes[index].badges) {
-          checkTypes[index].badges = [];
-        }
-        checkTypes[index].badges!.push('safe');
+      if (index !== -1  && !checkTypes[index].badge) {
+        checkTypes[index].badge = 'safe';
         return checkTypes;
       }
     }
@@ -477,10 +459,7 @@ export async function getSafestBetPutTypeForAssetId(assetId: string | number, as
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      if (!contractType.badges) {
-        contractType.badges = [];
-      }
-      contractType.badges.push('safe');
+      contractType.badge = 'safe';
       return contractType;
     }
   }
@@ -497,11 +476,8 @@ export async function getTPSafestBetPutTypeForAssetId(assetId: string | number, 
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
       let index = checkTypeIds.indexOf(contractType.contractTypeId);
-      if (index !== -1) {
-        if (!checkTypes[index].badges) {
-          checkTypes[index].badges = [];
-        }
-        checkTypes[index].badges!.push('safe');
+      if (index !== -1  && !checkTypes[index].badge) {
+        checkTypes[index].badge = 'safe';
         return checkTypes;
       }
     }
@@ -564,10 +540,7 @@ export async function getWildcardCallTypeForAssetId(assetId: string | number, as
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
-      if (!contractType.badges) {
-        contractType.badges = [];
-      }
-      contractType.badges.push('wild');
+      contractType.badge = 'wild';
       return contractType;
     }
   }
@@ -629,11 +602,8 @@ export async function getTPWildcardCallTypeForAssetId(assetId: string | number, 
   for (let contractType of contractTypes) {
     if (contractType.strikePrice > assetPrice) {
       let index = checkTypeIds.indexOf(contractType.contractTypeId);
-      if (index !== -1) {
-        if (!checkTypes[index].badges) {
-          checkTypes[index].badges = [];
-        }
-        checkTypes[index].badges!.push('wild');
+      if (index !== -1  && !checkTypes[index].badge) {
+        checkTypes[index].badge = 'wild';
         return checkTypes;
       }
     }
@@ -696,10 +666,7 @@ export async function getWildcardPutTypeForAssetId(assetId: string | number, ass
   assetPrice = res[1];
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
-      if (!contractType.badges) {
-        contractType.badges = [];
-      }
-      contractType.badges.push('wild');
+      contractType.badge = 'wild';
       return contractType;
     }
   }
@@ -763,11 +730,8 @@ export async function getTPWildcardPutTypeForAssetId(assetId: string | number, c
   for (let contractType of contractTypes) {
     if (contractType.strikePrice < assetPrice) {
       let index = checkTypeIds.indexOf(contractType.contractTypeId);
-      if (index !== -1) {
-        if (!checkTypes[index].badges) {
-          checkTypes[index].badges = [];
-        }
-        checkTypes[index].badges!.push('wild');
+      if (index !== -1  && !checkTypes[index].badge) {
+        checkTypes[index].badge = 'wild';
         return checkTypes;
       }
     }

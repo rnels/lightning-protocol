@@ -29,18 +29,16 @@ export default async function BadgedTypeCard(props: {contractType: ContractType}
     <div
       className={styles.resultsComponent}
       style={{ // TODO: Set a conditional if badges && badges.length > 1, create a gradient color between badge colors (need to check how to set a border gradient)
-        boxShadow: `0px 0px 0px 0.3em ${badgeMap[props.contractType.badges![0] as string].color} inset`
+        boxShadow: `0px 0px 0px 0.3em ${badgeMap[props.contractType.badge!].color} inset`
       }}
     >
       <div className={styles.resultsComponentBadgesTopArea}>
-        {props.contractType.badges?.map((badge) =>
           <div
           className={styles.resultsComponentBadgeAlt}
           style={{
-            backgroundColor: badgeMap[badge].color
+            backgroundColor: badgeMap[props.contractType.badge!].color
           }}
-          >{badgeMap[badge].text}</div>
-        )}
+          >{badgeMap[props.contractType.badge!].text}</div>
       </div>
       <div className={styles.resultsComponentInner}>
         <div className={styles.resultsComponentHeaders}>

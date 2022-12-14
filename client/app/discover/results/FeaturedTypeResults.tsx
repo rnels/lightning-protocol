@@ -15,7 +15,7 @@ export default async function FeaturedTypeResults(props: {assetId: string | numb
   return (
     <div className={styles.badgedTypeResultsComponent}>
       {contractTypes.map((contractType) => {
-        if (contractType.badges && contractType.badges.length > 0) {
+        if (contractType.badge) {
           {/* @ts-expect-error Server Component */}
           return <BadgedTypeCard
             contractType={contractType}
