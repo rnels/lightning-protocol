@@ -66,8 +66,8 @@ I'll leave the figuring out to you.
 ## Scripts
 
 **Client Development**
-* `npm run dev`: [NextJS] Hosts client in NextJS development mode on port 3001, fast reloads on file save
-* `other client scripts`: Don't worry about it
+* `npm run dev` [NextJS] Hosts client in NextJS development mode on port 3001, fast reloads on file save
+* `other client scripts` Don't worry about it
 
 **Server Development**
 * `npm run dev` [Express] Hosts express server on `SV_PORT`, fast reloads on file save
