@@ -399,3 +399,11 @@ export async function writerAskUpdate(assetId: number) {
     writeContractTypeChain(6)
   ]);
 });
+
+(async () => {
+  await Promise.all([
+    writeContracts(3),
+    writeContracts(4),
+    writeContracts(6)
+  ]);
+});
