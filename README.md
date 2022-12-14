@@ -13,7 +13,7 @@ It's possible this is the end all of financial derivative trading.
 **Dependencies**
 * [React + ReactDOM](https://reactjs.org/)
 * [MaterialUI](https://mui.com/)
-* [nextJS](https://nextjs.org/)
+* [NextJS](https://nextjs.org/)
 * [axios](https://axios-http.com/)
 * [dotenv](https://www.npmjs.com/package/dotenv)
 * [express](https://expressjs.com/)
@@ -21,8 +21,8 @@ It's possible this is the end all of financial derivative trading.
 * [Others](https://www.google.com/search?q=npm+install)
 
 **Dev Dependencies**
-* [TypeScript] (https://www.typescriptlang.org/)
-* [Others](https://www.google.com/search?q=npm+install+dev)
+* [TypeScript](https://www.typescriptlang.org/)
+* [Others](https://www.google.com/search?q=npm+install)
 
 # Usage
 
