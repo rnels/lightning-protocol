@@ -2,6 +2,9 @@ import React from 'react';
 import styles from './results.module.scss';
 import FeaturedTypeResults from './FeaturedTypeResults';
 
+// TODO: For some reason this page doesn't want to display anything
+// when the build is launched with the start script,
+// could have to do with searchParams somehow? Look for bug reports
 export default function DiscoverResultsPage({ searchParams }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {

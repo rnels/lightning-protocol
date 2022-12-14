@@ -12,8 +12,6 @@ import { Asset } from '../types';
   // Bitcoin - 1
   // Ethereum - 1027
 
-// DEBUG: Change process.env.CMC_API_* to process.env.CMC_API_SANDBOX_*
-
 // NOTE: There is an issue running this file for testing individually when also running the server dev
 // Need to shut down server dev first
 

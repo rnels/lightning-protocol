@@ -14,7 +14,7 @@ export default function ProfileInfo() {
   const router = useRouter();
 
   if (!account) {
-    router.push('/');
+    // router.push('/');
     return null;
   }
 

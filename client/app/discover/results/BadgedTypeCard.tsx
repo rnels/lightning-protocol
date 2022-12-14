@@ -10,7 +10,7 @@ const badgeMap: any = {
     color: '#C9FFD8'
   },
   safe: {
-    text: '🔒 Safe Bet',
+    text: '🔒 Safe Play',
     color: '#C9FFF8'
   },
   wild: {
