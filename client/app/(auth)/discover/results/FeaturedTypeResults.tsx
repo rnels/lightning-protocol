@@ -13,7 +13,7 @@ export default async function FeaturedTypeResults(props: {assetId: string | numb
   // TODO: Right now the same contract can be returned more than once if it has multiple badges
   // Should do something at the route level to consolidate the badges into string[] instead
   return (
-    <div className={styles.badgedTypeResultsComponent}>
+    <div className={styles.featuredTypeResults}>
       {contractTypes.map((contractType) => {
         if (contractType.badge) {
           {/* @ts-expect-error Server Component */}

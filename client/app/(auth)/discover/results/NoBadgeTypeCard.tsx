@@ -3,6 +3,7 @@ import React from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';
 import { cookies } from 'next/headers';
+import InfoIconClient from './InfoIconClientWrapped';
 
 export default async function NoBadgeTypeCard(props: {contractType: ContractType}) {
 
@@ -17,6 +18,11 @@ export default async function NoBadgeTypeCard(props: {contractType: ContractType
       className={styles.resultsComponent}
     >
       <div className={styles.resultsComponentInner}>
+        <div className={styles.resultsComponentInfoIconArea}>
+          <InfoIconClient
+            bgColor='#F4E3A6'
+          />
+        </div>
         <div className={styles.resultsComponentHeaders}>
           <h3
             style={{

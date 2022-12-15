@@ -4,7 +4,7 @@
   align-items: center;
 }
 
-.badgedTypeResultsComponent {
+.featuredTypeResults {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -21,20 +21,18 @@
   // padding: 10px;
   color: #232323;
   background-color: #ffffff;
-  border-width: 0.2em;
-  border-radius: 1em;
+  border-radius: 20px;
   border-style: solid;
   font-weight: 300;
   font-size: 24px;
+  overflow: hidden;
 }
 
 .resultsComponentInner {
-  margin-top: 25px;
   height: 100%;
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
-  justify-content: center;
   align-items: center;
   gap: 20px;
 }
@@ -58,7 +56,7 @@
 #priceBubble, #daysBubble {
   font-size: 20px;
   padding: 10px 20px;
-  border-radius: 1em;
+  border-radius: 1.2em;
 }
 
 #priceBubble {
@@ -69,27 +67,41 @@
   background-color: #C9F2FF;
 }
 
-.resultsComponentBadgesTopArea {
-  object-position: left top;
+.resultsComponentInfoIconArea {
+  display: flex;
+  justify-content: end;
   width: 100%;
-  text-align: left;
 }
 
-.resultsComponentBadgeAlt {
-  margin-top: 20px;
+#resultsComponentInfoIcon {
+  // position: absolute;
+  font-size: 24px;
+  color: #232323;
+  padding: 15px 15px 15px 15px;
+  border-radius: 0em 0px 0em 20px;
+}
+
+.resultsComponentBadgeArea {
   position: absolute;
-  width: 230px;
-  font-weight: bold;
+  width: 200px;
+  margin-top: 20px;
+}
+
+#resultsComponentBadge {
+  display: flex;
+  justify-content: left;
   padding: 3px 0px 3px 10px;
+  font-size: 20px;
+  font-weight: bold;
   border-radius: 0 1em 1em 0;
 }
 
-.resultsComponentBadge {
-  width: 80%;
-  font-weight: bold;
-  padding: 10px 0px;
-  border-radius: 1em;
-}
+// .resultsComponentBadge {
+//   width: 80%;
+//   font-weight: bold;
+//   padding: 10px 0px;
+//   border-radius: 1em;
+// }
 
 .resultsComponent button {
   width: 80%;

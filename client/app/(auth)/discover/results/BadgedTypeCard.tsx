@@ -3,6 +3,7 @@ import React from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';
 import { cookies } from 'next/headers';
+import InfoIconClient from './InfoIconClientWrapped';
 
 const badgeMap: any = {
   potential: {
@@ -28,19 +29,24 @@ export default async function BadgedTypeCard(props: {contractType: ContractType}
   return (
     <div
       className={styles.resultsComponent}
-      style={{ // TODO: Set a conditional if badges && badges.length > 1, create a gradient color between badge colors (need to check how to set a border gradient)
+      style={{
         boxShadow: `0px 0px 0px 0.3em ${badgeMap[props.contractType.badge!].color} inset`
       }}
     >
-      <div className={styles.resultsComponentBadgesTopArea}>
+      <div className={styles.resultsComponentBadgeArea}>
           <div
-          className={styles.resultsComponentBadgeAlt}
+          id={styles.resultsComponentBadge}
           style={{
             backgroundColor: badgeMap[props.contractType.badge!].color
           }}
           >{badgeMap[props.contractType.badge!].text}</div>
       </div>
       <div className={styles.resultsComponentInner}>
+        <div className={styles.resultsComponentInfoIconArea}>
+          <InfoIconClient
+            bgColor={badgeMap[props.contractType.badge!].color}
+          />
+        </div>
         <div className={styles.resultsComponentHeaders}>
           <h3
             style={{
