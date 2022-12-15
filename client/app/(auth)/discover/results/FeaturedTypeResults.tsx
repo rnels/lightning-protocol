@@ -2,8 +2,7 @@ import * as api from '../../../../lib/api';
 import { cookies } from 'next/headers';
 import React from 'react';
 import styles from './results.module.scss';
-import BadgedTypeCard from './BadgedTypeCard';
-import NoBadgeTypeCard from './NoBadgeTypeCard';
+import FeaturedTypeCard from './FeaturedTypeCard';
 
 
 export default async function FeaturedTypeResults(props: {assetId: string | number, direction: boolean}) {
@@ -15,18 +14,10 @@ export default async function FeaturedTypeResults(props: {assetId: string | numb
   return (
     <div className={styles.featuredTypeResults}>
       {contractTypes.map((contractType) => {
-        if (contractType.badge) {
-          {/* @ts-expect-error Server Component */}
-          return <BadgedTypeCard
-            contractType={contractType}
-          />
-        } else {
-          {/* @ts-expect-error Server Component */}
-          return <NoBadgeTypeCard
-            contractType={contractType}
-          />
-        }
-
+        {/* @ts-expect-error Server Component */}
+        return <FeaturedTypeCard
+          contractType={contractType}
+        />
       }
       )}
     </div>

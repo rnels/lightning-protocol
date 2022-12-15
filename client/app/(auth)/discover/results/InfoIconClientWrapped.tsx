@@ -11,7 +11,7 @@ export default function InfoIconClient(props: { bgColor: string }) {
       style={{
         backgroundColor: props.bgColor
       }}
-      id={styles.resultsComponentInfoIcon}
+      id={styles.featuredCardInfoIcon}
     />
   );
 
