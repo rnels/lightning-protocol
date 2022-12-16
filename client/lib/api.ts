@@ -328,10 +328,11 @@ export function getBidsByType(typeId: string | number, cookie?: string): Promise
   //   .then((response) => response.data.bids);
 }
 
-export function createBid(typeId: number, bidPrice: number) {
+export function createBids(typeId: number, bidPrice: number, amount=1) {
   return axios.post(`${serverURL}/bid`, {
     typeId,
-    bidPrice
+    bidPrice,
+    amount
   })
     .then((response) => response.data);
 }

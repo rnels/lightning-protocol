@@ -28,21 +28,15 @@ export default function PlaceBidModal(props: {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let createBidPromises = [];
-    for (let i = 0; i < amount; i++) { // TODO: Create a route which allows submitting multiple bids
-      createBidPromises.push(
-        api.createBid(props.contractType.contractTypeId, price)
-        .catch((errorRes) => {
-          console.log(errorRes);
-          if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
-            setError(errorRes.response.data.message);
-          } else {
-            setError(errorRes.message);
-          }
-        })
-      );
-    }
-    await Promise.all(createBidPromises);
+    await api.createBids(props.contractType.contractTypeId, price, amount)
+      .catch((errorRes) => {
+        console.log(errorRes);
+        if (errorRes.response && errorRes.response.data && errorRes.response.data.message) {
+          setError(errorRes.response.data.message);
+        } else {
+          setError(errorRes.message);
+        }
+      });
     updateAccount();
     props.onClose();
   };

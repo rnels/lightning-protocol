@@ -7,7 +7,7 @@ const bs = require("black-scholes");
 
 import { getAccountInfoById } from '../models/accountModel';
 import { getAssetById, getAssetPriceById } from "../models/assetModel";
-import { createBid, getBidsByContractTypeAndAccountId, updateBidPrice } from '../models/bidModel';
+import { createBids, getBidsByContractTypeAndAccountId, updateBidPrice } from '../models/bidModel';
 import { createContract, getActiveContractsByTypeId, _writerGetContractsByTypeId, _writerUpdateAskPrice } from "../models/contractModel";
 import { createContractType, getActiveContractTypesByAssetId, getContractTypeById } from "../models/contractTypeModel";
 import { getUnlockedAmountByAssetId } from "../models/poolModel";
@@ -339,7 +339,7 @@ export async function automaticBidTest(assetId: number) {
         await updateBidPrice(bid.bidId, bidPrice, account.accountId);
       }
     } else { // If bid(s) do not already exist, create a new bid
-      await createBid(
+      await createBids(
         contractType.contractTypeId,
         account.accountId,
         bidPrice

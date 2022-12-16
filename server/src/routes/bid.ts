@@ -58,12 +58,13 @@ router.get('/bid/owned', (req, res, next) => {
 // Expects in req.body:
 //  typeId (Integer)
 //  bidPrice (Decimal)
+//  amount (Integer - Default 1)
 // TODO: Respond with detailed error message
 router.post('/bid', (req, res, next) => {
   if (!req.body.typeId || !req.body.bidPrice) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
-  bids.createBid(req.body.typeId, req.user!.id, req.body.bidPrice)
+  bids.createBids(req.body.typeId, req.user!.id, req.body.bidPrice, req.body.amount || 1)
     .then(() => {
       res.status(201).send({ message: 'Bid created' });
     })

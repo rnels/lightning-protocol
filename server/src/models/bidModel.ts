@@ -108,42 +108,44 @@ export async function getBidsByAccountId(accountId: string | number, client?: Po
 }
 
 // Create bid object from result of query to pass to _getMatchingAsksByBid
-export async function createBid(typeId: number, accountId: number, bidPrice: number) {
+export async function createBids(typeId: number, accountId: number, bidPrice: number, amount=1) {
   const client = await db.connect();
-  try {
-    await client.query('BEGIN');
-    const bid = (await client.query(`
-      INSERT INTO bids (
-        type_id,
-        account_id,
-        bid_price
-      ) VALUES (
-        $1,
-        $2,
-        $3
-      )
-      RETURNING
-        bid_id as "bidId",
-        type_id as "typeId",
-        account_id as "accountId",
-        bid_price as "bidPrice",
-        created_at as "createdAt"
-    `,
-    [
-      typeId,
-      accountId,
-      bidPrice
-    ])).rows[0] as Bid;
-    let contracts = await _getMatchingAsksByBid(bid, client);
-    if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
-    await client.query('COMMIT');
-    client.release();
-  } catch (e) {
-    await client.query('ROLLBACK');
-    client.release();
-    console.log(e); // DEBUG
-    throw new Error('There was an error creating the bid'); // TODO: Create detailed error messages
+  for (let i = 0; i < amount; i++) {
+    try {
+      await client.query('BEGIN');
+      const bid = (await client.query(`
+        INSERT INTO bids (
+          type_id,
+          account_id,
+          bid_price
+        ) VALUES (
+          $1,
+          $2,
+          $3
+        )
+        RETURNING
+          bid_id as "bidId",
+          type_id as "typeId",
+          account_id as "accountId",
+          bid_price as "bidPrice",
+          created_at as "createdAt"
+      `,
+      [
+        typeId,
+        accountId,
+        bidPrice
+      ])).rows[0] as Bid;
+      let contracts = await _getMatchingAsksByBid(bid, client);
+      if (contracts.length > 0) await _tradeContract(contracts[0], bid, client);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      client.release();
+      console.log(e); // DEBUG
+      throw new Error('There was an error creating one or more bids'); // TODO: Create detailed error messages
+    }
   }
+  client.release();
 }
 
 export async function updateBidPrice(bidId: number | string, bidPrice: number, accountId: number | string) {

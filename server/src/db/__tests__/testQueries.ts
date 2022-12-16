@@ -211,7 +211,7 @@ import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } f
   let typeId = 1;
   let accountId = 1;
   let bidPrice = 1.2;
-  let result = await bids.createBid(typeId, accountId, bidPrice);
+  let result = await bids.createBids(typeId, accountId, bidPrice);
   console.log(result);
 });
 
