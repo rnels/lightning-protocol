@@ -18,7 +18,6 @@ export default function DiscoverResultsPage({ searchParams }: {
   else boolDirection = false;
   return (
     <div className={styles.discoverResultsPage}>
-      <h2>Discover</h2>
       {/* @ts-expect-error Server Component */}
       <FeaturedTypeResults
         assetId={assetId as string}

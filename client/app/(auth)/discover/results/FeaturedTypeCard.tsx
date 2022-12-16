@@ -3,7 +3,8 @@ import React from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';
 import { cookies } from 'next/headers';
-import InfoIconClient from './InfoIconClientWrapped';
+import FeaturedTypeCardSelect from './FeaturedTypeCardSelect';
+import FeaturedTypeCardInfo from './FeaturedTypeCardInfo';
 
 const badgeMap: any = {
   potential: {
@@ -44,8 +45,8 @@ export default async function FeaturedTypeCard(props: {contractType: ContractTyp
           :
           <div></div>
         }
-        <InfoIconClient
-          bgColor={props.contractType.badge ? badgeMap[props.contractType.badge!].color : '#F4E3A6'}
+        <FeaturedTypeCardInfo
+          contractType={props.contractType}
         />
       </div>
       <div className={styles.featuredCardHeaders}>
@@ -73,7 +74,9 @@ export default async function FeaturedTypeCard(props: {contractType: ContractTyp
         }}
         >{badgeMap[badge].text}</div>
       )} */}
-      <button>Add</button>
+      <FeaturedTypeCardSelect
+        contractType={props.contractType}
+      />
     </div>
   );
 

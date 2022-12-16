@@ -1,4 +1,5 @@
 .discoverResultsPage {
+  padding: 0px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -6,11 +7,38 @@
 
 .featuredTypeResults {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  gap: 30px;
+  flex-wrap: wrap;
+  padding: 20px 20px;
+  background-color: #333333;
+  border-radius: 0.5em;
+}
+
+#featuredTypeResultsReviewButton {
+  width: 100%;
+  font-size: 36px;
+  font-weight: bold;
+  padding: 15px 20px;
+  background-color: #ACF4A6;
+  border-radius: 0.5em;
+}
+
+.featuredTypeResultsSelected {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.featuredTypeResultsScroll {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  gap: 20px;
+  height: 380px;
+  padding: 20px 10px;
+  border-radius: 20px;
 }
 
 .featuredCard {
@@ -18,11 +46,11 @@
   flex-direction: column;
   flex-wrap: wrap;
   align-items: center;
+  flex-shrink: 0;
   gap: 20px;
   text-align: center;
   height: 380px;
-  width: 280px;
-  margin: 20px 0px;
+  width: 260px;
   // padding: 10px;
   color: #232323;
   background-color: #ffffff;
@@ -51,7 +79,7 @@
 }
 
 .featuredCardHeaders {
-  font-size: 36px;
+  font-size: 32px;
 }
 
 .featuredCardHeaders h3 {
@@ -94,14 +122,15 @@
 //   border-radius: 1em;
 // }
 
-.featuredCard button {
+#featuredCardSelectButton, #featuredCardSelectButtonSelected {
   width: 80%;
-  font-size: 48px;
+  font-size: 36px;
   font-weight: bold;
-  padding: 10px 20px;
+  padding: 15px 20px;
   background: linear-gradient(240deg, #F4E3A6, #f4e3a655);
   border-radius: 0.5em;
 }
 
-
-
+#featuredCardSelectButtonSelected {
+  background: #8B8B8B;
+}
