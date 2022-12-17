@@ -1,36 +1,31 @@
-import * as api from '../../../../lib/api';
-import { cookies } from 'next/headers';
+'use client';
+
 import React from 'react';
 import styles from './results.module.scss';
 import FeaturedTypeCard from './FeaturedTypeCard';
 import FeaturedTypeResultsSelected from './FeaturedTypeResultsSelected';
+import { ContractType } from '../../../../lib/types';
+import { SWRConfig } from 'swr'
+import localStorageProvider from './localStorageProvider';
 
-export default async function FeaturedTypeResults(props: {assetId: string | number, direction: boolean}) {
-
-  const contractTypes = await getFeaturedContractTypes(props.assetId, props.direction);
+export default function FeaturedTypeResults(props: {contractTypes: ContractType[], assetPrice: number}) {
 
   return (
-    <div className={styles.featuredTypeResults}>
-      <div className={styles.featuredTypeResultsScroll}>
-        {contractTypes.map((contractType) => {
-          {/* @ts-expect-error Server Component */}
-          return <FeaturedTypeCard
-            contractType={contractType}
-          />
-        }
-        )}
+    <SWRConfig value={{ provider: localStorageProvider as any }}>
+      <div className={styles.featuredTypeResults}>
+        <div className={styles.featuredTypeResultsScroll}>
+          {props.contractTypes.map((contractType) => {
+            return <FeaturedTypeCard
+              key={contractType.contractTypeId}
+              contractType={contractType}
+              assetPrice={props.assetPrice}
+            />
+          }
+          )}
+        </div>
+        <FeaturedTypeResultsSelected/>
       </div>
-      <FeaturedTypeResultsSelected/>
-    </div>
+    </SWRConfig>
   );
 
 }
-
-
-async function getFeaturedContractTypes(assetId: string | number, direction: boolean) {
-  let cookie = cookies().get('lightning-app-cookie');
-  let contractTypes = await api.getFeaturedContractTypes(assetId, direction, cookie!.value);
-  return contractTypes;
-}
-
-

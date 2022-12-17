@@ -21,7 +21,7 @@ const badgeMap: any = {
   }
 };
 
-export default function FeaturedTypeCardInfo(props: {contractType: ContractType}) {
+export default function FeaturedTypeCardInfoButton(props: {contractType: ContractType}) {
 
   const [active, setActive] = useState<boolean>(false);
 

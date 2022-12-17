@@ -1,11 +1,13 @@
 import React from 'react';
 import styles from './results.module.scss';
 import FeaturedTypeResults from './FeaturedTypeResults';
+import { cookies } from 'next/headers';
+import * as api from '../../../../lib/api';
 
 // TODO: For some reason this page doesn't want to display anything
 // when the build is launched with the start script,
 // could have to do with searchParams somehow? Look for bug reports
-export default function DiscoverResultsPage({ searchParams }: {
+export default async function DiscoverResultsPage({ searchParams }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
 
@@ -16,14 +18,28 @@ export default function DiscoverResultsPage({ searchParams }: {
   let boolDirection: boolean;
   if (direction.toLowerCase() === 'up') boolDirection = true;
   else boolDirection = false;
+  const contractTypes = await getFeaturedContractTypes(assetId, boolDirection);
+  const assetPrice = await getAssetPrice(Number(assetId));
+
   return (
     <div className={styles.discoverResultsPage}>
-      {/* @ts-expect-error Server Component */}
       <FeaturedTypeResults
-        assetId={assetId as string}
-        direction={boolDirection}
+        contractTypes={contractTypes}
+        assetPrice={assetPrice}
       />
     </div>
   );
 
+}
+
+async function getFeaturedContractTypes(assetId: string | number, direction: boolean) {
+  let cookie = cookies().get('lightning-app-cookie');
+  let contractTypes = await api.getFeaturedContractTypes(assetId, direction, cookie!.value);
+  return contractTypes;
+}
+
+async function getAssetPrice(assetId: number) {
+  let cookie = cookies().get('lightning-app-cookie');
+  let price = await api.getAssetPrice(assetId, cookie!.value);
+  return price;
 }

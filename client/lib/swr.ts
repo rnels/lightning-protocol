@@ -37,7 +37,9 @@ export function getAccount() {
   }
   const { data, error, mutate } = useSWR(url, fetcher, options);
   return {
-    account: error ? null : data, // Returns null if there's an error, undefined if it's still loading
+    // Returns null if there's an error, undefined if it's still loading
+    // TODO: Could change this to use isLoading
+    account: error ? null : data,
     error,
     updateAccount: mutate.bind(mutate, data)
   };

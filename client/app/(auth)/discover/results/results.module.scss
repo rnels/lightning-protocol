@@ -1,3 +1,7 @@
+$cardHeight: 360px;
+$cardWidth: 260px;
+$cardBorderRadius: 20px;
+
 .discoverResultsPage {
   padding: 0px 20px;
   display: flex;
@@ -13,7 +17,7 @@
   flex-wrap: wrap;
   padding: 20px 20px;
   background-color: #333333;
-  border-radius: 0.5em;
+  border-radius: $cardBorderRadius;
 }
 
 #featuredTypeResultsReviewButton {
@@ -22,7 +26,7 @@
   font-weight: bold;
   padding: 15px 20px;
   background-color: #ACF4A6;
-  border-radius: 0.5em;
+  border-radius: 1rem;
 }
 
 .featuredTypeResultsSelected {
@@ -36,22 +40,19 @@
   flex-direction: column;
   overflow-y: auto;
   gap: 20px;
-  height: 380px;
+  height: $cardHeight;
   padding: 20px 10px;
-  border-radius: 20px;
 }
 
 .featuredCard {
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
   align-items: center;
-  flex-shrink: 0;
+  flex-shrink: 0; // Required for scrolling view
   gap: 20px;
   text-align: center;
-  height: 380px;
-  width: 260px;
-  // padding: 10px;
+  height: $cardHeight;
+  width: $cardWidth;
   color: #232323;
   background-color: #ffffff;
   border-radius: 20px;
@@ -59,23 +60,26 @@
   font-weight: 300;
   font-size: 24px;
   overflow: hidden;
+  cursor: default;
 }
 
 #featuredCardInfoIcon {
   font-size: 24px;
   color: #232323;
   padding: 15px 15px 15px 15px;
-  border-radius: 0em 0px 0em 20px;
+  border-radius: 0 0 0 $cardBorderRadius;
+  cursor: pointer;
 }
 
 #featuredCardBadge {
   width: 70%;
   margin-top: 20px;
-  padding: 3px 0px 3px 10px;
+  padding: 3px 5px 3px 10px;
   text-align: left;
   font-size: 20px;
   font-weight: bold;
-  border-radius: 0 1em 1em 0;
+  border-radius: 0 $cardBorderRadius $cardBorderRadius 0;
+  cursor: help;
 }
 
 .featuredCardHeaders {
@@ -97,7 +101,7 @@
 #priceBubble, #daysBubble {
   font-size: 20px;
   padding: 10px 20px;
-  border-radius: 1.2em;
+  border-radius: 1.5rem;
 }
 
 #priceBubble {
@@ -115,20 +119,13 @@
   width: 100%;
 }
 
-// .featuredCardBadge {
-//   width: 80%;
-//   font-weight: bold;
-//   padding: 10px 0px;
-//   border-radius: 1em;
-// }
-
 #featuredCardSelectButton, #featuredCardSelectButtonSelected {
   width: 80%;
   font-size: 36px;
   font-weight: bold;
   padding: 15px 20px;
   background: linear-gradient(240deg, #F4E3A6, #f4e3a655);
-  border-radius: 0.5em;
+  border-radius: 1rem;
 }
 
 #featuredCardSelectButtonSelected {

@@ -1,10 +1,10 @@
-import * as api from '../../../../lib/api';
+'use client';
+
 import React from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';
-import { cookies } from 'next/headers';
-import FeaturedTypeCardSelect from './FeaturedTypeCardSelect';
-import FeaturedTypeCardInfo from './FeaturedTypeCardInfo';
+import FeaturedTypeCardSelectButton from './FeaturedTypeCardSelectButton';
+import FeaturedTypeCardInfoButton from './FeaturedTypeCardInfoButton';
 
 const badgeMap: any = {
   potential: {
@@ -21,10 +21,11 @@ const badgeMap: any = {
   }
 };
 
-export default async function FeaturedTypeCard(props: {contractType: ContractType}) {
+// TODO: Figure out if there's any way I can use the SWR provider with nested client components in server components
+// Ideally I wanted to keep this route as static as possible
+export default function FeaturedTypeCard(props: {contractType: ContractType, assetPrice: number}) {
 
-  const assetPrice = await getAssetPrice(props.contractType.assetId);
-  let priceDif = (Number(props.contractType.strikePrice) - assetPrice) / assetPrice;
+  let priceDif = (Number(props.contractType.strikePrice) - props.assetPrice) / props.assetPrice;
   let daysDif = Math.trunc((new Date(props.contractType.expiresAt).getTime() - Date.now()) / 86400000);
 
   return (
@@ -45,7 +46,7 @@ export default async function FeaturedTypeCard(props: {contractType: ContractTyp
           :
           <div></div>
         }
-        <FeaturedTypeCardInfo
+        <FeaturedTypeCardInfoButton
           contractType={props.contractType}
         />
       </div>
@@ -66,24 +67,10 @@ export default async function FeaturedTypeCard(props: {contractType: ContractTyp
         >{`${props.contractType.direction ? '📈' : '📉'} ${Math.trunc(priceDif * 100)}%`}</div>
         <div id={styles.daysBubble}>{`🕑 ${daysDif}d`}</div>
       </div>
-      {/* {props.contractType.badges?.map((badge) =>
-        <div
-        className={styles.featuredCardBadge}
-        style={{
-          backgroundColor: badgeMap[badge].color
-        }}
-        >{badgeMap[badge].text}</div>
-      )} */}
-      <FeaturedTypeCardSelect
+      <FeaturedTypeCardSelectButton
         contractType={props.contractType}
       />
     </div>
   );
 
-}
-
-async function getAssetPrice(assetId: number) {
-  let cookie = cookies().get('lightning-app-cookie');
-  let price = await api.getAssetPrice(assetId, cookie!.value);
-  return price;
 }
