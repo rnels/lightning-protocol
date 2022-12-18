@@ -4,31 +4,24 @@ import * as api from '../../../../lib/api';
 import React, { useEffect, useState } from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';
-import { useSWRConfig, Cache } from 'swr'
+import useSWR from 'swr'
 
-export default function FeaturedTypeResultsSelected() {
+export default function FeaturedTypeResultsSelected(props: {contractTypes: ContractType[]}) {
 
   // TODO: Create a modal that opens when button is clicked
-  const { cache, mutate, ...extraConfig } = useSWRConfig();
   const [open, setOpen] = useState<boolean>(false);
-
-  let iterator = cache.keys();
-  let featuredTypeList = [];
-
-  console.log('render');
-  let nextValue = iterator.next().value;
-  while (nextValue) {
-    featuredTypeList.push(
-      cache.get(nextValue)
-    );
-    nextValue = iterator.next().value;
-  }
 
   function handleClick() {
     setOpen(true);
   }
 
-  // console.log(cache);
+  // It is unbelievable that this works but it does
+  // This creates SWR hooks for all possible contractTypes in the list
+  let dataList = [];
+  for (let contractType of props.contractTypes) {
+    const { data } = useSWR(contractType.contractTypeId.toString());
+    data && dataList.push(data);
+  }
 
   return (
     <div className={styles.featuredTypeResultsSelected}>
@@ -38,7 +31,7 @@ export default function FeaturedTypeResultsSelected() {
       >
         Review
       </button>
-      {`${featuredTypeList.length} Selected`}
+      {`${dataList.length} Selected`}
     </div>
   );
 

@@ -11,7 +11,11 @@ import localStorageProvider from './localStorageProvider';
 export default function FeaturedTypeResults(props: {contractTypes: ContractType[], assetPrice: number}) {
 
   return (
-    <SWRConfig value={{ provider: localStorageProvider as any }}>
+    <SWRConfig
+      value={{
+        provider: localStorageProvider as any
+      }}
+    >
       <div className={styles.featuredTypeResults}>
         <div className={styles.featuredTypeResultsScroll}>
           {props.contractTypes.map((contractType) => {
@@ -23,7 +27,9 @@ export default function FeaturedTypeResults(props: {contractTypes: ContractType[
           }
           )}
         </div>
-        <FeaturedTypeResultsSelected/>
+        <FeaturedTypeResultsSelected
+          contractTypes={props.contractTypes}
+        />
       </div>
     </SWRConfig>
   );
