@@ -128,67 +128,73 @@ export async function writeContractTypeChain(assetId: number) {
     // console.log(ratioAvg); // DEBUG
     // TODO ...
   } else { // If contractTypes do not exist
-    // Get historical volatility, use to generate a standard deviation from current price
-    // Each standard deviation represents 1 strike price in either direction
-    // let volatility = 0.5; // DEBUG
-    // let volatility = await getAssetPriceVolatility(asset, assetPrice, 365, daysOut); // TODO: Uncomment for production
-    let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, daysOut); // DEBUG: Remove for production
-    // console.log('volatility:', volatility); // DEBUG
-    let deviation = Math.trunc((assetPrice * volatility) / roundMultiplier) * roundMultiplier;
-    let stepMultiplier = 5; // NOTE: Increasing this decreases the amount of standard deviations in the chain
-    let deviationStep = deviation / stepMultiplier;
-    // console.log('deviation:', deviation); // DEBUG
-    let createContractTypePromises = [];
-    // Creates (10 / stepMultiplier) standard deviations worth of contractTypes
-    let assetPriceRounded = Math.round(assetPrice / roundMultiplier) * roundMultiplier;
-    let assetPriceOffset = assetPriceRounded - assetPrice;
-    let deviationOffset = Math.ceil(Math.abs(assetPriceOffset) / deviationStep);
-    console.log('deviationOffset', deviationOffset); // DEBUG
-    console.log('assetPrice', assetPrice); // DEBUG
-    console.log('assetPriceRounded', assetPriceRounded); // DEBUG
-    let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
-    let contractsToCreate = Math.floor((0.75 * unlockedAmount) / asset.assetAmount); // Aim to lock 75% of unlocked amounts
-    let callLimit = true;
-    let putLimit = true;
-    for (let i = 1; callLimit || putLimit; i++) {
-      let strikePrices = {
-        call: assetPriceRounded + (deviationStep * deviationOffset) + (deviationStep * i),
-        // 5% offset for puts to avoid immediate reserves
-        put: (assetPriceRounded * 0.95) - (deviationStep * deviationOffset) - ((deviationStep * i) / 2) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
-      };
-      // This is a really janky looking way of doing it but I was having trouble iterating through strikeprices
-      let callAskPrice =  await _getBSPrice(asset, strikePrices.call, expiresAt.toString(), true, assetPrice);
-      if ((callAskPrice * asset.assetAmount) >= 0.01) {
-        createContractTypePromises.push(
-          createContractType(asset.assetId, true, strikePrices.call, expiresAt)
-        );
-      } else { callLimit = false; }
-      if (createContractTypePromises.length === contractsToCreate) { break; }
-      let putAskPrice =  await _getBSPrice(asset, strikePrices.put, expiresAt.toString(), false, assetPrice);
-      if ((putAskPrice * asset.assetAmount) >= 0.01) {
-        createContractTypePromises.push(
-          createContractType(asset.assetId, false, strikePrices.put, expiresAt)
-        );
-      } else { putLimit = false; }
-      if (createContractTypePromises.length === contractsToCreate) { break; }
-    }
-    let createdContractTypes = await Promise.all(createContractTypePromises);
-    console.log('contractsToCreate', contractsToCreate); // DEBUG
-    let contractLimit = 0;
-    while (contractLimit < contractsToCreate) {
-      for (let type of createdContractTypes) {
-        let askPrice =  await _getBSPrice(asset, Number(type.strikePrice), type.expiresAt, type.direction, assetPrice);
-        try {
-          await createContract(type.contractTypeId, askPrice); // NOTE: pg seems to get overwhelmed if I try to Promise.all these instead
-          contractLimit++
-        } catch {
-          console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
-          return;
-        }
-        if (contractLimit === contractsToCreate) {
-          console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
-          return;
-        }
+      // Get historical volatility, use to generate a standard deviation from current price
+      // Each standard deviation represents 1 strike price in either direction
+      // let volatility = 0.5; // DEBUG
+      // let volatility = await getAssetPriceVolatility(asset, assetPrice, 365, daysOut); // TODO: Uncomment for production
+      let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, daysOut); // DEBUG: Remove for production
+      // console.log('volatility:', volatility); // DEBUG
+      let deviation = Math.trunc((assetPrice * volatility) / roundMultiplier) * roundMultiplier;
+      let stepMultiplier = 5; // NOTE: Increasing this decreases the amount of standard deviations in the chain
+      let deviationStep = deviation / stepMultiplier;
+      // console.log('deviation:', deviation); // DEBUG
+      let createContractTypePromises = [];
+      // Creates (10 / stepMultiplier) standard deviations worth of contractTypes
+      let assetPriceRounded = Math.round(assetPrice / roundMultiplier) * roundMultiplier;
+      let assetPriceOffset = assetPriceRounded - assetPrice;
+      let deviationOffset = Math.ceil(Math.abs(assetPriceOffset) / deviationStep);
+      console.log('deviationOffset', deviationOffset); // DEBUG
+      console.log('assetPrice', assetPrice); // DEBUG
+      console.log('assetPriceRounded', assetPriceRounded); // DEBUG
+      let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
+      let contractsToCreate = Math.floor((0.75 * unlockedAmount) / asset.assetAmount); // Aim to lock 75% of unlocked amounts
+      let callLimit = true;
+      let putLimit = true;
+      for (let i = 1; callLimit || putLimit; i++) {
+        let strikePrices = {
+          call: assetPriceRounded + (deviationStep * deviationOffset) + (deviationStep * i),
+          // 5% offset for puts to avoid immediate reserves
+          put: (assetPriceRounded * 0.95) - (deviationStep * deviationOffset) - ((deviationStep * i) / 2) // Dividing by 2 on puts due to how the distribution works, will decide if this is the best way after some time
+        };
+        // This is a really janky looking way of doing it but I was having trouble iterating through strikeprices
+        let callAskPrice =  await _getBSPrice(asset, strikePrices.call, expiresAt.toString(), true, assetPrice);
+        if ((callAskPrice * asset.assetAmount) >= 0.01) {
+          createContractTypePromises.push(
+            createContractType(asset.assetId, true, strikePrices.call, expiresAt)
+          );
+        } else { callLimit = false; }
+        if (createContractTypePromises.length === contractsToCreate) { break; }
+        let putAskPrice =  await _getBSPrice(asset, strikePrices.put, expiresAt.toString(), false, assetPrice);
+        if ((putAskPrice * asset.assetAmount) >= 0.01) {
+          createContractTypePromises.push(
+            createContractType(asset.assetId, false, strikePrices.put, expiresAt)
+          );
+        } else { putLimit = false; }
+        if (createContractTypePromises.length === contractsToCreate) { break; }
+      }
+      let createdContractTypes = await Promise.all(createContractTypePromises);
+      console.log('contractsToCreate', contractsToCreate); // DEBUG
+      return writeContractsForTypes(asset, createdContractTypes, unlockedAmount, assetPrice);
+  }
+}
+
+async function writeContractsForTypes(asset: Asset, contractTypes: ContractType[], unlockedAmount?: number, assetPrice?: number) {
+  let contractLimit = 0;
+  unlockedAmount =  unlockedAmount ? unlockedAmount : await getUnlockedAmountByAssetId(asset.assetId);
+  let contractsToCreate = Math.floor((0.75 * unlockedAmount) / Number(asset.assetAmount)); // Aim to lock 75% of unlocked amounts
+  while (contractLimit < contractsToCreate) {
+    for (let type of contractTypes) {
+      let askPrice =  await _getBSPrice(asset, Number(type.strikePrice), type.expiresAt, type.direction, assetPrice);
+      try {
+        await createContract(type.contractTypeId, askPrice); // NOTE: pg seems to get overwhelmed if I try to Promise.all these instead
+        contractLimit++
+      } catch {
+        console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
+        return;
+      }
+      if (contractLimit === contractsToCreate) {
+        console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
+        return;
       }
     }
   }
