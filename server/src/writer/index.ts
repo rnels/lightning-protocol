@@ -42,7 +42,7 @@ import { getTradesWithin24HoursByTypeId } from '../models/tradeModel';
 // For creating new contracts of an existing type with contracts being traded, look at bid / ask spread for determining price rather than using a financial model? It depends on how close models come to the traded price I suppose. Don't want to undersell them
 // For simulating bidding activity, run the BS model function to get a bid price for the contract and have the AI bid on that using an actual account (that's made for the purpose of this, i.e. account_id 1). This should simulate real demand over time as the price of the underlying asset and time expiry changes
 
-  // NOTE: Technically, volatility will be constant across strikePrices so you could pass this as an argument instead since you'll be getting the same volatility across all strikes ... but it looks neater here
+// NOTE: Technically, volatility will be constant across strikePrices so you could pass this as an argument instead since you'll be getting the same volatility across all strikes ... but it looks neater here
 // TODO: Consider whether I want to pass assetPrice as an arg instead, seeing as there are repeated calls for it when this is called in succession, but it will (should) be unchanging between calls
 // TODO: For future prices, use IV instead of HV based on activity (?)
 async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string, direction: boolean, assetPrice?: number) {
@@ -88,7 +88,15 @@ async function _getVolumeOIRatio(typeId: number) {
 export async function writeContractTypeChain(assetId: number) {
   const asset = await getAssetById(assetId);
   asset.assetAmount = Number(asset.assetAmount);
-  const contractTypes = await getActiveContractTypesByAssetId(assetId);
+  // TODO: Have the contracts expire at the same relative time every time
+  // TODO: Keep in mind that daysOut affects the the price volatility (and BS model pricing),
+  // So if I'm always creating the contracts at a fixed interval, it would be good to base everything around that interval
+  let daysOut = 8 * 7; // 8 weeks / 56 days
+  let expiresAt = new Date(Date.now());
+  expiresAt.setUTCDate(expiresAt.getDate() + daysOut);
+  expiresAt.setUTCHours(0, 0, 0, 0); // 7PM ET
+  // console.log('expiresAt:', expiresAt); // DEBUG
+  const existingContractTypes = await getActiveContractTypesByAssetId(assetId); // TODO: Change to only get contractTypes with expiry = expiresAt
   // let assetPrice = 1; // DEBUG
   let assetPrice = await getAssetPriceById(asset.assetId);
   let assetPriceString = assetPrice.toString();
@@ -106,10 +114,11 @@ export async function writeContractTypeChain(assetId: number) {
     roundMultiplier = Math.pow(10, wholePlaces - 2);
   }
   // console.log('roundMultiplier', roundMultiplier); // DEBUG
-  if (contractTypes.length) { // If contractTypes exist
+  // TODO: Change this to only check if contractTypes at the given expiry exist
+  if (existingContractTypes.length) { // If contractTypes exist at the given expiry
     // TODO: Flesh this part out, it should achieve the second goal of the function
     let ratios = [];
-    for (let contractType of contractTypes) {
+    for (let contractType of existingContractTypes) {
       let ratio = await _getVolumeOIRatio(contractType.contractTypeId);
       ratio && ratios.push(ratio);
       // TODO ...
@@ -119,14 +128,6 @@ export async function writeContractTypeChain(assetId: number) {
     // console.log(ratioAvg); // DEBUG
     // TODO ...
   } else { // If contractTypes do not exist
-    // TODO: Have the contracts expire at the same time every time
-    // TODO: Keep in mind that daysOut affects the the price volatility (and BS model pricing),
-    // So if I'm always creating the contracts at a fixed interval, it would be good to base everything around that interval
-    let daysOut = 8 * 7; // 8 weeks / 56 days
-    let expiresAt = new Date(Date.now());
-    expiresAt.setUTCDate(expiresAt.getDate() + daysOut);
-    expiresAt.setUTCHours(0, 0, 0, 0); // 7PM ET
-    // console.log('expiresAt:', expiresAt); // DEBUG
     // Get historical volatility, use to generate a standard deviation from current price
     // Each standard deviation represents 1 strike price in either direction
     // let volatility = 0.5; // DEBUG
@@ -146,7 +147,7 @@ export async function writeContractTypeChain(assetId: number) {
     console.log('assetPrice', assetPrice); // DEBUG
     console.log('assetPriceRounded', assetPriceRounded); // DEBUG
     let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
-    let contractsToCreate = Math.floor(unlockedAmount / asset.assetAmount);
+    let contractsToCreate = Math.floor((0.75 * unlockedAmount) / asset.assetAmount); // Aim to lock 75% of unlocked amounts
     let callLimit = true;
     let putLimit = true;
     for (let i = 1; callLimit || putLimit; i++) {
@@ -234,7 +235,7 @@ export async function initializeContracts(assetId: number) {
   const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
-  let contractsToCreate = Math.floor(unlockedAmount / asset.assetAmount);
+  let contractsToCreate = Math.floor((0.75 * unlockedAmount) / asset.assetAmount); // Aim to lock 75% of unlocked amounts
   let contractLimit = 0;
   // Keep looping while there are still unlockedAmounts
   while (contractLimit < contractsToCreate) {
@@ -276,8 +277,8 @@ export async function writeContracts(assetId: number) {
   const assetPrice = await getAssetPriceById(assetId);
   const contractTypes = await getActiveContractTypesByAssetId(asset.assetId);
   let unlockedAmount = await getUnlockedAmountByAssetId(asset.assetId);
-  let maxContracts = Math.floor(unlockedAmount / asset.assetAmount); // The maximum that can be made with the unlocked amount
-  console.log('maxContracts:', maxContracts); // DEBUG
+  let contractsToCreate = Math.floor((0.75 * unlockedAmount) / asset.assetAmount); // Aim to lock 75% of unlocked amounts
+  console.log('contractsToCreate:', contractsToCreate); // DEBUG
   let typeRatios: {
     contractType: ContractType,
     askPrice: number,
@@ -307,7 +308,7 @@ export async function writeContracts(assetId: number) {
   let count = 0;
   for (let tr of typeRatios) {
     let ct = tr.contractType;
-    let createAmount = Math.floor(maxContracts * (tr.ratio / ratioSum));
+    let createAmount = Math.floor(contractsToCreate * (tr.ratio / ratioSum));
     console.log('createAmount:', createAmount); // DEBUG
     try {
       for (let i = 0; i < createAmount; i++) {
@@ -321,7 +322,7 @@ export async function writeContracts(assetId: number) {
       break; // If unable to create a contract, presumed due to hitting unlockedAmount limit, stop creating them
     }
   }
-  console.log('Contract creation limit reached at count ' + count + ' of ' + maxContracts); // DEBUG
+  console.log('Contract creation limit reached at count ' + count + ' of ' + contractsToCreate); // DEBUG
 }
 
 export async function automaticBidTest(assetId: number) {
