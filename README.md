@@ -3,6 +3,7 @@
 # Table of Contents
 * [Installation](#installation)
 * [Usage](#usage)
+* [Configuration](#configuration)
 
 # Installation
 **Requirements**
@@ -44,6 +45,19 @@
 ## Production
 1. TBD
 
+## Scripts
+
+**Client Development**
+* `npm run dev` [NextJS] Hosts client in NextJS development mode on port 3001, fast reloads on file save
+* `other client scripts` TBD
+
+**Server Development**
+* `npm run dev` [Express] Hosts express server on `SV_PORT`, fast reloads on file save
+* `other server scripts` TBD
+
+**Production**
+* TBD
+
 # Configuration
 
 ## Client - Config file (`.ts`) Configuration
@@ -63,17 +77,3 @@
 * `CMC_API_KEY` API Key for CoinMarketCap (default: sandbox creds)
 * `CC_API_URL` Production API URL for CryptoCompare, used for historical crypto market data
 * `CC_API_KEY` Production API Key for CryptoCompare (default: na-na nothing)
-
-
-## Scripts
-
-**Client Development**
-* `npm run dev` [NextJS] Hosts client in NextJS development mode on port 3001, fast reloads on file save
-* `other client scripts` TBD
-
-**Server Development**
-* `npm run dev` [Express] Hosts express server on `SV_PORT`, fast reloads on file save
-* `other server scripts` TBD
-
-**Production**
-* TBD
