@@ -1,4 +1,5 @@
 # LIGHTNING PROTOCOL ⚡
+Paper trading game. Buy and sell assets and trade cards speculating on the price of those assets.
 
 # Table of Contents
 * [Installation](#installation)
