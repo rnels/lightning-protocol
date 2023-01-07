@@ -1,5 +1,4 @@
 # LIGHTNING PROTOCOL ⚡
-It's possible this is the end all of financial derivative trading.
 
 # Table of Contents
 * [Installation](#installation)
@@ -27,51 +26,54 @@ It's possible this is the end all of financial derivative trading.
 # Usage
 
 ## General
-If you want to try the app, you need to do 3 things:
-1. Create an account
-2. Create an asset pool
-3. Initialize the writer to create contract types and contracts
+1. Run `npm install` from the root directory to install dependencies
+1. Copy `example.env` in server dir, rename copy to `.env` ([Reference](#configuration))
+2. Copy `config.example.ts` in client dir, rename copy to `config.ts` ([Reference](#configuration))
+3. Create an account
+4. Create an asset pool for your account
+5. Initialize the writer to create contract types and contracts
 
-I'll leave the figuring out to you.
+**More detailed steps TBD**
 
 ## Development
-1. Run `npm install` from the root directory to install dependencies
-2. Copy `example.env`, rename copied file to `.env` and fill out accordingly for both client and server
-3. Run `npm run dev` from the server directory
+1. (Follow general steps)
+2. Run `npm run dev` from the server directory
 3. Run `npm run dev` from the client directory
 4. In browser, open localhost:3001 to view client
 
 ## Production
-1. Why do you need to know?
+1. TBD
+
+# Configuration
 
 ## Client - Config file (`.ts`) Configuration
 * `serverURL` API server URL (default: http://localhost:3000)
 
 ## Server - Environment File (`.env`) Configuration
 * `SV_PORT` Server port (default: 3000)
-* `SV_SECRET` Just leave it as is, but if you want you can set it to a random string of your choosing
-* `PG_HOST` PostgreSQL ip address[s] or domain name[s]
-* `PG_PORT` PostgreSQL server port[s]
+* `SV_SECRET` Set to a random string of your choosing
+* `PG_HOST` PostgreSQL ip address or domain name
+* `PG_PORT` PostgreSQL server port
 * `PG_DB` Name of PostgreSQL database to connect to
 * `PG_USER` Username of database user
 * `PG_PW` Password of database user
-* `CL_ORIGIN1` First origin domain for authenticated requests
-* `CL_ORIGIN2` Second (if you need it) origin domain for authenticated requests
+* `CL_ORIGIN1` First origin domain for authenticated requests (default: http://localhost:3001)
+* `CL_ORIGIN2` Second (if required) origin domain for authenticated requests (default: http://127.0.0.1:3001)
 * `CMC_API_URL` API URL for CoinMarketCap, used for realtime crypto market data (default: sandbox creds)
 * `CMC_API_KEY` API Key for CoinMarketCap (default: sandbox creds)
-* `CC_API_URL` API URL for CryptoCompare, used for historical crypto market data (default: na-na nothing)
-* `CC_API_KEY` API Key for CryptoCompare (default: still nothing, and no there's no sample data)
+* `CC_API_URL` Production API URL for CryptoCompare, used for historical crypto market data
+* `CC_API_KEY` Production API Key for CryptoCompare (default: na-na nothing)
 
 
 ## Scripts
 
 **Client Development**
 * `npm run dev` [NextJS] Hosts client in NextJS development mode on port 3001, fast reloads on file save
-* `other client scripts` Don't worry about it
+* `other client scripts` TBD
 
 **Server Development**
 * `npm run dev` [Express] Hosts express server on `SV_PORT`, fast reloads on file save
-* `other server scripts` I'll get to it
+* `other server scripts` TBD
 
 **Production**
-* Again, no.
+* TBD
