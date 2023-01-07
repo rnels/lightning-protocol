@@ -15,33 +15,37 @@ Paper trading game. Buy and sell assets and trade cards speculating on the price
 * [React + ReactDOM](https://reactjs.org/)
 * [MaterialUI](https://mui.com/)
 * [NextJS](https://nextjs.org/)
+* [Sass](https://sass-lang.com/)
+* [swr](https://swr.vercel.app/)
 * [axios](https://axios-http.com/)
+* [pg](https://www.npmjs.com/package/pg)
 * [dotenv](https://www.npmjs.com/package/dotenv)
 * [express](https://expressjs.com/)
-* [pg](https://www.npmjs.com/package/pg)
-* [Others](https://www.google.com/search?q=npm+install)
+* [bcryptjs](https://www.npmjs.com/package/bcryptjs)
+* [Others...](https://www.google.com/search?q=npm+install)
 
 **Dev Dependencies**
 * [TypeScript](https://www.typescriptlang.org/)
-* [Others](https://www.google.com/search?q=npm+install)
+* [typescript-plugin-css-modules](https://www.npmjs.com/package/typescript-plugin-css-modules)
+* [Others...](https://www.google.com/search?q=npm+install)
 
 # Usage
 
 ## General
-1. Run `npm install` from the root directory to install dependencies
-1. Copy `example.env` in server dir, rename copy to `.env` ([Reference](#configuration))
-2. Copy `config.example.ts` in client dir, rename copy to `config.ts` ([Reference](#configuration))
-3. Create an account
-4. Create an asset pool for your account
-5. Initialize the writer to create contract types and contracts
+1. In `/client` and `/server` directories, run `npm install` script to install dependencies
+2. In `/client` dir, copy `config.example.ts`, rename copy to `config.ts` and fill out ([Reference](#configuration))
+3. In `/server` dir, `example.env`, rename copy to `.env` and fill out ([Reference](#configuration))
+4. Create an account
+5. Create an asset pool for your account
+6. Initialize the writer to create contract types and contracts
 
 **More detailed steps TBD**
 
 ## Development
 1. (Follow general steps)
-2. Run `npm run dev` from the server directory
-3. Run `npm run dev` from the client directory
-4. In browser, open localhost:3001 to view client
+2. In `/client` dir, run script `npm run dev`
+3. In `/server` dir, run script `npm run dev`
+4. In browser, open `http://localhost:3001` to view client
 
 ## Production
 1. TBD
