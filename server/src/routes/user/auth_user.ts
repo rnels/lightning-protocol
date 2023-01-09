@@ -1,4 +1,4 @@
-import * as accounts from '../models/accountModel';
+import * as accounts from '../../models/accountModel';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Router } from 'express';
@@ -18,7 +18,7 @@ const authHelper = (req: Request, res: Response, next=()=>{}) => {
 
 // POST REQUESTS //
 
-router.post('/register', (req, res, next) => {
+router.post('/user/register', (req, res, next) => {
   const { email, password, firstName, lastName } = req.body;
   if (!email) {
     res.status(400).send({ message: 'Please provide an email address' });
@@ -61,12 +61,12 @@ router.post('/register', (req, res, next) => {
 
 // LOGIN
 // Session is established after authentication
-router.post('/login', (req, res, next) => {
+router.post('/user/login', (req, res, next) => {
   authHelper(req, res, next);
 });
 
 // LOGOUT
-router.post('/logout', (req, res, next) => {
+router.post('/user/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) {
       return next(err);
@@ -80,7 +80,7 @@ router.post('/logout', (req, res, next) => {
 
 // Authenticate all user requests
 // Users should not be able to access any resources without being signed in
-router.use('/', (req, res, next) => {
+router.use('/user', (req, res, next) => {
   // TODO: Delete this block for production
   // if (!req.user) { // DEBUG: Uncomment for testing auth
   //   req.user = {

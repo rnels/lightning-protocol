@@ -1,6 +1,6 @@
-import * as trades from '../models/tradeModel';
+import * as trades from '../../models/tradeModel';
 import { Router } from 'express';
-import { Trade } from '../types';
+import { Trade } from '../../types';
 const router = Router();
 
 // GET REQUESTS //
@@ -18,7 +18,7 @@ const router = Router();
 //  tradeFee
 //  createdAt
 // }
-router.get('/trade', (req, res, next) => {
+router.get('/client/trade', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
@@ -42,7 +42,7 @@ router.get('/trade', (req, res, next) => {
 //  tradeFee
 //  createdAt
 // }
-router.get('/trade/last', (req, res, next) => {
+router.get('/client/trade/last', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
@@ -61,7 +61,7 @@ router.get('/trade/last', (req, res, next) => {
 //  typeId - Contract type ID to retrieve trades of
 // Successful response data:
 // trades: Trade[]
-router.get('/trade/daily', (req, res, next) => {
+router.get('/client/trade/daily', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
@@ -75,26 +75,12 @@ router.get('/trade/daily', (req, res, next) => {
     });
 });
 
-// Get all trades for an authenticated user
-// Successful response data:
-// trades: Trade[]
-router.get('/trade/owned', (req, res, next) => {
-  trades.getTradesByAccountId(req.user!.id)
-    .then((trades) => {
-      res.status(200).send({trades})
-    })
-    .catch((error: any) => {
-      res.status(404).send({ message: 'Error retrieving trade info' });
-      console.log(error);
-    });
-});
-
 // Get average price difference from last 24 hours of trades to the prior 24 hours
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve trades of
 // Successful response data:
 // priceChange: number
-router.get('/trade/daily/change', (req, res, next) => {
+router.get('/client/trade/daily/change', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }
