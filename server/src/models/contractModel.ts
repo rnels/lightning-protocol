@@ -164,7 +164,7 @@ function _removeAskPrice(
 }
 
 // INTERNAL METHOD: NOT TO BE USED BY ANY ROUTES
-async function _getContractById(id: string | number, client?: PoolClient): Promise<Contract> {
+export async function _getContractById(id: string | number, client?: PoolClient): Promise<Contract> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   const res = await query(`
     SELECT
@@ -264,7 +264,7 @@ async function _getContractByIdForUpdate(id: string | number, client?: PoolClien
   return res.rows[0];
 }
 
-export async function getContractById(id: string | number, client?: PoolClient): Promise<Contract> {
+export async function getContractById(id: string | number, accountId: string | number, client?: PoolClient): Promise<Contract> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   let res: QueryResult;
   try {
@@ -279,7 +279,8 @@ export async function getContractById(id: string | number, client?: PoolClient):
         premium_fees as "premiumFees"
       FROM contracts
         WHERE contract_id=$1
-    `, [id]);
+        AND owner_id=$2
+    `, [id, accountId]);
   } catch {
     throw new Error(`There was an error retrieving the contract`);
   }
@@ -289,7 +290,7 @@ export async function getContractById(id: string | number, client?: PoolClient):
 
 // TODO: Make this less janky looking
 export async function getContractOwnedByIdExt(contractId: string | number, accountId: string | number): Promise<Contract> {
-  let contract = await getContractById(contractId);
+  let contract = await getContractById(contractId, accountId);
   contract.trades = await getTradesByContractIdAccountId(contract.contractId, accountId);
   return contract;
 }

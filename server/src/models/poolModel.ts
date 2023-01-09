@@ -3,7 +3,7 @@ import db from '../db/db';
 import { Contract, Pool, PoolLock } from '../types';
 import { depositPaper, withdrawPaper } from './accountModel';
 import { getAssetById, getAssetPriceById } from './assetModel';
-import { getContractById, isContractActive } from './contractModel';
+import { _getContractById, isContractActive } from './contractModel';
 import { getActiveContractTypeById, getContractTypeById } from './contractTypeModel';
 
 // TODO: Set this up to be called by a listener periodically
@@ -52,7 +52,7 @@ function _setReleased(poolLock: PoolLock, client: PoolClient) {
 /** Releases pool lock premium fees and reserve amounts to pool provider's account */
 async function _releasePoolLockFees(poolLock: PoolLock, client: PoolClient) {
   if (poolLock.released) throw new Error('Pool lock has already been released');
-  let pool = await getPoolById(poolLock.poolId, client);
+  let pool = await _getPoolById(poolLock.poolId, client);
   let fees = Number(poolLock.premiumFees) + Number(poolLock.reserveAmount) - Number(poolLock.reserveCredit);
   // console.log('poolLock.premiumFees', poolLock.premiumFees); // DEBUG
   // console.log('poolLock.reserveAmount', poolLock.reserveAmount); // DEBUG
@@ -257,7 +257,7 @@ export async function _convertPoolReserve(poolId: number, client: PoolClient) {
 export async function getUnlockedAmountByPoolId(id: string | number, client?: PoolClient): Promise<number> {
   let results = await Promise.all([
     _getLockedAmountByPoolId(id, client),
-    getPoolById(id, client)
+    _getPoolById(id, client)
   ]);
   let lockedAmount = results[0];
   let totalAmount = Number(results[1].assetAmount);
@@ -274,9 +274,8 @@ export async function getUnlockedAmountByAssetId(assetId: string | number, clien
   return totalAmount - lockedAmount;
 }
 
-// NOTE: Changed to return pool locks as well
-/** Also returns pool locks */
-export async function getPoolById(id: string | number, client?: PoolClient): Promise<Pool> {
+/** Internal method, doesn't require accountId */
+async function _getPoolById(id: string | number, client?: PoolClient): Promise<Pool> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   let res: QueryResult;
   try {
@@ -294,6 +293,31 @@ export async function getPoolById(id: string | number, client?: PoolClient): Pro
     throw new Error('There was an error retrieving the pool');
   }
   if (res.rows.length === 0) throw new Error(`Pool with poolId ${id} does not exist`);
+  let pool: Pool = res.rows[0];
+  pool.poolLocks = await getPoolLocksByPoolId(pool.poolId);
+  return pool;
+}
+
+/** Also returns pool locks */
+export async function getPoolById(id: string | number, accountId: string | number, client?: PoolClient): Promise<Pool> {
+  let query = client ? client.query.bind(client) : db.query.bind(db);
+  let res: QueryResult;
+  try {
+    res = await query(`
+      SELECT
+        pool_id as "poolId",
+        account_id as "accountId",
+        asset_id as "assetId",
+        asset_amount as "assetAmount",
+        last_lock_created as "lastLockCreated"
+      FROM pools
+        WHERE pool_id=$1
+        AND account_id=$2
+    `, [id, accountId]);
+  } catch {
+    throw new Error('There was an error retrieving the pool');
+  }
+  if (res.rows.length === 0) throw new Error(`Pool with poolId ${id} and accountId ${accountId} does not exist`);
   let pool: Pool = res.rows[0];
   pool.poolLocks = await getPoolLocksByPoolId(pool.poolId);
   return pool;
@@ -524,28 +548,6 @@ export function _createPoolLock(
   ]);
 }
 
-export async function withdrawPoolAssets(
-  poolId: string | number,
-  assetAmount: number,
-  accountId: string | number
-): Promise<{assetId: number}> {
-  let unlockedAmount = await getUnlockedAmountByPoolId(poolId);
-  if (unlockedAmount < assetAmount) throw new Error('Unlocked balance is not enough to withdraw this amount');
-  const res = await db.query(`
-    UPDATE pools
-    SET asset_amount=asset_amount-$2
-      WHERE pool_id=$1
-        AND account_id=$3
-    RETURNING asset_id as "assetId"
-  `,
-  [
-    poolId,
-    assetAmount,
-    accountId
-  ]);
-  return res.rows[0];
-}
-
 export async function buyPoolAssets(
   poolId: string | number,
   assetAmount: number,
@@ -554,7 +556,7 @@ export async function buyPoolAssets(
   let client = await db.connect();
   try {
     await client.query('BEGIN');
-    let pool = await getPoolById(poolId, client);
+    let pool = await getPoolById(poolId, accountId, client);
     let assetPrice = await getAssetPriceById(pool.assetId, client);
     let purchaseCost = assetAmount * assetPrice;
     await Promise.all([
@@ -603,7 +605,7 @@ export async function sellPoolAssets(
   let client = await db.connect();
   try {
     await client.query('BEGIN');
-    let pool = await getPoolById(poolId, client);
+    let pool = await getPoolById(poolId, accountId, client);
     let assetPrice = await getAssetPriceById(pool.assetId, client);
     let saleCost = assetAmount * assetPrice;
     let unlockedAmount = await getUnlockedAmountByPoolId(pool.poolId);
@@ -646,47 +648,6 @@ export async function sellPoolAssets(
   }
 }
 
-// export async function withdrawPoolLockFees(
-//   poolLockId: string | number,
-//   accountId: string | number
-// ) {
-//   let client = await db.connect();
-//   try {
-//     await client.query('BEGIN');
-//     let poolLock = await getPoolLockById(poolLockId as number, accountId, client);
-//     await Promise.all([
-//       client.query(`
-//         UPDATE pool_locks
-//         SET trade_fees=0
-//           WHERE pool_lock_id=$1
-//             AND account_id=$2
-//       `, [poolLock.poolLockId, accountId]),
-//       depositPaper(accountId, poolLock.tradeFees as number, client)
-//     ])
-//     await client.query('COMMIT');
-//     client.release();
-//   } catch(e) {
-//     console.log(e); // DEBUG
-//     await client.query('ROLLBACK');
-//     client.release();
-//     throw new Error('There was an error withdrawing pool fees');
-//   }
-// }
-
-// export async function withdrawAllPoolLockFees(
-//   poolId: string | number,
-//   accountId: string | number
-// ) {
-//   let poolLocks = await getPoolLocksByPoolId(poolId);
-//   let withdrawPromises = [];
-//   for (let lock of poolLocks) {
-//     withdrawPromises.push(
-//       withdrawPoolLockFees(lock.poolLockId, accountId)
-//     );
-//   }
-//   return Promise.all(withdrawPromises);
-// }
-
 // TODO: Restrict the ability to re-assign to self
 export async function reassignPoolLock(
   poolLockId: string | number,
@@ -696,7 +657,7 @@ export async function reassignPoolLock(
   try {
     await client.query('BEGIN');
     let poolLock = await getPoolLockById(poolLockId, accountId, client);
-    let contract = await getContractById(poolLock.contractId, client);
+    let contract = await _getContractById(poolLock.contractId, client);
     let contractType = await getActiveContractTypeById(contract.typeId, client);
     let asset = await getAssetById(contractType.assetId, client);
     let assetPrice = await getAssetPriceById(asset.assetId, client);

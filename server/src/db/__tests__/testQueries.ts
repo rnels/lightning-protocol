@@ -113,7 +113,8 @@ import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } f
 // GET POOL BY ID
 (async () => {
   let poolId = 1;
-  let result = await pools.getPoolById(poolId);
+  let accountId = 1;
+  let result = await pools.getPoolById(poolId, accountId);
   console.log(result);
 });
 
@@ -186,7 +187,8 @@ import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } f
 // GET CONTRACT BY ID
 (async () => {
   let contractId = 1;
-  let result = await contracts.getContractById(contractId);
+  let accountId = 1;
+  let result = await contracts.getContractById(contractId, accountId);
   console.log(result);
 });
 
@@ -218,7 +220,8 @@ import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } f
 // GET BID BY ID
 (async () => {
   let bidId = 1;
-  let result = await bids.getBidById(bidId);
+  let accountId = 1;
+  let result = await bids.getBidById(bidId, accountId);
   console.log(result);
 });
 
@@ -261,7 +264,8 @@ import { Account, Asset, Pool, Contract, ContractType, Bid, Trade, AssetType } f
 // GET TRADE BY ID
 (async () => {
   let tradeId = 1;
-  let result = await trades.getTradeById(tradeId);
+  let accountId = 1;
+  let result = await trades.getTradeById(tradeId, accountId);
   console.log(result);
 });
 

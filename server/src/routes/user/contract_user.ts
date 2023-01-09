@@ -6,6 +6,28 @@ const router = Router();
 
 // GET REQUESTS //
 
+// Get contract info by contract ID
+// Expects in req.query:
+//  id - Contract ID to retrieve details of
+// Successful response data:
+// contract: {
+//   contractId
+//   typeId
+//   createdAt
+//   exercised
+//   exercisedAmount
+// }
+router.get('/user/contract', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  contracts.getContractById(req.query.id as string, req.user!.id)
+    .then((contract) => {
+      res.status(200).send({contract});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract info' }));
+});
+
 // Get extended contract info by contract ID (includes trades)
 // Expects in req.query:
 //  id - Contract ID to retrieve details of
@@ -32,7 +54,7 @@ router.get('/user/contract/ext', (req, res, next) => {
 // Retrieve contracts for the authenticated user account
 // Successful response data:
 // contracts: Contract[]
-router.get('/user/contract/owned', (req, res, next) => {
+router.get('/user/contract/list', (req, res, next) => {
   contracts.getContractsByOwnerId(req.user!.id)
     .then((contracts) => {
       res.status(200).send({contracts});

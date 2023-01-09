@@ -5,29 +5,6 @@ const router = Router();
 
 // GET REQUESTS //
 
-// Get pool info (and pool locks) by pool ID
-// Expects in req.query:
-//  id - pool_id to retrieve details of
-// Successful response data:
-// pool: {
-//   poolId
-//   accountId
-//   assetId
-//   assetAmount
-//   tradeFees
-//   poolLocks: poolLock[]
-// }
-router.get('/client/pool', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
-  }
-  pools.getPoolById(req.query.id as string)
-    .then((pool) => {
-      res.status(200).send({pool});
-    })
-    .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
-});
-
 // Retrieve pools for a given asset ID
 // Expects in req.query:
 //  assetId - asset_id to retrieve pools for

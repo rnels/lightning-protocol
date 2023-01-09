@@ -6,28 +6,6 @@ const router = Router();
 
 // GET REQUESTS //
 
-// Get contract info by contract ID
-// Expects in req.query:
-//  id - Contract ID to retrieve details of
-// Successful response data:
-// contract: {
-//   contractId
-//   typeId
-//   createdAt
-//   exercised
-//   exercisedAmount
-// }
-router.get('/client/contract', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
-  }
-  contracts.getContractById(req.query.id as string)
-    .then((contract) => {
-      res.status(200).send({contract});
-    })
-    .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract info' }));
-});
-
 // Get contract type info by contract type ID
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve details of

@@ -5,30 +5,6 @@ const router = Router();
 
 // GET REQUESTS //
 
-// Get trade info by trade ID
-// Expects in req.query:
-//  id - Trade ID to retrieve details of
-// Successful response data:
-// trade: {
-//  tradeId
-//  contractId
-//  typeId
-//  salePrice
-//  saleCost
-//  tradeFee
-//  createdAt
-// }
-router.get('/client/trade', (req, res, next) => {
-  if (!req.query.id) {
-    return res.status(400).send({ message: 'Missing query parameter: id' });
-  }
-  trades.getTradeById(req.query.id as string)
-    .then((trade) => {
-      res.status(200).send({trade});
-    })
-    .catch((error: any) => res.status(404).send({ message: 'Error retrieving trade info' }));
-});
-
 // Get last trade of a contract with a given typeId
 // Expects in req.query:
 //  typeId - Contract type ID to retrieve last trade of

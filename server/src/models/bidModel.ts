@@ -41,7 +41,7 @@ export function _removeBid(bidId: number | string, client: PoolClient) {
   ]);
 }
 
-export async function getBidById(id: string | number, client?: PoolClient): Promise<{bidId: number, typeId: number, bidPrice: string}> {
+export async function getBidById(id: string | number, accountId: string | number, client?: PoolClient): Promise<Bid> {
   let query = client ? client.query.bind(client) : db.query.bind(db);
   let res: QueryResult;
   try {
@@ -49,14 +49,17 @@ export async function getBidById(id: string | number, client?: PoolClient): Prom
       SELECT
         bid_id as "bidId",
         type_id as "typeId",
-        bid_price as "bidPrice"
+        account_id as "accountId",
+        bid_price as "bidPrice",
+        created_at as "createdAt"
       FROM bids
         WHERE bid_id=$1
-    `, [id]);
+        AND account_id=$2
+    `, [id, accountId]);
   } catch {
     throw new Error('There was an error retrieving the bid');
   }
-  if (res.rows.length === 0) throw new Error(`Bid with bidId ${id} does not exist`);
+  if (res.rows.length === 0) throw new Error(`Bid with bidId ${id} and accountId ${accountId} does not exist`);
   return res.rows[0];
 }
 

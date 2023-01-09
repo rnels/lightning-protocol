@@ -24,7 +24,7 @@ export async function getAllTrades(sort='trade_id ASC', count=100): Promise<Trad
   return res.rows;
 }
 
-export async function getTradeById(id: string | number): Promise<Trade> {
+export async function getTradeById(id: string | number, accountId: string | number): Promise<Trade> {
   const res = await db.query(`
     SELECT
       trade_id as "tradeId",
@@ -36,7 +36,8 @@ export async function getTradeById(id: string | number): Promise<Trade> {
       created_at as "createdAt"
     FROM trades
       WHERE trade_id=$1
-  `, [id]);
+      AND account_id=$2
+  `, [id, accountId]);
   return res.rows[0];
 }
 

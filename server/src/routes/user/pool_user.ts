@@ -5,10 +5,33 @@ const router = Router();
 
 // GET REQUESTS //
 
+// Get pool info (and pool locks) by pool ID
+// Expects in req.query:
+//  id - pool_id to retrieve details of
+// Successful response data:
+// pool: {
+//   poolId
+//   accountId
+//   assetId
+//   assetAmount
+//   tradeFees
+//   poolLocks: poolLock[]
+// }
+router.get('/user/pool', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  pools.getPoolById(req.query.id as string, req.user!.id)
+    .then((pool) => {
+      res.status(200).send({pool});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving pool info' }));
+});
+
 // Retrieve pools for the authenticated user account
 // Successful response data:
 // pools: Pool[]
-router.get('/user/pool/owned', (req, res, next) => {
+router.get('/user/pool/list', (req, res, next) => {
   pools.getPoolsByAccountId(req.user!.id)
     .then((pools) => {
       res.status(200).send({pools});
@@ -27,7 +50,7 @@ router.get('/user/pool/owned', (req, res, next) => {
 //   assetAmount
 //   tradeFees
 // }
-router.get('/user/pool/owned/asset', (req, res, next) => {
+router.get('/user/pool/list/asset', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
@@ -41,7 +64,7 @@ router.get('/user/pool/owned/asset', (req, res, next) => {
 // Retrieve pools locks for the authenticated user account
 // Successful response data:
 // poolLocks: PoolLock[]
-router.get('/user/pool/owned/lock', (req, res, next) => {
+router.get('/user/pool/list/lock', (req, res, next) => {
   pools.getPoolLocksByAccountId(req.user!.id)
     .then((poolLocks) => {
       res.status(200).send({poolLocks});

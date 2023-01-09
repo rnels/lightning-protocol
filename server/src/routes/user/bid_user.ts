@@ -5,10 +5,30 @@ const router = Router();
 
 // GET REQUESTS //
 
+// Get bid info by bid ID for the authenticated user account
+// Expects in req.query:
+//  id - Bid ID to retrieve details of
+// Successful response data:
+// bid: {
+//   bidId
+//   typeId
+//   bidPrice
+// }
+router.get('/user/bid', (req, res, next) => {
+  if (!req.query.id) {
+    return res.status(400).send({ message: 'Missing query parameter: id' });
+  }
+  bids.getBidById(req.query.id as string, req.user!.id)
+    .then((bid) => {
+      res.status(200).send({bid});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving bid info' }));
+});
+
 // Retrieve bids for the authenticated user account
 // Successful response data:
 // bids: Bid[]
-router.get('/user/bid/owned', (req, res, next) => {
+router.get('/user/bid/list', (req, res, next) => {
   bids.getBidsByAccountId(req.user!.id)
     .then((bids) => {
       res.status(200).send({bids});

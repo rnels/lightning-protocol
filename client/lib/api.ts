@@ -4,19 +4,19 @@ import { Account, Asset, Bid, Contract, ContractType, Pool, PoolLock, Trade } fr
 
 // ACCOUNTS //
 
-export function getAccount(cookie: string) : Promise<Account> | Account {
-  var url = new URL(`${serverURL}/account`);
-  return fetch(url, {
-    method: 'GET',
-    headers: { Cookie: `lightning-app-cookie=${cookie}` },
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.account);
-}
+// export function getAccount(cookie: string) : Promise<Account> | Account {
+//   var url = new URL(`${serverURL}/user/account`);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: { Cookie: `lightning-app-cookie=${cookie}` },
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.account);
+// }
 
 export function registerAccount(email: string, password: string, firstName: string, lastName: string) {
-  return axios.post(`${serverURL}/register`, {
+  return axios.post(`${serverURL}/user/register`, {
     firstName,
     lastName,
     email,
@@ -26,7 +26,7 @@ export function registerAccount(email: string, password: string, firstName: stri
 }
 
 export function loginAccount(email: string, password: string) {
-  return axios.post(`${serverURL}/login`, {
+  return axios.post(`${serverURL}/user/login`, {
     email,
     password
   })
@@ -34,49 +34,49 @@ export function loginAccount(email: string, password: string) {
 }
 
 export function logoutAccount() {
-  return axios.post(`${serverURL}/logout`)
+  return axios.post(`${serverURL}/user/logout`)
     .then((response) => response.data);
 }
 
 export function depositPaper(amount: number) {
-  return axios.post(`${serverURL}/account/paper`, { amount })
+  return axios.post(`${serverURL}/user/account/paper`, { amount })
     .then((response) => response.data);
 }
 
 // CONTRACTS //
 
-export function getContract(contractId: string | number, cookie?: string): Promise<Contract> {
-  var url = new URL(`${serverURL}/contract`);
-  url.searchParams.append('id', contractId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.contract);
-  // return axios.get(`${serverURL}/contract`, {
-  //   params: { id: contractId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contract)
-}
+// export function getContract(contractId: string | number, cookie?: string): Promise<Contract> {
+//   var url = new URL(`${serverURL}/user/contract`);
+//   url.searchParams.append('id', contractId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.contract);
+//   // return axios.get(`${serverURL}/contract`, {
+//   //   params: { id: contractId },
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.contract)
+// }
 
-// Get trades along with contract info (requires ownership)
-export function getContractExt(contractId: string | number, cookie?: string): Promise<Contract> {
-  var url = new URL(`${serverURL}/contract/ext`);
-  url.searchParams.append('id', contractId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.contract);
-}
+// // Get trades along with contract info (requires ownership)
+// export function getContractExt(contractId: string | number, cookie?: string): Promise<Contract> {
+//   var url = new URL(`${serverURL}/user/contract/ext`);
+//   url.searchParams.append('id', contractId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.contract);
+// }
 
 export function getContractListByType(typeId: string | number, cookie?: string): Promise<Contract[]> {
-  var url = new URL(`${serverURL}/contract/list`);
+  var url = new URL(`${serverURL}/client/contract/list`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -85,16 +85,11 @@ export function getContractListByType(typeId: string | number, cookie?: string):
   })
     .then((result) => result.json())
     .then((json) => json.contracts);
-  // return axios.get(`${serverURL}/contract/list`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contracts)
 }
 
 // Extended nested info using groups route
 export function getContractListByTypeExt(typeId: string | number, cookie?: string): Promise<Contract[]> {
-  var url = new URL(`${serverURL}/group/contract`);
+  var url = new URL(`${serverURL}/client/group/contract`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -103,48 +98,43 @@ export function getContractListByTypeExt(typeId: string | number, cookie?: strin
   })
     .then((result) => result.json())
     .then((json) => json.contracts);
-  // return axios.get(`${serverURL}/group/contract`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contracts);
 }
 
-export function getUserContracts(cookie?: string): Promise<Contract[]> {
-  var url = new URL(`${serverURL}/contract/owned`);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.contracts);
-  // return axios.get(`${serverURL}/contract/owned`, {
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contracts);
-}
+// export function getUserContracts(cookie?: string): Promise<Contract[]> {
+//   var url = new URL(`${serverURL}/user/contract/list`);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.contracts);
+//   // return axios.get(`${serverURL}/contract/list`, {
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.contracts);
+// }
 
 // Extended nested info using groups route, requires a typeId
-export function getUserContractsExt(typeId: string | number, cookie?: string): Promise<Contract[]> {
-  var url = new URL(`${serverURL}/group/contract/owned`);
-  url.searchParams.append('typeId', typeId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.contracts);
-  // return axios.get(`${serverURL}/group/contract/owned`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contracts);
-}
+// export function getUserContractsExt(typeId: string | number, cookie?: string): Promise<Contract[]> {
+//   var url = new URL(`${serverURL}/group/contract/list`);
+//   url.searchParams.append('typeId', typeId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.contracts);
+//   // return axios.get(`${serverURL}/group/contract/list`, {
+//   //   params: { typeId },
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.contracts);
+// }
 
 export function getAsks(typeId: string | number, cookie?: string): Promise<{askPrice: string | number, contractId: number}[]> {
-  var url = new URL(`${serverURL}/contract/type/asks`);
+  var url = new URL(`${serverURL}/client/contract/type/asks`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -153,20 +143,15 @@ export function getAsks(typeId: string | number, cookie?: string): Promise<{askP
   })
     .then((result) => result.json())
     .then((json) => json.asks);
-  // return axios.get(`${serverURL}/contract/type/asks`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.asks)
 }
 
 export function exerciseContract(contractId: string | number) {
-  return axios.post(`${serverURL}/contract/exercise`, { contractId })
+  return axios.post(`${serverURL}/user/contract/exercise`, { contractId })
     .then((response) => response.data);
 }
 
 export function updateAskPrice(contractId: string | number, askPrice: number) {
-  return axios.put(`${serverURL}/contract/ask`, {
+  return axios.put(`${serverURL}/user/contract/ask`, {
     contractId,
     askPrice
   })
@@ -174,7 +159,7 @@ export function updateAskPrice(contractId: string | number, askPrice: number) {
 }
 
 export function removeAskPrice(contractId: string | number) {
-  return axios.delete(`${serverURL}/contract/ask`, {
+  return axios.delete(`${serverURL}/user/contract/ask`, {
     params: { contractId }
   })
     .then((response) => response.data);
@@ -183,7 +168,7 @@ export function removeAskPrice(contractId: string | number) {
 // CONTRACT TYPES //
 
 export function getContractType(typeId: string | number, cookie?: string): Promise<ContractType> {
-  var url = new URL(`${serverURL}/contract/type`);
+  var url = new URL(`${serverURL}/client/contract/type`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -192,16 +177,11 @@ export function getContractType(typeId: string | number, cookie?: string): Promi
   })
     .then((result) => result.json())
     .then((json) => json.contractType);
-  // return axios.get(`${serverURL}/contract/type`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contractType);
 }
 
 // NOTE: Only gets active contractTypes
 export function getContractTypesByAssetId(assetId: string | number, cookie?: string): Promise<ContractType[]> {
-  var url = new URL(`${serverURL}/contract/type/list`);
+  var url = new URL(`${serverURL}/client/contract/type/list`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -210,15 +190,10 @@ export function getContractTypesByAssetId(assetId: string | number, cookie?: str
   })
     .then((result) => result.json())
     .then((json) => json.contractTypes);
-  // return axios.get(`${serverURL}/contract/type/list`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contractTypes);
 }
 
 export function getTopBadgedContractTypes(assetId: string | number, direction: boolean, cookie?: string): Promise<ContractType[]> {
-  var url = new URL(`${serverURL}/contract/type/badged/top`);
+  var url = new URL(`${serverURL}/client/contract/type/badged/top`);
   url.searchParams.append('assetId', assetId as string);
   url.searchParams.append('direction', direction.toString());
   return fetch(url, {
@@ -231,7 +206,7 @@ export function getTopBadgedContractTypes(assetId: string | number, direction: b
 }
 
 export function getFeaturedContractTypes(assetId: string | number, direction: boolean, cookie?: string): Promise<ContractType[]> {
-  var url = new URL(`${serverURL}/contract/type/featured`);
+  var url = new URL(`${serverURL}/client/contract/type/featured`);
   url.searchParams.append('assetId', assetId as string);
   url.searchParams.append('direction', direction.toString());
   return fetch(url, {
@@ -244,7 +219,7 @@ export function getFeaturedContractTypes(assetId: string | number, direction: bo
 }
 
 export function getContractTypesByAssetIdExt(assetId: string | number, cookie?: string): Promise<ContractType[]> {
-  var url = new URL(`${serverURL}/group/contract/type`);
+  var url = new URL(`${serverURL}/client/group/contract/type`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -253,66 +228,61 @@ export function getContractTypesByAssetIdExt(assetId: string | number, cookie?: 
   })
     .then((result) => result.json())
     .then((json) => json.contractTypes);
-  // return axios.get(`${serverURL}/group/contract/type`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contractTypes);
 }
 
-export function getOwnedContractTypesByAssetIdExt(assetId: string | number, cookie?: string): Promise<ContractType[]> {
-  var url = new URL(`${serverURL}/group/contract/type/owned`);
-  url.searchParams.append('assetId', assetId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.contractTypes);
-  // return axios.get(`${serverURL}/group/contract/type/owned`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.contractTypes);
-}
+// export function getOwnedContractTypesByAssetIdExt(assetId: string | number, cookie?: string): Promise<ContractType[]> {
+//   var url = new URL(`${serverURL}/user/group/contract/type/list`);
+//   url.searchParams.append('assetId', assetId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.contractTypes);
+//   // return axios.get(`${serverURL}/group/contract/type/list`, {
+//   //   params: { assetId },
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.contractTypes);
+// }
 
 // BIDS //
 
-export function getBid(bidId: string | number, cookie?: string): Promise<Bid> {
-  var url = new URL(`${serverURL}/bid`);
-  url.searchParams.append('id', bidId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.bid);
-  // return axios.get(`${serverURL}/bid`, {
-  //    params: { id: bidId },
-  //    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.bid);
-}
+// export function getBid(bidId: string | number, cookie?: string): Promise<Bid> {
+//   var url = new URL(`${serverURL}/user/bid`);
+//   url.searchParams.append('id', bidId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.bid);
+//   // return axios.get(`${serverURL}/bid`, {
+//   //    params: { id: bidId },
+//   //    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.bid);
+// }
 
-export function getUserBids(cookie?: string): Promise<Bid[]> {
-  var url = new URL(`${serverURL}/bid/owned`);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.bids);
-  // return axios.get(`${serverURL}/bid/owned`, {
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.bids);
-}
+// export function getUserBids(cookie?: string): Promise<Bid[]> {
+//   var url = new URL(`${serverURL}/user/bid/list`);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.bids);
+//   // return axios.get(`${serverURL}/bid/list`, {
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.bids);
+// }
 
 export function getBidsByType(typeId: string | number, cookie?: string): Promise<Bid[]> {
-  var url = new URL(`${serverURL}/bid/type`);
+  var url = new URL(`${serverURL}/client/bid/type`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -321,15 +291,10 @@ export function getBidsByType(typeId: string | number, cookie?: string): Promise
   })
     .then((result) => result.json())
     .then((json) => json.bids);
-  // return axios.get(`${serverURL}/bid/type`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.bids);
 }
 
 export function createBids(typeId: number, bidPrice: number, amount=1) {
-  return axios.post(`${serverURL}/bid`, {
+  return axios.post(`${serverURL}/user/bid`, {
     typeId,
     bidPrice,
     amount
@@ -338,7 +303,7 @@ export function createBids(typeId: number, bidPrice: number, amount=1) {
 }
 
 export function updateBidPrice(bidId: number, bidPrice: number) {
-  return axios.put(`${serverURL}/bid/price`, {
+  return axios.put(`${serverURL}/user/bid/price`, {
     bidId,
     bidPrice
   })
@@ -346,7 +311,7 @@ export function updateBidPrice(bidId: number, bidPrice: number) {
 }
 
 export function removeBid(bidId: number) {
-  return axios.delete(`${serverURL}/bid`, {
+  return axios.delete(`${serverURL}/user/bid`, {
     params: { bidId }
   })
     .then((response) => response.data);
@@ -355,7 +320,7 @@ export function removeBid(bidId: number) {
 // TRADES //
 
 export function getLastTrade(typeId: string | number, cookie?: string): Promise<Trade> {
-  var url = new URL(`${serverURL}/trade/last`);
+  var url = new URL(`${serverURL}/client/trade/last`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -364,15 +329,10 @@ export function getLastTrade(typeId: string | number, cookie?: string): Promise<
   })
     .then((result) => result.json())
     .then((json) => json.trade);
-  // return axios.get(`${serverURL}/trade/last`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.trade);
 }
 
 export function getDailyTrades(typeId: string | number, cookie?: string): Promise<Trade[]> {
-  var url = new URL(`${serverURL}/trade/daily`);
+  var url = new URL(`${serverURL}/client/trade/daily`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -381,30 +341,25 @@ export function getDailyTrades(typeId: string | number, cookie?: string): Promis
   })
     .then((result) => result.json())
     .then((json) => json.trades);
-  // return axios.get(`${serverURL}/trade/daily`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.trades);
 }
 
-export function getUserTrades(cookie?: string): Promise<Trade[]> {
-  var url = new URL(`${serverURL}/trade/owned`);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.trades);
-  // return axios.get(`${serverURL}/trade/owned`, {
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.trades);
-}
+// export function getUserTrades(cookie?: string): Promise<Trade[]> {
+//   var url = new URL(`${serverURL}/user/trade/list`);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.trades);
+//   // return axios.get(`${serverURL}/user/trade/list`, {
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.trades);
+// }
 
 export function getDailyPriceChange(typeId: string | number, cookie?: string): Promise<number> {
-  var url = new URL(`${serverURL}/trade/daily/change`);
+  var url = new URL(`${serverURL}/client/trade/daily/change`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
@@ -413,17 +368,12 @@ export function getDailyPriceChange(typeId: string | number, cookie?: string): P
   })
     .then((result) => result.json())
     .then((json) => json.priceChange);
-  // return axios.get(`${serverURL}/trade/daily/change`, {
-  //   params: { typeId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.priceChange);
 }
 
 // ASSETS //
 
 export function getAsset(assetId: string | number, cookie?: string): Promise<Asset> {
-  var url = new URL(`${serverURL}/asset`);
+  var url = new URL(`${serverURL}/client/asset`);
   url.searchParams.append('id', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -432,15 +382,10 @@ export function getAsset(assetId: string | number, cookie?: string): Promise<Ass
   })
     .then((result) => result.json())
     .then((json) => json.asset);
-  // return axios.get(`${serverURL}/asset`, {
-  //   params: { id: assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.asset);
 }
 
 export function getAssetList(cookie?: string): Promise<Asset[]> {
-  var url = new URL(`${serverURL}/asset/list`);
+  var url = new URL(`${serverURL}/client/asset/list`);
   return fetch(url, {
     method: 'GET',
     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
@@ -448,14 +393,10 @@ export function getAssetList(cookie?: string): Promise<Asset[]> {
   })
     .then((result) => result.json())
     .then((json) => json.assets);
-  // return axios.get(`${serverURL}/asset/list`, {
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.assets);
 }
 
 export function getAssetListExt(cookie?: string): Promise<Asset[]> {
-  var url = new URL(`${serverURL}/group/asset`);
+  var url = new URL(`${serverURL}/client/group/asset`);
   return fetch(url, {
     method: 'GET',
     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
@@ -463,29 +404,25 @@ export function getAssetListExt(cookie?: string): Promise<Asset[]> {
   })
     .then((result) => result.json())
     .then((json) => json.assets);
-  // return axios.get(`${serverURL}/group/asset`, {
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.assets);
 }
 
-export function getAssetListOwnedExt(cookie?: string): Promise<Asset[]> {
-  var url = new URL(`${serverURL}/group/asset/owned`);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.assets);
-  // return axios.get(`${serverURL}/group/asset/owned`, {
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.assets);
-}
+// export function getAssetListOwnedExt(cookie?: string): Promise<Asset[]> {
+//   var url = new URL(`${serverURL}/user/group/asset/list`);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.assets);
+//   // return axios.get(`${serverURL}/user/group/asset/list`, {
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.assets);
+// }
 
 export function getAssetByIdExt(assetId: string | number, cookie?: string): Promise<Asset[]> {
-  var url = new URL(`${serverURL}/group/asset/id`);
+  var url = new URL(`${serverURL}/client/group/asset/id`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -494,32 +431,27 @@ export function getAssetByIdExt(assetId: string | number, cookie?: string): Prom
   })
     .then((result) => result.json())
     .then((json) => json.assets);
-  // return axios.get(`${serverURL}/group/asset/id`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.assets);
 }
 
-export function getAssetByIdOwnedExt(assetId: string | number, cookie?: string): Promise<Asset[]> {
-  var url = new URL(`${serverURL}/group/asset/id/owned`);
-  url.searchParams.append('assetId', assetId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.assets);
-  // return axios.get(`${serverURL}/group/asset/id/owned`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.assets);
-}
+// export function getAssetByIdOwnedExt(assetId: string | number, cookie?: string): Promise<Asset[]> {
+//   var url = new URL(`${serverURL}/user/group/asset/id/list`);
+//   url.searchParams.append('assetId', assetId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.assets);
+//   // return axios.get(`${serverURL}/user/group/asset/id/list`, {
+//   //   params: { assetId },
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.assets);
+// }
 
 export function getAssetPrice(assetId: string | number, cookie?: string): Promise<number> {
-  var url = new URL(`${serverURL}/asset/price`);
+  var url = new URL(`${serverURL}/client/asset/price`);
   url.searchParams.append('id', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -528,11 +460,6 @@ export function getAssetPrice(assetId: string | number, cookie?: string): Promis
   })
     .then((result) => result.json())
     .then((json) => Number(json.price));
-  // return axios.get(`${serverURL}/asset/price`, {
-  //   params: { id: assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.price);
 }
 
 export function getAssetPriceHistory(
@@ -540,7 +467,7 @@ export function getAssetPriceHistory(
   days: string | number,
   cookie?: string
 ): Promise<{price: string | number, dataPeriod: string}[]> {
-  var url = new URL(`${serverURL}/asset/price/history`);
+  var url = new URL(`${serverURL}/client/asset/price/history`);
   url.searchParams.append('id', assetId as string);
   url.searchParams.append('days', days as string);
   return fetch(url, {
@@ -554,74 +481,74 @@ export function getAssetPriceHistory(
 
 // POOLS //
 
-export function getPool(poolId: string | number, cookie?: string): Promise<Pool> {
-  var url = new URL(`${serverURL}/pool`);
-  url.searchParams.append('id', poolId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.pool);
-  // return axios.get(`${serverURL}/pool`, {
-  //   params: { id: poolId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.pool);
-}
+// export function getPool(poolId: string | number, cookie?: string): Promise<Pool> {
+//   var url = new URL(`${serverURL}/user/pool`);
+//   url.searchParams.append('id', poolId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.pool);
+//   // return axios.get(`${serverURL}/user/pool`, {
+//   //   params: { id: poolId },
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.pool);
+// }
 
-export function getUserPools(cookie?: string): Promise<Pool[]> {
-  var url = new URL(`${serverURL}/pool/owned`);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.pools);
-  // return axios.get(`${serverURL}/pool/owned`, {
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.pools);
-}
+// export function getUserPools(cookie?: string): Promise<Pool[]> {
+//   var url = new URL(`${serverURL}/user/pool/list`);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.pools);
+//   // return axios.get(`${serverURL}/user/pool/list`, {
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.pools);
+// }
 
-export function getUserPoolByAssetId(assetId: string | number, cookie?: string): Promise<Pool> {
-  var url = new URL(`${serverURL}/pool/owned/asset`);
-  url.searchParams.append('assetId', assetId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.pool);
-  // return axios.get(`${serverURL}/pool/owned/asset`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.pool);
-}
+// export function getUserPoolByAssetId(assetId: string | number, cookie?: string): Promise<Pool> {
+//   var url = new URL(`${serverURL}/user/pool/list/asset`);
+//   url.searchParams.append('assetId', assetId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.pool);
+//   // return axios.get(`${serverURL}/user/pool/list/asset`, {
+//   //   params: { assetId },
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.pool);
+// }
 
-export function getUserPoolByAssetIdExt(assetId: string | number, cookie?: string): Promise<Pool> {
-  var url = new URL(`${serverURL}/group/pool/owned`);
-  url.searchParams.append('assetId', assetId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.pool);
-  // return axios.get(`${serverURL}/group/pool/owned`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.pool);
-}
+// export function getUserPoolByAssetIdExt(assetId: string | number, cookie?: string): Promise<Pool> {
+//   var url = new URL(`${serverURL}/user/group/pool/list`);
+//   url.searchParams.append('assetId', assetId as string);
+//   return fetch(url, {
+//     method: 'GET',
+//     headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+//     credentials: 'include'
+//   })
+//     .then((result) => result.json())
+//     .then((json) => json.pool);
+//   // return axios.get(`${serverURL}/user/group/pool/list`, {
+//   //   params: { assetId },
+//   //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+//   // })
+//   //   .then((response) => response.data.pool);
+// }
 
 export function getPoolsByAssetId(assetId: string | number, cookie?: string): Promise<Pool[]> {
-  var url = new URL(`${serverURL}/pool/list`);
+  var url = new URL(`${serverURL}/client/pool/list`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -630,15 +557,10 @@ export function getPoolsByAssetId(assetId: string | number, cookie?: string): Pr
   })
     .then((result) => result.json())
     .then((json) => json.pools);
-  // return axios.get(`${serverURL}/pool/list`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.pools);
 }
 
 export function getPoolsByAssetIdExt(assetId: string | number, cookie?: string): Promise<Pool[]> {
-  var url = new URL(`${serverURL}/group/pool`);
+  var url = new URL(`${serverURL}/client/group/pool`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -647,15 +569,10 @@ export function getPoolsByAssetIdExt(assetId: string | number, cookie?: string):
   })
     .then((result) => result.json())
     .then((json) => json.pools);
-  // return axios.get(`${serverURL}/group/pool`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.pools);
 }
 
 export function getPoolAssetAmountByAssetId(assetId: string | number, cookie?: string): Promise<number> {
-  var url = new URL(`${serverURL}/pool/asset`);
+  var url = new URL(`${serverURL}/client/pool/asset`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -664,15 +581,10 @@ export function getPoolAssetAmountByAssetId(assetId: string | number, cookie?: s
   })
     .then((result) => result.json())
     .then((json) => json.assetAmount);
-  // return axios.get(`${serverURL}/pool/asset`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.assetAmount);
 }
 
 export function getPoolLocksByPoolId(poolId: string | number, cookie?: string): Promise<PoolLock[]> {
-  var url = new URL(`${serverURL}/pool/lock`);
+  var url = new URL(`${serverURL}/client/pool/lock`);
   url.searchParams.append('id', poolId as string);
   return fetch(url, {
     method: 'GET',
@@ -681,15 +593,10 @@ export function getPoolLocksByPoolId(poolId: string | number, cookie?: string): 
   })
     .then((result) => result.json())
     .then((json) => json.poolLocks);
-  // return axios.get(`${serverURL}/pool/lock`, {
-  //   params: { id: poolId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.poolLocks);
 }
 
 export function getPoolLockAssetAmountByAssetId(assetId: string | number, cookie?: string): Promise<number> {
-  var url = new URL(`${serverURL}/pool/lock/asset`);
+  var url = new URL(`${serverURL}/client/pool/lock/asset`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
@@ -698,15 +605,10 @@ export function getPoolLockAssetAmountByAssetId(assetId: string | number, cookie
   })
     .then((result) => result.json())
     .then((json) => json.assetAmount);
-  // return axios.get(`${serverURL}/pool/lock/asset`, {
-  //   params: { assetId },
-  //   headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  // })
-  //   .then((response) => response.data.assetAmount);
 }
 
 export function createPool(assetId: number, assetAmount=0) {
-  return axios.post(`${serverURL}/pool`, {
+  return axios.post(`${serverURL}/user/pool`, {
     assetId,
     assetAmount
   })
@@ -714,7 +616,7 @@ export function createPool(assetId: number, assetAmount=0) {
 }
 
 export function buyPoolAssets(poolId: number, assetAmount: number) {
-  return axios.post(`${serverURL}/pool/asset/buy`, {
+  return axios.post(`${serverURL}/user/pool/asset/buy`, {
     poolId,
     assetAmount
   })
@@ -722,7 +624,7 @@ export function buyPoolAssets(poolId: number, assetAmount: number) {
 }
 
 export function sellPoolAssets(poolId: number, assetAmount: number) {
-  return axios.post(`${serverURL}/pool/asset/sell`, {
+  return axios.post(`${serverURL}/user/pool/asset/sell`, {
     poolId,
     assetAmount
   })
