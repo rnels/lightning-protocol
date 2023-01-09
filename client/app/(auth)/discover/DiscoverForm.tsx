@@ -35,7 +35,7 @@ export default function DiscoverForm(props: {assets: Asset[]}) {
   function handleSubmit() {
     // TODO: Placeholder functionality until new page is created
     if (!selectedAsset) return;
-    router.push(`/discover/results?asset=${selectedAsset.assetId}&d=${selectedDirection}`);
+    router.push(`/discover/results?a=${selectedAsset.assetId}&d=${selectedDirection}`);
   }
 
   let assetListElements = assetList.map((asset) =>

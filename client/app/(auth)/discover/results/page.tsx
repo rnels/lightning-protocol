@@ -11,9 +11,9 @@ export default async function DiscoverResultsPage({ searchParams }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
 
-  if (!searchParams || !searchParams.asset || !searchParams.d) return null;
+  if (!searchParams || !searchParams.a || !searchParams.d) return null;
 
-  const assetId = searchParams.asset as string;
+  const assetId = searchParams.a as string;
   const direction = searchParams.d as string; // Direction - Valid values are 'up' or 'down';
   let boolDirection: boolean;
   if (direction.toLowerCase() === 'up') boolDirection = true;
