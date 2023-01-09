@@ -2,7 +2,7 @@
 
 // import { errorMessage as errorMessageStyle } from '../styles.module.scss';
 import styles from '../styles.module.scss';
-import * as api from '../../lib/api_client';
+import * as api from '../../lib/api_user';
 import React, { FormEvent, useState } from 'react';
 import { getAccount } from '../../lib/swr';
 import Link from 'next/link';

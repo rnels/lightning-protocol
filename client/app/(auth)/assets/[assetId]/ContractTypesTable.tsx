@@ -1,8 +1,6 @@
-'use client';
-
 import styles from '../assets.module.scss';
 
-import { useState } from 'react';
+// import { useState } from 'react';
 import { Asset, ContractType } from '../../../../lib/types';
 import ContractTableRow from './ContractTableRow';
 

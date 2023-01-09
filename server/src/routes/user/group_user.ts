@@ -4,12 +4,14 @@ const router = Router();
 
 // This is where you go to get cascading information
 
+// TODO: Consolidate into "ext" routes
+
 // GET REQUESTS //
 
 // Get nested info at the provided level
 // Successful response data:
 // Includes contractTypes, pools
-router.get('/user/group/asset/list', (req, res, next) => {
+router.get('/user/group/asset', (req, res, next) => {
   groups.getAssetGroupOwned(req.user!.id)
     .then((assets) => {
       res.status(200).send({assets});
@@ -20,7 +22,7 @@ router.get('/user/group/asset/list', (req, res, next) => {
 // Get nested info at the provided level
 // Successful response data:
 // Includes contractTypes, pools
-router.get('/user/group/asset/id/list', (req, res, next) => {
+router.get('/user/group/asset/id', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
@@ -36,7 +38,7 @@ router.get('/user/group/asset/id/list', (req, res, next) => {
 //  assetId - assetId to retrieve pools (and nested) of
 // Successful response data:
 // Includes poolLocks
-router.get('/user/group/pool/list', (req, res, next) => {
+router.get('/user/group/pool', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
@@ -52,7 +54,7 @@ router.get('/user/group/pool/list', (req, res, next) => {
 //  assetId - assetId to retrieve contractTypes (and nested) of
 // Successful response data:
 // Includes contracts, bids
-router.get('/user/group/contract/type/list', (req, res, next) => {
+router.get('/user/group/contract/type', (req, res, next) => {
   if (!req.query.assetId) {
     return res.status(400).send({ message: 'Missing query parameter: assetId' });
   }
@@ -68,7 +70,7 @@ router.get('/user/group/contract/type/list', (req, res, next) => {
 //  typeId - typeId to retrieve contracts (and nested) of
 // Successful response data:
 // Includes trades
-router.get('/user/group/contract/list', (req, res, next) => {
+router.get('/user/group/contract', (req, res, next) => {
   if (!req.query.typeId) {
     return res.status(400).send({ message: 'Missing query parameter: typeId' });
   }

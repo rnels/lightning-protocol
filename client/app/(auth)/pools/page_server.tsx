@@ -1,3 +1,4 @@
+// NOTE: This file doesn't work with the new API structure, kept as reference
 import * as api from '../../../lib/api_client';
 
 import React from 'react';

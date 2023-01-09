@@ -1,6 +1,6 @@
 'use client';
 
-import * as api from '../../../lib/api_client';
+import * as api from '../../../lib/api_user';
 import { Contract, ContractType } from "../../../lib/types";
 import ContractAskPrice from "./ContractAskPrice";
 import ContractExercised from "./ContractExercised";

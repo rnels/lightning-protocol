@@ -1,7 +1,5 @@
 import * as api from '../../../lib/api_client';
-import { cookies } from 'next/headers';
 import React from 'react';
-import styles from './discover.module.scss';
 import DiscoverForm from './DiscoverForm';
 
 export default async function DiscoverPage() {
@@ -20,8 +18,7 @@ export default async function DiscoverPage() {
 }
 
 async function getAssetList() {
-  let cookie = cookies().get('lightning-app-cookie');
-  let assetList = await api.getAssetList(cookie!.value);
+  let assetList = await api.getAssetList();
   return assetList;
 }
 

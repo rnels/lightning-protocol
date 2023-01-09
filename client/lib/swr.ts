@@ -6,7 +6,7 @@ import { Account, Asset, Bid, Contract, ContractType, Pool, PoolLock, Trade } fr
 // ASSETS //
 
 export function getAssetListOwnedExt() {
-  let fetchUrl = new URL(`${serverURL}/user/group/asset/list`);
+  let fetchUrl = new URL(`${serverURL}/user/group/asset`);
   let fetcher = (url: string) =>
     axios.get(url)
       .then((response) => response.data.assets as Asset[]);

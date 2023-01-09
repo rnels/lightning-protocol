@@ -1,10 +1,9 @@
 'use client';
 
-import * as api from '../../../../lib/api_client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';
-import useSWR, { useSWRConfig } from 'swr';
+import useSWR from 'swr';
 
 export default function FeaturedTypeCardSelectButton(props: {contractType: ContractType}) {
 

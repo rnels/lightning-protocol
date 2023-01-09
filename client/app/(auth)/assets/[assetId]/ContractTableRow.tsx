@@ -1,10 +1,8 @@
-'use client';
-
 import styles from '../assets.module.scss';
 import { Asset, Bid, Contract, ContractType, Trade } from '../../../../lib/types';
 import * as api from '../../../../lib/api_client';
 
-import { useEffect, useState } from 'react';
+// import { useEffect, useState } from 'react';
 import PlaceBidModal from './PlaceBidModal';
 
 /** Renders a row of data for the given ContractType */

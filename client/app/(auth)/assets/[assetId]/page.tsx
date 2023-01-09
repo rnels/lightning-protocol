@@ -1,6 +1,5 @@
 import styles from '../assets.module.scss';
 
-import { cookies } from 'next/headers';
 import React from 'react';
 
 import * as api from '../../../../lib/api_client';
@@ -40,15 +39,13 @@ export default async function AssetContractsPage( { params }: { params: { assetI
 
 async function getPropsData(assetId: string | number) {
 
-  let cookie = cookies().get('lightning-app-cookie');
-
   let results = await Promise.all([
-    api.getAsset(assetId, cookie!.value),
-    api.getAssetPrice(assetId, cookie!.value),
-    api.getAssetPriceHistory(assetId, 7, cookie!.value),
-    api.getPoolAssetAmountByAssetId(assetId, cookie!.value),
-    api.getPoolLockAssetAmountByAssetId(assetId, cookie!.value),
-    api.getContractTypesByAssetId(assetId, cookie!.value)
+    api.getAsset(assetId),
+    api.getAssetPrice(assetId),
+    api.getAssetPriceHistory(assetId, 7),
+    api.getPoolAssetAmountByAssetId(assetId),
+    api.getPoolLockAssetAmountByAssetId(assetId),
+    api.getContractTypesByAssetId(assetId)
   ]);
 
   return {
