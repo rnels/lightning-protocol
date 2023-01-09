@@ -23,12 +23,8 @@ async function _checkIfAssetPriceHistoryExists(
 };
 
 // TODO: Set this up with a listener that automatically updates it periodically, rather than attaching it to getAssetPriceById()
-async function _updateAssetPrice(
-  assetId: number,
-  assetType: AssetType,
-  priceApiId: number
-): Promise<number> {
-  let lastPrice = await getAssetPriceFromAPI(priceApiId, assetType);
+async function _updateAssetPrice(asset: Asset): Promise<number> {
+  let lastPrice = await getAssetPriceFromAPI(asset.priceApiId, asset.assetType);
   await db.query(`
     UPDATE assets
       SET
@@ -37,10 +33,10 @@ async function _updateAssetPrice(
       WHERE asset_id=$1
   `,
   [
-    assetId,
+    asset.assetId,
     lastPrice
   ]);
-  _convertActivePutContractTypesNearStrike(assetId, lastPrice);
+  _convertActivePutContractTypesNearStrike(asset.assetId, lastPrice);
   return lastPrice;
 };
 
@@ -98,20 +94,19 @@ export async function getAssetPriceById(id: string | number, client?: PoolClient
     FROM assets
       WHERE asset_id=$1
   `, [id])).rows[0] as Asset;
-  let lastPrice = asset.lastPrice;
-  let lastUpdatedHours = (Date.now() - new Date(asset.lastUpdated).getTime()) / 3600000
+  let price = asset.lastPrice;
+  let lastUpdatedHours = (Date.now() - new Date(asset.lastUpdated).getTime()) / 3600000;
   if (lastUpdatedHours >= 1) { // Update price if it's been over 1 hour since last update
     try {
-      lastPrice = await _updateAssetPrice(asset.assetId, asset.assetType, asset.priceApiId);
-    } catch {
-      lastPrice = asset.lastPrice; // Probably not needed
-    }
+      let newPrice = await _updateAssetPrice(asset);
+      price = newPrice;
+    } catch {}
   }
   let exists = await _checkIfAssetPriceHistoryExists(asset.assetId, Date.now()); // Checks that asset price history has an entry for today's date
   if (!exists) {
     await updateCryptoPriceHistory(asset);
   }
-  return Number(lastPrice);
+  return Number(price);
 };
 
 /** Can be used to limit the query results for limited lookback in calculating greeks / volatility */
@@ -196,7 +191,7 @@ export async function createAsset(
 };
 
 // TODO: Cast price to numeric
-export async function _getAssetPriceHistoryByAssetId(assetId: number): Promise<{price: string, data_period: string}[]>{
+async function _getAssetPriceHistoryByAssetId(assetId: number): Promise<{price: string, data_period: string}[]>{
   return (await db.query(`
     SELECT price, data_period
       FROM asset_prices

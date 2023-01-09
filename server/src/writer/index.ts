@@ -1,7 +1,7 @@
 // This is where the logic for the automated writing of contracts will go
 // The supply is artificial, the demand is not
-import dotenv from 'dotenv'; // DEBUG
-dotenv.config(); // DEBUG
+import dotenv from 'dotenv'; // DEBUG - Only required when running file standalone
+dotenv.config(); // DEBUG - Only required when running file standalone
 
 const bs = require("black-scholes");
 
@@ -9,10 +9,9 @@ import { getAccountInfoById } from '../models/accountModel';
 import { getAssetById, getAssetPriceById } from "../models/assetModel";
 import { createBids, getBidsByContractTypeAndAccountId, updateBidPrice } from '../models/bidModel';
 import { createContract, getActiveContractsByTypeId, _writerGetContractsByTypeId, _writerUpdateAskPrice } from "../models/contractModel";
-import { createContractType, getActiveContractTypesByAssetId, getContractTypeById } from "../models/contractTypeModel";
+import { createContractType, getActiveContractTypesByAssetId } from "../models/contractTypeModel";
 import { getUnlockedAmountByAssetId } from "../models/poolModel";
-import { getAssetPriceFromAPI } from "../assets/price";
-import { getAssetPriceVolatility, getAssetPriceVolatilityDebug } from '../assets/volatility';
+import { getAssetPriceVolatility } from '../assets/volatility';
 import { Asset, ContractType } from '../types';
 import { getTradesWithin24HoursByTypeId } from '../models/tradeModel';
 
@@ -42,8 +41,6 @@ import { getTradesWithin24HoursByTypeId } from '../models/tradeModel';
 // For creating new contracts of an existing type with contracts being traded, look at bid / ask spread for determining price rather than using a financial model? It depends on how close models come to the traded price I suppose. Don't want to undersell them
 // For simulating bidding activity, run the BS model function to get a bid price for the contract and have the AI bid on that using an actual account (that's made for the purpose of this, i.e. account_id 1). This should simulate real demand over time as the price of the underlying asset and time expiry changes
 
-// NOTE: Technically, volatility will be constant across strikePrices so you could pass this as an argument instead since you'll be getting the same volatility across all strikes ... but it looks neater here
-// TODO: Consider whether I want to pass assetPrice as an arg instead, seeing as there are repeated calls for it when this is called in succession, but it will (should) be unchanging between calls
 // TODO: For future prices, use IV instead of HV based on activity (?)
 async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string, direction: boolean, assetPrice?: number) {
   // console.log('expiresAt:', expiresAt); // DEBUG
@@ -52,8 +49,7 @@ async function _getBSPrice(asset: Asset, strikePrice: number, expiresAt: string,
   let window = Math.ceil(timeToExpiry * 365);
   // console.log('window:', window); // DEBUG
   if (!assetPrice) { assetPrice = await getAssetPriceById(asset.assetId); }
-  // let volatility = await getAssetPriceVolatility(asset, assetPrice, 365, window); // TODO: Uncomment for production volatility results
-  let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, window);  // DEBUG, TODO: Delete for production
+  let volatility = await getAssetPriceVolatility(asset, 365, window);
   // let volatility = 0.611;  // EXTRA DEBUG
   // console.log('volatility:', volatility); // DEBUG
   return Math.trunc(bs.blackScholes( // TODO: May have to use assetAmount as a multiplier if I do microcap coins(?)
@@ -131,8 +127,7 @@ export async function writeContractTypeChain(assetId: number) {
       // Get historical volatility, use to generate a standard deviation from current price
       // Each standard deviation represents 1 strike price in either direction
       // let volatility = 0.5; // DEBUG
-      // let volatility = await getAssetPriceVolatility(asset, assetPrice, 365, daysOut); // TODO: Uncomment for production
-      let volatility = await getAssetPriceVolatilityDebug(asset, assetPrice, 365, daysOut); // DEBUG: Remove for production
+      let volatility = await getAssetPriceVolatility(asset, 365, daysOut);
       // console.log('volatility:', volatility); // DEBUG
       let deviation = Math.trunc((assetPrice * volatility) / roundMultiplier) * roundMultiplier;
       let stepMultiplier = 5; // NOTE: Increasing this decreases the amount of standard deviations in the chain
@@ -174,26 +169,25 @@ export async function writeContractTypeChain(assetId: number) {
       }
       let createdContractTypes = await Promise.all(createContractTypePromises);
       console.log('contractsToCreate', contractsToCreate); // DEBUG
-      return writeContractsForTypes(asset, createdContractTypes, unlockedAmount, assetPrice);
+      return writeContractsForTypes(asset, createdContractTypes, assetPrice, unlockedAmount);
   }
 }
 
-async function writeContractsForTypes(asset: Asset, contractTypes: ContractType[], unlockedAmount?: number, assetPrice?: number) {
-  let contractLimit = 0;
-  unlockedAmount =  unlockedAmount ? unlockedAmount : await getUnlockedAmountByAssetId(asset.assetId);
+/** To use when writing the next wave of contracts, uses 75% of unlocked amounts */
+async function writeContractsForTypes(asset: Asset, contractTypes: ContractType[], assetPrice: number, unlockedAmount: number) {
   let contractsToCreate = Math.floor((0.75 * unlockedAmount) / Number(asset.assetAmount)); // Aim to lock 75% of unlocked amounts
-  while (contractLimit < contractsToCreate) {
+  for (let i = 0; i < contractsToCreate; i++) {
     for (let type of contractTypes) {
       let askPrice =  await _getBSPrice(asset, Number(type.strikePrice), type.expiresAt, type.direction, assetPrice);
       try {
         await createContract(type.contractTypeId, askPrice); // NOTE: pg seems to get overwhelmed if I try to Promise.all these instead
-        contractLimit++
+        i++
       } catch {
-        console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
+        console.log(i, 'of', contractsToCreate, 'contracts created') // DEBUG
         return;
       }
-      if (contractLimit === contractsToCreate) {
-        console.log(contractLimit, 'of', contractsToCreate, 'contracts created') // DEBUG
+      if (i === contractsToCreate) {
+        console.log(i, 'of', contractsToCreate, 'contracts created') // DEBUG
         return;
       }
     }

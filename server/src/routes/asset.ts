@@ -95,7 +95,7 @@ router.get('/asset/list', (req, res, next) => {
 //  symbol (String) - Symbol or ticker of the financial asset
 //  priceApiId (Integer) - Id to use for retrieving price information from API
 router.post('/asset', (req, res, next) => {
-  if (!req.body.assetType || !req.body.assetType || !req.body.name || !req.body.symbol || !req.body.priceApiId) {
+  if (!req.body.assetType || !req.body.assetAmount || !req.body.name || !req.body.symbol || !req.body.priceApiId) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }
   assets.createAsset(req.body.assetType, req.body.assetAmount, req.body.name, req.body.symbol, req.body.priceApiId)

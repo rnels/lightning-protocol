@@ -11,6 +11,7 @@ import { Asset } from '../types';
 // NOTE: Known crypto asset IDs (CMC):
   // Bitcoin - 1
   // Ethereum - 1027
+  // Binance Coin - 1839
 
 // NOTE: There is an issue running this file for testing individually when also running the server dev
 // Need to shut down server dev first

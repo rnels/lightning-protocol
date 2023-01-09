@@ -1,17 +1,13 @@
 // Controller for retrieving volatility for provided asset
-// Utilizes CryptoCompare API for historical "closing price" data on crypto assets
 import dotenv from 'dotenv'; // DEBUG - Only need when running file standalone
 dotenv.config(); // DEBUG - Only need when running file standalone
 
-import axios from 'axios';
-import { Asset, AssetType } from '../types';
+import { Asset } from '../types';
 import {
   getAssetById,
   _createAssetPriceHistoryIfNotExists,
-  _getAssetPriceHistoryByAssetId,
   getAssetPriceHistoryByAssetIdLimit
 } from '../models/assetModel';
-import { updateCryptoPriceHistory } from './price';
 
 // NOTE: Known crypto asset Symbols (CC):
   // Bitcoin - BTC
@@ -20,6 +16,7 @@ import { updateCryptoPriceHistory } from './price';
 // Outputs the volatility in percentage from avg. price (%) for an array of prices
 // Split into groups defined by window in order to get multiple averages
 // TODO: Average it out further by introducing weights for recency
+// TODO: Make sure the group vol actually does anything
 function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
   if (window > prices.length) { window = prices.length; } // Safety in case it's passed less than the window prices
   const getGroupVol = (priceGroup: number[]) => {
@@ -47,19 +44,9 @@ function _getPriceVolatilityFromPrices(prices: number[], window=14): number {
   return volatility;
 }
 
-// Get a decimal representing a price volatility for the provided asset from the provided currentPrice
-export async function getAssetPriceVolatility(asset: Asset, currentPrice: number, lookback=365, window=14): Promise<number> {
-  // TODO: create conditionals for the different AssetTypes
-  await updateCryptoPriceHistory(asset, lookback);
-  let res = await getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
-  let dbPrices = res.map((e) => parseFloat(e.price as string));
-  let decimalVolatility = _getPriceVolatilityFromPrices(dbPrices, window);
-  return decimalVolatility;
-}
-
-// Get a decimal representing a price volatility for the provided asset from the provided currentPrice
+// Get a decimal representing a price volatility for the provided asset from historical prices
 // Doesn't make an API call to update historical volatility
-export async function getAssetPriceVolatilityDebug(asset: Asset, currentPrice: number, lookback=365, window=14): Promise<number> {
+export async function getAssetPriceVolatility(asset: Asset, lookback=365, window=14): Promise<number> {
   // TODO: create conditionals for the different assetTypes
   let res = await getAssetPriceHistoryByAssetIdLimit(asset.assetId, lookback);
   let dbPrices = res.map((e) => parseFloat(e.price as string));
@@ -70,6 +57,6 @@ export async function getAssetPriceVolatilityDebug(asset: Asset, currentPrice: n
 // TEST
 (async () => {
   let testAsset = await getAssetById(1);
-  let vol = await getAssetPriceVolatilityDebug(testAsset, 20295.80, 365);
+  let vol = await getAssetPriceVolatility(testAsset);
   console.log('getAssetPriceVolatilityDebug volatility:', vol);
 });
