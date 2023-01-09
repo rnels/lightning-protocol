@@ -8,7 +8,7 @@ export function getContractListByType(typeId: string | number): Promise<Contract
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -21,7 +21,7 @@ export function getContractListByTypeExt(typeId: string | number): Promise<Contr
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -33,7 +33,7 @@ export function getAsks(typeId: string | number): Promise<{askPrice: string | nu
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -48,7 +48,7 @@ export function getContractTypesByAssetId(assetId: string | number): Promise<Con
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -61,7 +61,7 @@ export function getTopBadgedContractTypes(assetId: string | number, direction: b
   url.searchParams.append('direction', direction.toString());
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -74,7 +74,7 @@ export function getFeaturedContractTypes(assetId: string | number, direction: bo
   url.searchParams.append('direction', direction.toString());
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -86,7 +86,7 @@ export function getContractTypesByAssetIdExt(assetId: string | number): Promise<
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -100,7 +100,7 @@ export function getBidsByType(typeId: string | number): Promise<Bid[]> {
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -114,7 +114,7 @@ export function getLastTrade(typeId: string | number): Promise<Trade> {
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -126,7 +126,7 @@ export function getDailyTrades(typeId: string | number): Promise<Trade[]> {
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -138,7 +138,7 @@ export function getDailyPriceChange(typeId: string | number): Promise<number> {
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -152,7 +152,7 @@ export function getAsset(assetId: string | number): Promise<Asset> {
   url.searchParams.append('id', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -163,7 +163,7 @@ export function getAssetList(): Promise<Asset[]> {
   var url = new URL(`${serverURL}/client/asset/list`);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -185,7 +185,7 @@ export function getAssetByIdExt(assetId: string | number): Promise<Asset[]> {
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -197,7 +197,7 @@ export function getAssetPrice(assetId: string | number): Promise<number> {
   url.searchParams.append('id', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -213,7 +213,7 @@ export function getAssetPriceHistory(
   url.searchParams.append('days', days as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -227,7 +227,7 @@ export function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -239,7 +239,7 @@ export function getPoolsByAssetIdExt(assetId: string | number): Promise<Pool[]> 
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -251,7 +251,7 @@ export function getPoolAssetAmountByAssetId(assetId: string | number): Promise<n
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -263,7 +263,7 @@ export function getPoolLocksByPoolId(poolId: string | number): Promise<PoolLock[
   url.searchParams.append('id', poolId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())
@@ -275,7 +275,7 @@ export function getPoolLockAssetAmountByAssetId(assetId: string | number): Promi
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
     method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
+    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
     credentials: 'include'
   })
     .then((result) => result.json())

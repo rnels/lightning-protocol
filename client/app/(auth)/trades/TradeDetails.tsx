@@ -7,7 +7,7 @@ import TradeCreatedAt from './TradeCreatedAt';
 import TradeType from './TradeType';
 import ContractTypeDetails from '../contracts/ContractTypeDetails';
 
-export default function TradeDetails(props: {trade: Trade, contractType: ContractType}) {
+export default function TradeDetails(props: {trade: Trade, contractType?: ContractType}) {
 
   return (
     <div className='trade-details'>
@@ -26,12 +26,16 @@ export default function TradeDetails(props: {trade: Trade, contractType: Contrac
       <TradeCreatedAt
         createdAt={props.trade.createdAt}
       />
+      {props.contractType &&
+      <>
       <h4>
         Contract Type
       </h4>
-      <ContractTypeDetails
+        <ContractTypeDetails
         contractType={props.contractType}
-      />
+        />
+      </>
+      }
     </div>
   );
 

@@ -16,6 +16,42 @@ export default async function AssetContractsPage( { params }: { params: { assetI
     contractTypeList
   } = await getPropsData(params.assetId);
 
+
+  const rowsData = await Promise.all(
+    contractTypeList.map(async (contractType) =>
+      {
+        const bidPrices = contractType.bids!.map((bid) => Number(bid.bidPrice));
+        const highestBid = bidPrices.length > 0 ? Math.max(...bidPrices) : null;
+        const openInterest = contractType.contracts!.length;
+        const [
+          asks,
+          lastTrade,
+          dailyTrades,
+          dailyPriceChange
+        ] = await Promise.all([
+            api.getAsks(contractType.contractTypeId).catch(() => []),
+            api.getLastTrade(contractType.contractTypeId).catch(() => {}),
+            api.getDailyTrades(contractType.contractTypeId).catch(() => []),
+            api.getDailyPriceChange(contractType.contractTypeId).catch(() => 0)
+          ]);
+        const askPrices = asks.map((ask) => Number(ask.askPrice));
+        const lowestAsk = askPrices.length > 0 ? Math.min(...askPrices) : null;
+        const lastPrice = lastTrade ? Number(lastTrade.salePrice) : 0;
+        return {
+          contractType,
+          lastPrice,
+          dailyPriceChange,
+          highestBid,
+          bidAmount: contractType.bids!.length,
+          lowestAsk,
+          askAmount: asks.length,
+          volume: dailyTrades.length,
+          openInterest
+        }
+      }
+    )
+  );
+
   return (
     <div className='asset-contracts-page'>
       <h2 className={styles.contractsPageHeader}>
@@ -29,7 +65,7 @@ export default async function AssetContractsPage( { params }: { params: { assetI
         `}
       </div>
       <ContractTypesTable
-        contractTypes={contractTypeList}
+        rowsData={rowsData}
         asset={asset}
       />
     </div>

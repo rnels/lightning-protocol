@@ -7,21 +7,35 @@ import { Asset, ContractType } from '../../../../lib/types';
 import ContractTableRow from './ContractTableRow';
 
 /** Renders a table of contract types */
-export default function ContractTypesTable(props: {contractTypes: ContractType[], asset: Asset}) {
+export default function ContractTypesTable(
+  props: {
+    rowsData: {
+      contractType: ContractType,
+      lastPrice: number,
+      dailyPriceChange: number,
+      highestBid: number | null,
+      bidAmount: number,
+      lowestAsk: number | null,
+      askAmount: number,
+      volume: number,
+      openInterest: number
+    }[],
+    asset: Asset
+  }
+) {
 
   const [directionFilter, setDirectionFilter] = useState<boolean>(true);
-  const [dateFilter, setDateFilter] = useState<string>(props.contractTypes[0].expiresAt);
-
+  const [dateFilter, setDateFilter] = useState<string>(props.rowsData[0].contractType.expiresAt);
   const [amountFilter, setAmountFilter] = useState<boolean>(false);
 
   // TODO: Ensure the time zone conversion works
-  const dateFilterList = props.contractTypes
-    .map((contractType) => contractType.expiresAt)
+  const dateFilterList = props.rowsData
+    .map((rowData) => rowData.contractType.expiresAt)
     .filter((expiry: string, i: number, expiryArray: string[]) => expiryArray.indexOf(expiry) === i);
 
-  const filteredTypeList = props.contractTypes
-    .filter((contractType => contractType.expiresAt === dateFilter && contractType.direction === directionFilter))
-    .sort((a, b) => Number(b.strikePrice) - Number(a.strikePrice));
+  const filteredRowsData = props.rowsData
+    .filter((rowData => rowData.contractType.expiresAt === dateFilter && rowData.contractType.direction === directionFilter))
+    .sort((typeA, typeB) => Number(typeB.contractType.strikePrice) - Number(typeA.contractType.strikePrice));
 
   return (
     <div className='contract-types-table'>
@@ -71,16 +85,13 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
           </tr>
         </thead>
         <tbody>
-        {filteredTypeList.map((contractType) =>
-          <>
-          {/* @ts-expect-error Server Component */}
+        {filteredRowsData.map((rowData) =>
           <ContractTableRow
-            key={contractType.contractTypeId}
-            contractType={contractType}
+            key={rowData.contractType.contractTypeId}
+            rowData={rowData}
             asset={props.asset}
             amountFilter={amountFilter}
           />
-          </>
         )}
         </tbody>
       </table>

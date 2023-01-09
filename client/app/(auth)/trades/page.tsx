@@ -16,13 +16,13 @@ export default function UserTradesPage() {
   if (!trades) return null;
 
   const renderElements =
-    trades.map(async (trade) => {
-      let contractType = await getContractType(trade.typeId); // TODO: This is slow, integrate this better
+    trades.map((trade) => {
+      // let contractType = await getContractType(trade.typeId); // TODO: This is slow, integrate this better
       return (
         <TradeDetails
           key={trade.tradeId}
           trade={trade}
-          contractType={contractType}
+          // contractType={contractType}
         />
       )
     });

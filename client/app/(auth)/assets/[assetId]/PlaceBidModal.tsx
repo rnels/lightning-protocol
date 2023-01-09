@@ -37,18 +37,20 @@ export default function PlaceBidModal(props: {
           setError(errorRes.message);
         }
       });
-    updateAccount();
+    updateAccount(); // TODO: For some reason, this is required for onClose to work properly
     props.onClose();
   };
 
-  if (!props.contractType.contractTypeId) {
-    return null; // TODO: Change this to render some info
-  }
+  // if (!props.contractType.contractTypeId) {
+  //   return null; // TODO: Change this to render some info
+  // }
 
   return (
     <Modal
       open={true}
-      onClose={(e) => props.onClose()}
+      onClose={() => {
+        props.onClose();
+      }} // TODO: Find out why clicking out of the modal doesn't close it
     >
     <div className={styles.modal}>
       <h2 className={styles.modalHeader}>Place Bid</h2>
@@ -87,7 +89,10 @@ export default function PlaceBidModal(props: {
         {error && <label className={styles.errorMessage}>{error}</label>}
       </form>
       {/* <button
-        onClick={(e) => props.onClose()}
+        onClick={(e) => {
+          e.preventDefault();
+          props.onClose()
+        }}
       >Close</button> */}
     </div>
     </Modal>
