@@ -1,6 +1,6 @@
 'use client';
 
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 import UserPoolDetails from './UserPoolDetails';
 
 import React, { useState } from 'react';

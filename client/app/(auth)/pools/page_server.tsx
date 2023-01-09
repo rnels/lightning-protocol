@@ -1,4 +1,4 @@
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 
 import React from 'react';
 import { cookies } from 'next/headers';

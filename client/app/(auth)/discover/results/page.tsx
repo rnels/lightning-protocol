@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './results.module.scss';
 import FeaturedTypeResults from './FeaturedTypeResults';
 import { cookies } from 'next/headers';
-import * as api from '../../../../lib/api';
+import * as api from '../../../../lib/api_client';
 
 // TODO: For some reason this page doesn't want to display anything
 // when the build is launched with the start script,

@@ -1,6 +1,6 @@
 
 import styles from './assets.module.scss';
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 import { cookies } from 'next/headers';
 
 // TODO: Have this updated on a regular basis

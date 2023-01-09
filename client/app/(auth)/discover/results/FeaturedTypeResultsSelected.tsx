@@ -1,6 +1,6 @@
 'use client';
 
-import * as api from '../../../../lib/api';
+import * as api from '../../../../lib/api_client';
 import React, { useEffect, useState } from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';

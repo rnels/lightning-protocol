@@ -1,4 +1,4 @@
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 import styles from './assets.module.scss';
 
 import React from 'react';

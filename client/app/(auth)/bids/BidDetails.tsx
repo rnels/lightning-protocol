@@ -1,6 +1,6 @@
 'use client';
 
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 import { Bid } from "../../../lib/types";
 
 import { useState } from 'react';

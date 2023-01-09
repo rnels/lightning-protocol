@@ -1,4 +1,4 @@
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 import ContractDetails from './ContractDetails';
 
 import React, { useEffect, useState } from 'react';

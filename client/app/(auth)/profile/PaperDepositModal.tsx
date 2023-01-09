@@ -5,7 +5,7 @@
 //   modalHeader as modalHeaderStyle
 // } from '../styles.module.scss';
 import styles from '../../styles.module.scss';
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 import Modal from '@mui/material/Modal';
 import React, { useState, FormEvent } from 'react';
 import { getAccount } from '../../../lib/swr';

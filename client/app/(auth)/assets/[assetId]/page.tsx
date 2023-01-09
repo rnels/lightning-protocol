@@ -3,7 +3,7 @@ import styles from '../assets.module.scss';
 import { cookies } from 'next/headers';
 import React from 'react';
 
-import * as api from '../../../../lib/api';
+import * as api from '../../../../lib/api_client';
 import ContractTypesTable from './ContractTypesTable';
 
 export default async function AssetContractsPage( { params }: { params: { assetId: string }} ) {
