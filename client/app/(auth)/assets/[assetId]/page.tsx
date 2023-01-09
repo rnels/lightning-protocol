@@ -45,7 +45,7 @@ async function getPropsData(assetId: string | number) {
     api.getAssetPriceHistory(assetId, 7),
     api.getPoolAssetAmountByAssetId(assetId),
     api.getPoolLockAssetAmountByAssetId(assetId),
-    api.getContractTypesByAssetId(assetId)
+    api.getContractTypesByAssetIdExt(assetId)
   ]);
 
   return {

@@ -1,6 +1,8 @@
+'use client';
+
 import styles from '../assets.module.scss';
 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Asset, ContractType } from '../../../../lib/types';
 import ContractTableRow from './ContractTableRow';
 
@@ -70,12 +72,15 @@ export default function ContractTypesTable(props: {contractTypes: ContractType[]
         </thead>
         <tbody>
         {filteredTypeList.map((contractType) =>
+          <>
+          {/* @ts-expect-error Server Component */}
           <ContractTableRow
             key={contractType.contractTypeId}
             contractType={contractType}
             asset={props.asset}
             amountFilter={amountFilter}
           />
+          </>
         )}
         </tbody>
       </table>

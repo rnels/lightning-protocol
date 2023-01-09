@@ -42,18 +42,6 @@ export function getAsks(typeId: string | number): Promise<{askPrice: string | nu
 
 // CONTRACT TYPES //
 
-export function getContractType(typeId: string | number): Promise<ContractType> {
-  var url = new URL(`${serverURL}/client/contract/type`);
-  url.searchParams.append('typeId', typeId as string);
-  return fetch(url, {
-    method: 'GET',
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
-  })
-    .then((result) => result.json())
-    .then((json) => json.contractType);
-}
-
 // NOTE: Only gets active contractTypes
 export function getContractTypesByAssetId(assetId: string | number): Promise<ContractType[]> {
   var url = new URL(`${serverURL}/client/contract/type/list`);

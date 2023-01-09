@@ -1,17 +1,23 @@
-import * as api from '../../../lib/api_client';
+'use client';
 
 import React from 'react';
 import TradeDetails from './TradeDetails';
-import { cookies } from 'next/headers';
+import ContractTypeDetails from '../contracts/ContractTypeDetails';
+import Link from 'next/link';
+import { Trade } from '../../../lib/types';
+import { getUserTrades } from '../../../lib/swr';
+import { getContractType } from '../../../lib/api_user';
+
 
 /** Renders a list of trades for the logged in user */
-// TODO: Convert this to a client component, use getAssetListOwnedExt() instead of getTrades() and getContractType()
-export default async function UserTradesPage() {
+export default function UserTradesPage() {
 
-  const trades = await getTrades();
-  const renderElements = await Promise.all(
+  const { trades } = getUserTrades();
+  if (!trades) return null;
+
+  const renderElements =
     trades.map(async (trade) => {
-      let contractType = await getContractType(trade.typeId);
+      let contractType = await getContractType(trade.typeId); // TODO: This is slow, integrate this better
       return (
         <TradeDetails
           key={trade.tradeId}
@@ -19,26 +25,14 @@ export default async function UserTradesPage() {
           contractType={contractType}
         />
       )
-    })
-  );
+    });
 
   return (
-    <div className='user-trades-page'>
+    <div className='user-bids-page'>
       <h2>My Trades</h2>
-      {renderElements}
+      <>{renderElements}</>
     </div>
   );
 
 }
 
-async function getTrades() {
-  let cookie = cookies().get('lightning-app-cookie');
-  let trades = await api.getUserTrades(cookie!.value);
-  return trades;
-}
-
-async function getContractType(typeId: number) {
-  let cookie = cookies().get('lightning-app-cookie');
-  let contractType = await api.getContractType(typeId, cookie!.value);
-  return contractType;
-}

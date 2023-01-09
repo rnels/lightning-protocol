@@ -72,6 +72,14 @@ export function removeAskPrice(contractId: string | number) {
 
 // CONTRACT TYPES //
 
+export function getContractType(typeId: string | number, cookie?: string): Promise<ContractType> {
+  return axios.get(`${serverURL}/user/contract/type`, {
+    params: { typeId },
+    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
+  })
+    .then((response) => response.data.contractType as ContractType);
+}
+
 export function getUserContractTypesByAssetIdExt(assetId: string | number, cookie?: string): Promise<ContractType[]> {
   return axios.get(`${serverURL}/user/group/contract/type`, {
     params: { assetId },
@@ -111,15 +119,6 @@ export function removeBid(bidId: number) {
     params: { bidId }
   })
     .then((response) => response.data);
-}
-
-// TRADES //
-
-export function getUserTrades(cookie?: string): Promise<Trade[]> {
-  return axios.get(`${serverURL}/user/trade/list`, {
-    headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {}
-  })
-    .then((response) => response.data.trades as Trade[]);
 }
 
 // ASSETS //

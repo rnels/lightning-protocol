@@ -62,6 +62,30 @@ router.get('/user/contract/list', (req, res, next) => {
     .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract list' }));
 });
 
+// Get contract type info by contract type ID
+// Expects in req.query:
+//  typeId - Contract type ID to retrieve details of
+// Successful response data:
+// contractType: {
+//   contractTypeId
+//   assetId
+//   direction
+//   strikePrice
+//   expiresAt
+// }
+// TODO: Figure out how to integrate this ultimately.
+// Right now this sticks out since it doesn't use req.user.id
+router.get('/user/contract/type', (req, res, next) => {
+  if (!req.query.typeId) {
+    return res.status(400).send({ message: 'Missing query parameter: typeId' });
+  }
+  contractTypes.getContractTypeById(req.query.typeId as string)
+    .then((contractType) => {
+      res.status(200).send({contractType});
+    })
+    .catch((error: any) => res.status(404).send({ message: 'Error retrieving contract type info' }));
+});
+
 // POST REQUESTS //
 
 // Exercises a contract
