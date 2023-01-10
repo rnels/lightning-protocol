@@ -124,10 +124,9 @@ $cardBorderRadius: 20px;
   font-size: 36px;
   font-weight: bold;
   padding: 15px 20px;
-  background: linear-gradient(240deg, #F4E3A6, #f4e3a655);
   border-radius: 1rem;
 }
 
-#featuredCardSelectButtonSelected {
-  background: #D7D7D7;
+#featuredCardSelectButton {
+  background: linear-gradient(240deg, #F4E3A6, #f4e3a655);
 }

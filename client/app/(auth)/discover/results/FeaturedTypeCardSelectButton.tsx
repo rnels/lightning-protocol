@@ -25,6 +25,7 @@ export default function FeaturedTypeCardSelectButton(props: {contractType: Contr
     <button
       onClick={(e) => handleClick()}
       id={data ? styles.featuredCardSelectButtonSelected : styles.featuredCardSelectButton}
+      className={data && 'selected'}
     >
       {data ? 'Selected' : 'Select'}
     </button>
