@@ -20,7 +20,7 @@ export default function PlaceBidModal(props: {
   onClose: Function
 }) {
 
-  const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
+  const [price, setPrice] = useState<number>(props.defaultBid || 0);
   const [amount, setAmount] = useState<number>(1);
   const [error, setError] = useState('');
 
@@ -38,6 +38,7 @@ export default function PlaceBidModal(props: {
         }
       });
     updateAccount(); // TODO: For some reason, this is required for onClose to work properly
+    // It's possible that this is due to forcing a re-render on account state changing
     props.onClose();
   };
 
@@ -50,7 +51,9 @@ export default function PlaceBidModal(props: {
       open={true}
       onClose={() => {
         props.onClose();
-      }} // TODO: Find out why clicking out of the modal doesn't close it
+        // TODO: Find out why clicking out of the modal doesn't close it
+        // Using ESC key works, but not clicking out. Also doesn't work on button (commented out), only on submit
+      }}
     >
     <div className={styles.modal}>
       <h2 className={styles.modalHeader}>Place Bid</h2>

@@ -1,3 +1,4 @@
+import authClient from './client/auth_client';
 import authUser from './user/auth_user';
 import account from './user/account';
 import asset from './client/asset';
@@ -12,9 +13,9 @@ import tradeUser from './user/trade_user';
 import groupClient from './client/group_client';
 import groupUser from './user/group_user';
 
-// TODO: Add authClient
 export default {
-  authUser, // Auth must always come first
+  authClient, // Auth must always come first
+  authUser,
   account,
   asset,
   contractClient,

@@ -7,9 +7,7 @@ export function getContractListByType(typeId: string | number): Promise<Contract
   var url = new URL(`${serverURL}/client/contract/list`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.contracts);
@@ -20,9 +18,7 @@ export function getContractListByTypeExt(typeId: string | number): Promise<Contr
   var url = new URL(`${serverURL}/client/group/contract`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.contracts);
@@ -32,9 +28,7 @@ export function getAsks(typeId: string | number): Promise<{askPrice: string | nu
   var url = new URL(`${serverURL}/client/contract/type/asks`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.asks);
@@ -47,9 +41,7 @@ export function getContractTypesByAssetId(assetId: string | number): Promise<Con
   var url = new URL(`${serverURL}/client/contract/type/list`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.contractTypes);
@@ -60,9 +52,7 @@ export function getTopBadgedContractTypes(assetId: string | number, direction: b
   url.searchParams.append('assetId', assetId as string);
   url.searchParams.append('direction', direction.toString());
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.contractTypes);
@@ -73,9 +63,7 @@ export function getFeaturedContractTypes(assetId: string | number, direction: bo
   url.searchParams.append('assetId', assetId as string);
   url.searchParams.append('direction', direction.toString());
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.contractTypes);
@@ -85,9 +73,7 @@ export function getContractTypesByAssetIdExt(assetId: string | number): Promise<
   var url = new URL(`${serverURL}/client/group/contract/type`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.contractTypes);
@@ -99,9 +85,7 @@ export function getBidsByType(typeId: string | number): Promise<Bid[]> {
   var url = new URL(`${serverURL}/client/bid/type`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.bids);
@@ -113,9 +97,7 @@ export function getLastTrade(typeId: string | number): Promise<Trade> {
   var url = new URL(`${serverURL}/client/trade/last`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.trade);
@@ -125,9 +107,7 @@ export function getDailyTrades(typeId: string | number): Promise<Trade[]> {
   var url = new URL(`${serverURL}/client/trade/daily`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.trades);
@@ -137,9 +117,7 @@ export function getDailyPriceChange(typeId: string | number): Promise<number> {
   var url = new URL(`${serverURL}/client/trade/daily/change`);
   url.searchParams.append('typeId', typeId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.priceChange);
@@ -151,9 +129,7 @@ export function getAsset(assetId: string | number): Promise<Asset> {
   var url = new URL(`${serverURL}/client/asset`);
   url.searchParams.append('id', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.asset);
@@ -162,9 +138,7 @@ export function getAsset(assetId: string | number): Promise<Asset> {
 export function getAssetList(): Promise<Asset[]> {
   var url = new URL(`${serverURL}/client/asset/list`);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.assets);
@@ -184,9 +158,7 @@ export function getAssetByIdExt(assetId: string | number): Promise<Asset[]> {
   var url = new URL(`${serverURL}/client/group/asset/id`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.assets);
@@ -196,9 +168,7 @@ export function getAssetPrice(assetId: string | number): Promise<number> {
   var url = new URL(`${serverURL}/client/asset/price`);
   url.searchParams.append('id', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => Number(json.price));
@@ -212,9 +182,7 @@ export function getAssetPriceHistory(
   url.searchParams.append('id', assetId as string);
   url.searchParams.append('days', days as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.prices);
@@ -226,9 +194,7 @@ export function getPoolsByAssetId(assetId: string | number): Promise<Pool[]> {
   var url = new URL(`${serverURL}/client/pool/list`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.pools);
@@ -238,9 +204,7 @@ export function getPoolsByAssetIdExt(assetId: string | number): Promise<Pool[]> 
   var url = new URL(`${serverURL}/client/group/pool`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.pools);
@@ -250,9 +214,7 @@ export function getPoolAssetAmountByAssetId(assetId: string | number): Promise<n
   var url = new URL(`${serverURL}/client/pool/asset`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.assetAmount);
@@ -262,9 +224,7 @@ export function getPoolLocksByPoolId(poolId: string | number): Promise<PoolLock[
   var url = new URL(`${serverURL}/client/pool/lock`);
   url.searchParams.append('id', poolId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.poolLocks);
@@ -274,9 +234,7 @@ export function getPoolLockAssetAmountByAssetId(assetId: string | number): Promi
   var url = new URL(`${serverURL}/client/pool/lock/asset`);
   url.searchParams.append('assetId', assetId as string);
   return fetch(url, {
-    method: 'GET',
-    // headers: cookie ? { Cookie: `lightning-app-cookie=${cookie}` } : {},
-    credentials: 'include'
+    method: 'GET'
   })
     .then((result) => result.json())
     .then((json) => json.assetAmount);

@@ -17,7 +17,6 @@ export default function PlaceBidTD(
 ) {
 
   const [showModal, setShowModal] = useState<boolean>(false);
-  console.log(showModal);
 
   return (
     <td onClick={() => setShowModal(true)}>
@@ -38,4 +37,4 @@ export default function PlaceBidTD(
     </td>
   );
 
-};
+}

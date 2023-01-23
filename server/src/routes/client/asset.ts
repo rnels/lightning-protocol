@@ -1,6 +1,5 @@
 import * as assets from '../../models/assetModel';
 import { Router } from 'express';
-import { Asset } from '../../types';
 const router = Router();
 
 // GET REQUESTS //

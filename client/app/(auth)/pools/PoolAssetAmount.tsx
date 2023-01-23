@@ -1,4 +1,4 @@
-export default function PoolAssetAmount(props: {assetAmount: string | number}) {
+export default function PoolAssetAmount(props: {assetAmount: number}) {
 
   return (
     <div className='pool-asset-amount'>
