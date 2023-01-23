@@ -6,7 +6,7 @@
 //   errorMessage as errorMessageStyle
 // } from '../../styles.module.scss';
 import styles from '../../../styles.module.scss';
-import * as api from '../../../../lib/api';
+import * as api from '../../../../lib/api_user';
 import { Asset, ContractType } from '../../../../lib/types';
 
 import { FormEvent, useState } from 'react';
@@ -20,7 +20,7 @@ export default function PlaceBidModal(props: {
   onClose: Function
 }) {
 
-  const [price, setPrice] = useState<number>(props.defaultBid || 0); // TODO: Default to current ask price(?)
+  const [price, setPrice] = useState<number>(props.defaultBid || 0);
   const [amount, setAmount] = useState<number>(1);
   const [error, setError] = useState('');
 
@@ -37,18 +37,23 @@ export default function PlaceBidModal(props: {
           setError(errorRes.message);
         }
       });
-    updateAccount();
+    updateAccount(); // TODO: For some reason, this is required for onClose to work properly
+    // It's possible that this is due to forcing a re-render on account state changing
     props.onClose();
   };
 
-  if (!props.contractType.contractTypeId) {
-    return null; // TODO: Change this to render some info
-  }
+  // if (!props.contractType.contractTypeId) {
+  //   return null; // TODO: Change this to render some info
+  // }
 
   return (
     <Modal
       open={true}
-      onClose={(e) => props.onClose()}
+      onClose={() => {
+        props.onClose();
+        // TODO: Find out why clicking out of the modal doesn't close it
+        // Using ESC key works, but not clicking out. Also doesn't work on button (commented out), only on submit
+      }}
     >
     <div className={styles.modal}>
       <h2 className={styles.modalHeader}>Place Bid</h2>
@@ -87,7 +92,10 @@ export default function PlaceBidModal(props: {
         {error && <label className={styles.errorMessage}>{error}</label>}
       </form>
       {/* <button
-        onClick={(e) => props.onClose()}
+        onClick={(e) => {
+          e.preventDefault();
+          props.onClose()
+        }}
       >Close</button> */}
     </div>
     </Modal>

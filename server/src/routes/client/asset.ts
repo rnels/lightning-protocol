@@ -1,6 +1,5 @@
-import * as assets from '../models/assetModel';
+import * as assets from '../../models/assetModel';
 import { Router } from 'express';
-import { Asset } from '../types';
 const router = Router();
 
 // GET REQUESTS //
@@ -20,7 +19,7 @@ const router = Router();
 //   lastUpdated,
 //   iconUrl
 // }
-router.get('/asset', (req, res, next) => {
+router.get('/client/asset', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
@@ -37,7 +36,7 @@ router.get('/asset', (req, res, next) => {
 // Successful response data:
 // price - number (decimal)
 // TODO: Check that this doesn't get converted to string?
-router.get('/asset/price', (req, res, next) => {
+router.get('/client/asset/price', (req, res, next) => {
   if (!req.query.id) {
     return res.status(400).send({ message: 'Missing query parameter: id' });
   }
@@ -61,7 +60,7 @@ router.get('/asset/price', (req, res, next) => {
 //    price: string | number
 //    dataPeriod: string
 //  }[]
-router.get('/asset/price/history', (req, res, next) => {
+router.get('/client/asset/price/history', (req, res, next) => {
   if (!req.query.id || !req.query.days) {
     return res.status(400).send({ message: 'Missing query parameter(s)' });
   }
@@ -77,7 +76,7 @@ router.get('/asset/price/history', (req, res, next) => {
 
 // Successful response data:
 // assets: Asset[]
-router.get('/asset/list', (req, res, next) => {
+router.get('/client/asset/list', (req, res, next) => {
   assets.getAllAssets()
     .then((assets) => {
       res.status(200).send({assets});
@@ -94,7 +93,7 @@ router.get('/asset/list', (req, res, next) => {
 //  name (String) - Name of the financial asset
 //  symbol (String) - Symbol or ticker of the financial asset
 //  priceApiId (Integer) - Id to use for retrieving price information from API
-router.post('/asset', (req, res, next) => {
+router.post('/client/asset', (req, res, next) => {
   if (!req.body.assetType || !req.body.assetAmount || !req.body.name || !req.body.symbol || !req.body.priceApiId) {
     return res.status(400).send({ message: 'Missing body parameters' });
   }

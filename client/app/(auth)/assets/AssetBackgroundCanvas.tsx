@@ -1,7 +1,5 @@
-
 'use client';
 
-import styles from './assets.module.scss';
 import { useEffect, useRef } from 'react';
 import { Asset } from '../../../lib/types';
 

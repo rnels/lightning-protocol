@@ -6,7 +6,7 @@ import { Account, Asset, Bid, Contract, ContractType, Pool, PoolLock, Trade } fr
 // ASSETS //
 
 export function getAssetListOwnedExt() {
-  let fetchUrl = new URL(`${serverURL}/group/asset/owned`);
+  let fetchUrl = new URL(`${serverURL}/user/group/asset`);
   let fetcher = (url: string) =>
     axios.get(url)
       .then((response) => response.data.assets as Asset[]);
@@ -26,7 +26,7 @@ export function getAssetListOwnedExt() {
 // ACCOUNTS //
 
 export function getAccount() {
-  let fetchUrl = new URL(`${serverURL}/account`);
+  let fetchUrl = new URL(`${serverURL}/user/account`);
   let fetcher = (url: string) =>
     axios.get(url)
       .then((response) => response.data.account as Account);
@@ -48,7 +48,7 @@ export function getAccount() {
 // CONTRACTS //
 
 export function getContract(contractId: string | number, initialData?: Contract) {
-  var fetchUrl = new URL(`${serverURL}/contract/ext`);
+  var fetchUrl = new URL(`${serverURL}/user/contract/ext`);
   fetchUrl.searchParams.append('id', contractId as string);
   let fetcher = (url: string) =>
     axios.get(url)
@@ -68,7 +68,7 @@ export function getContract(contractId: string | number, initialData?: Contract)
 // BIDS //
 
 export function getBid(bidId: string | number, initialData?: Bid){
-  var fetchUrl = new URL(`${serverURL}/bid`);
+  var fetchUrl = new URL(`${serverURL}/user/bid`);
   fetchUrl.searchParams.append('id', bidId as string);
   let fetcher = (url: string) =>
     axios.get(url)
@@ -88,7 +88,7 @@ export function getBid(bidId: string | number, initialData?: Bid){
 // POOLS //
 
 export function getPool(poolId: string | number, initialData?: Pool) {
-  var fetchUrl = new URL(`${serverURL}/pool`);
+  var fetchUrl = new URL(`${serverURL}/user/pool`);
   fetchUrl.searchParams.append('id', poolId as string);
   let fetcher = (url: string) =>
     axios.get(url)
@@ -102,5 +102,43 @@ export function getPool(poolId: string | number, initialData?: Pool) {
     pool: error ? undefined : data,
     error,
     updatePool: mutate.bind(mutate, data)
+  };
+}
+
+// TRADES //
+
+export function getTrade(tradeId: string | number, initialData?: Trade) {
+  var fetchUrl = new URL(`${serverURL}/user/trade`);
+  fetchUrl.searchParams.append('id', tradeId as string);
+  let fetcher = (url: string) =>
+    axios.get(url)
+      .then((response) => response.data.trade as Trade);
+  let url = fetchUrl.toString();
+  let options = {
+    ...(initialData && {fallbackData: initialData})
+  }
+  const { data, error, mutate } = useSWR(initialData ? null : url, fetcher, options);
+  return {
+    trade: error ? undefined : data,
+    error,
+    updateTrade: mutate.bind(mutate, data)
+  };
+}
+
+export function getUserTrades() {
+  let fetchUrl = new URL(`${serverURL}/user/trade/list`);
+  let fetcher = (url: string) =>
+    axios.get(url)
+      .then((response) => response.data.trades as Trade[]);
+  let url = fetchUrl.toString();
+  let options = { // When navigating away and back to the page
+    revalidateIfStale: true,
+    revalidateOnFocus: true
+  }
+  const { data, error, mutate } = useSWR(url, fetcher, options);
+  return {
+    trades: error ? undefined : data,
+    error,
+    updateUserTrades: mutate.bind(mutate, data)
   };
 }

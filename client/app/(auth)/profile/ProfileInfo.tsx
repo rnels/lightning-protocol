@@ -1,8 +1,7 @@
 'use client';
 
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_user';
 import React, { useState } from 'react';
-import { redirect } from 'next/navigation';
 import PaperDepositModal from './PaperDepositModal';
 import { getAccount } from '../../../lib/swr';
 

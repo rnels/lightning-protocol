@@ -1,6 +1,6 @@
-import * as accounts from '../models/accountModel';
+import * as accounts from '../../models/accountModel';
 import { Router } from 'express';
-import { Account } from '../types';
+import { Account } from '../../types';
 const router = Router();
 
 // GET REQUESTS //
@@ -14,7 +14,7 @@ const router = Router();
 //   lastName
 //   paper
 // }
-router.get('/account', (req, res) => {
+router.get('/user/account', (req, res) => {
   accounts.getAccountInfoById(req.user!.id)
     .then((account) => {
       res.status(200).send({account});
@@ -27,7 +27,7 @@ router.get('/account', (req, res) => {
 // Provide an account with paper
 // Expects in req.body:
 //  amount (Decimal) - Amount of paper to supply the account with
-router.post('/account/paper', (req, res) => {
+router.post('/user/account/paper', (req, res) => {
   if (!req.body.amount) {
     return res.status(400).send({ message: 'Missing body parameter: amount' });
   }
@@ -36,7 +36,7 @@ router.post('/account/paper', (req, res) => {
     .catch((error: any) => res.status(400).send({ message: 'Error depositing paper to account' }));
 });
 
-router.post('/account/paper/withdraw', (req, res) => {
+router.post('/user/account/paper/withdraw', (req, res) => {
   if (!req.body.amount) {
     return res.status(400).send({ message: 'Missing body parameter: amount' });
   }

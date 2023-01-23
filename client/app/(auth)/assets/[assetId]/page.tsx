@@ -1,9 +1,8 @@
 import styles from '../assets.module.scss';
 
-import { cookies } from 'next/headers';
 import React from 'react';
 
-import * as api from '../../../../lib/api';
+import * as api from '../../../../lib/api_client';
 import ContractTypesTable from './ContractTypesTable';
 
 export default async function AssetContractsPage( { params }: { params: { assetId: string }} ) {
@@ -16,6 +15,42 @@ export default async function AssetContractsPage( { params }: { params: { assetI
     poolLockAssetAmount,
     contractTypeList
   } = await getPropsData(params.assetId);
+
+
+  const rowsData = await Promise.all(
+    contractTypeList.map(async (contractType) =>
+      {
+        const bidPrices = contractType.bids!.map((bid) => Number(bid.bidPrice));
+        const highestBid = bidPrices.length > 0 ? Math.max(...bidPrices) : null;
+        const openInterest = contractType.contracts!.length;
+        const [
+          asks,
+          lastTrade,
+          dailyTrades,
+          dailyPriceChange
+        ] = await Promise.all([
+            api.getAsks(contractType.contractTypeId).catch(() => []),
+            api.getLastTrade(contractType.contractTypeId).catch(() => {}),
+            api.getDailyTrades(contractType.contractTypeId).catch(() => []),
+            api.getDailyPriceChange(contractType.contractTypeId).catch(() => 0)
+          ]);
+        const askPrices = asks.map((ask) => Number(ask.askPrice));
+        const lowestAsk = askPrices.length > 0 ? Math.min(...askPrices) : null;
+        const lastPrice = lastTrade ? Number(lastTrade.salePrice) : 0;
+        return {
+          contractType,
+          lastPrice,
+          dailyPriceChange,
+          highestBid,
+          bidAmount: contractType.bids!.length,
+          lowestAsk,
+          askAmount: asks.length,
+          volume: dailyTrades.length,
+          openInterest
+        }
+      }
+    )
+  );
 
   return (
     <div className='asset-contracts-page'>
@@ -30,7 +65,7 @@ export default async function AssetContractsPage( { params }: { params: { assetI
         `}
       </div>
       <ContractTypesTable
-        contractTypes={contractTypeList}
+        rowsData={rowsData}
         asset={asset}
       />
     </div>
@@ -40,15 +75,13 @@ export default async function AssetContractsPage( { params }: { params: { assetI
 
 async function getPropsData(assetId: string | number) {
 
-  let cookie = cookies().get('lightning-app-cookie');
-
   let results = await Promise.all([
-    api.getAsset(assetId, cookie!.value),
-    api.getAssetPrice(assetId, cookie!.value),
-    api.getAssetPriceHistory(assetId, 7, cookie!.value),
-    api.getPoolAssetAmountByAssetId(assetId, cookie!.value),
-    api.getPoolLockAssetAmountByAssetId(assetId, cookie!.value),
-    api.getContractTypesByAssetId(assetId, cookie!.value)
+    api.getAsset(assetId),
+    api.getAssetPrice(assetId),
+    api.getAssetPriceHistory(assetId, 7),
+    api.getPoolAssetAmountByAssetId(assetId),
+    api.getPoolLockAssetAmountByAssetId(assetId),
+    api.getContractTypesByAssetIdExt(assetId)
   ]);
 
   return {

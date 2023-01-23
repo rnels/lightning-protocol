@@ -1,7 +1,6 @@
 
 import styles from './assets.module.scss';
-import * as api from '../../../lib/api';
-import { cookies } from 'next/headers';
+import * as api from '../../../lib/api_client';
 
 // NOTE: This is not currently being used anywhere
 export default async function AssetPriceHistory(props: {assetId: number}) {
@@ -17,7 +16,6 @@ export default async function AssetPriceHistory(props: {assetId: number}) {
 }
 
 async function getAssetPriceHistory(assetId: string | number, days=7) {
-  let cookie = cookies().get('lightning-app-cookie');
-  let assetPriceHistory = await api.getAssetPriceHistory(assetId, days, cookie!.value);
+  let assetPriceHistory = await api.getAssetPriceHistory(assetId, days);
   return assetPriceHistory;
 }

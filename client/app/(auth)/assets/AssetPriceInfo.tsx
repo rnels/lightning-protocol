@@ -1,7 +1,5 @@
-
 import styles from './assets.module.scss';
-import * as api from '../../../lib/api'; // TODO: Ensure that using 'import * as api' instead of destructuring specific methods does not hurt our memory usage by loading the entire api.ts file every time
-import { cookies } from 'next/headers';
+import * as api from '../../../lib/api_client'; // TODO: Ensure that using 'import * as api' instead of destructuring specific methods does not hurt our memory usage by loading the entire api.ts file every time
 
 import AssetPriceHistoryCanvas from './AssetPriceHistoryCanvas';
 
@@ -49,14 +47,12 @@ function AssetPrice(props: {assetPrice: number}) {
 }
 
 async function getAssetPrice(assetId: number) {
-  let cookie = cookies().get('lightning-app-cookie');
-  let price = await api.getAssetPrice(assetId, cookie!.value);
+  let price = await api.getAssetPrice(assetId);
   return price;
 }
 
 async function getAssetPriceHistory(assetId: string | number, days=7): Promise<{ price: string | number; dataPeriod: string; }[]> {
-  let cookie = cookies().get('lightning-app-cookie');
-  let assetPriceHistory = await api.getAssetPriceHistory(assetId, days, cookie!.value);
+  let assetPriceHistory = await api.getAssetPriceHistory(assetId, days);
   return assetPriceHistory;
 }
 

@@ -1,8 +1,7 @@
 import React from 'react';
 import styles from './results.module.scss';
 import FeaturedTypeResults from './FeaturedTypeResults';
-import { cookies } from 'next/headers';
-import * as api from '../../../../lib/api';
+import * as api from '../../../../lib/api_client';
 
 // TODO: For some reason this page doesn't want to display anything
 // when the build is launched with the start script,
@@ -33,13 +32,11 @@ export default async function DiscoverResultsPage({ searchParams }: {
 }
 
 async function getFeaturedContractTypes(assetId: string | number, direction: boolean) {
-  let cookie = cookies().get('lightning-app-cookie');
-  let contractTypes = await api.getFeaturedContractTypes(assetId, direction, cookie!.value);
+  let contractTypes = await api.getFeaturedContractTypes(assetId, direction);
   return contractTypes;
 }
 
 async function getAssetPrice(assetId: number) {
-  let cookie = cookies().get('lightning-app-cookie');
-  let price = await api.getAssetPrice(assetId, cookie!.value);
+  let price = await api.getAssetPrice(assetId);
   return price;
 }

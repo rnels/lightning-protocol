@@ -1,8 +1,6 @@
 'use client';
 
-import * as api from '../../../../lib/api';
 import React, { useState } from 'react';
-import styles from './results.module.scss';
 import InfoIconClient from './InfoIconClientWrapped';
 import { ContractType } from '../../../../lib/types';
 

@@ -1,10 +1,9 @@
 'use client';
 
-import * as api from '../../../../lib/api';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styles from './results.module.scss';
 import { ContractType } from '../../../../lib/types';
-import useSWR, { useSWRConfig } from 'swr';
+import useSWR from 'swr';
 
 export default function FeaturedTypeCardSelectButton(props: {contractType: ContractType}) {
 
@@ -26,6 +25,7 @@ export default function FeaturedTypeCardSelectButton(props: {contractType: Contr
     <button
       onClick={(e) => handleClick()}
       id={data ? styles.featuredCardSelectButtonSelected : styles.featuredCardSelectButton}
+      className={data && 'selected'}
     >
       {data ? 'Selected' : 'Select'}
     </button>

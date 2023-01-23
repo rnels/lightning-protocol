@@ -1,9 +1,8 @@
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_client';
 import styles from './assets.module.scss';
 
 import React from 'react';
 import AssetList from './AssetList';
-import { cookies } from 'next/headers';
 
 export default async function AssetsPage() {
 
@@ -21,7 +20,6 @@ export default async function AssetsPage() {
 }
 
 async function getAssetList() {
-  let cookie = cookies().get('lightning-app-cookie');
-  let assetList = await api.getAssetList(cookie!.value);
+  let assetList = await api.getAssetList();
   return assetList;
 }

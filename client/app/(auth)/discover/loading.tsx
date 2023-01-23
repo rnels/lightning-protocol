@@ -1,5 +1,3 @@
-import styles from './discover.module.scss';
-
 import React from 'react';
 
 export default function DiscoverLoading() {

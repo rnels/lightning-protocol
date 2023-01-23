@@ -41,6 +41,11 @@ button:disabled:hover {
   cursor: default;
 }
 
+button.selected {
+  background: #D7D7D7;
+  box-shadow: none;
+}
+
 form {
   display: flex;
   flex-direction: column;

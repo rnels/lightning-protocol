@@ -6,7 +6,7 @@
 //   errorMessage as errorMessageStyle
 // } from '../styles.module.scss';
 import styles from '../../styles.module.scss';
-import * as api from '../../../lib/api';
+import * as api from '../../../lib/api_user';
 import { Bid } from '../../../lib/types';
 
 import { FormEvent, useState } from 'react';
